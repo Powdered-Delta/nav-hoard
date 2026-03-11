@@ -1,0 +1,76 @@
+{
+  "version": "0.2",
+  "updated_at": "2026-03-09T07:00:00Z",
+  "entries": [
+    {
+      "id": "a1b2c3d4e5f6",
+      "url": "https://www.example.com/blog/understanding-react-hooks",
+      "title": "深入理解 React Hooks 的工作原理",
+      "summary": "本文详细解析了 React Hooks 的内部实现机制，包括 useEffect、useState 的调度与渲染流程，帮助开发者写出更高效的组件代码。",
+      "tags": [
+        "React",
+        "前端",
+        "Hooks"
+      ],
+      "source": "example.com",
+      "created_at": "2026-03-08T10:30:00Z",
+      "updated_at": "2026-03-08T10:30:00Z"
+    },
+    {
+      "id": "b2c3d4e5f6a7",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining",
+      "title": "Optional chaining (?.) - JavaScript | MDN",
+      "summary": "可选链操作符允许读取位于连接对象链深处的属性的值，而不必显式验证链中的每个引用是否有效。大幅提升代码简洁性。",
+      "tags": [
+        "JavaScript",
+        "ES2020",
+        "语法"
+      ],
+      "source": "developer.mozilla.org",
+      "created_at": "2026-03-07T14:20:00Z",
+      "updated_at": "2026-03-07T14:20:00Z"
+    },
+    {
+      "id": "c3d4e5f6a7b8",
+      "url": "https://blog.chromium.org/2024/01/v8-performance-improvements-in-2023.html",
+      "title": "V8 performance improvements in 2023",
+      "summary": "Chrome V8 团队在 2023 年实现了多项性能优化，包括内存压缩、编译器改进等，显著提升了 Web 应用运行速度。",
+      "tags": [
+        "V8",
+        "性能",
+        "Chrome"
+      ],
+      "source": "blog.chromium.org",
+      "created_at": "2026-03-06T09:15:00Z",
+      "updated_at": "2026-03-06T09:15:00Z"
+    },
+    {
+      "id": "d4e5f6a7b8c9",
+      "url": "https://www.solidot.org/story?sid=78421",
+      "title": "Solidot: 量子计算新进展：IBM 推出 1000+ 量子比特处理器",
+      "summary": "IBM 在量子计算领域取得重大突破，发布了超过 1000 量子比特的新一代处理器，并展示了错误缓解技术的实际应用。",
+      "tags": [
+        "量子计算",
+        "IBM",
+        "硬件"
+      ],
+      "source": "solidot.org",
+      "created_at": "2026-03-05T16:45:00Z",
+      "updated_at": "2026-03-05T16:45:00Z"
+    },
+    {
+      "id": "e5f6a7b8c9d0",
+      "url": "https://github.com/features/copilot",
+      "title": "GitHub Copilot: Your AI pair programmer",
+      "summary": "GitHub Copilot 是一款基于 AI 的代码补全工具，能够根据上下文自动生成代码片段，大幅提升开发效率。支持多种编程语言。",
+      "tags": [
+        "AI",
+        "工具",
+        "GitHub"
+      ],
+      "source": "github.com",
+      "created_at": "2026-03-04T11:20:00Z",
+      "updated_at": "2026-03-04T11:20:00Z"
+    }
+  ]
+}

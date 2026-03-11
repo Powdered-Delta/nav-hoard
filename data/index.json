@@ -1,0 +1,496 @@
+{
+  "version": "0.2",
+  "updated_at": "2026-03-09T07:00:00Z",
+  "entries": [
+    {
+      "id": "a1b2c3d4e5f6",
+      "url": "https://www.example.com/blog/understanding-react-hooks",
+      "title": "深入理解 React Hooks 的工作原理",
+      "summary": "本文详细解析了 React Hooks 的内部实现机制，包括 useEffect、useState 的调度与渲染流程，帮助开发者写出更高效的组件代码。",
+      "tags": ["React", "前端", "Hooks"],
+      "source": "example.com",
+      "created_at": "2026-03-08T10:30:00Z",
+      "updated_at": "2026-03-08T10:30:00Z"
+    },
+    {
+      "id": "b2c3d4e5f6a7",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining",
+      "title": "Optional chaining (?.) - JavaScript | MDN",
+      "summary": "可选链操作符允许读取位于连接对象链深处的属性的值，而不必显式验证链中的每个引用是否有效。大幅提升代码简洁性。",
+      "tags": ["JavaScript", "ES2020", "语法"],
+      "source": "developer.mozilla.org",
+      "created_at": "2026-03-07T14:20:00Z",
+      "updated_at": "2026-03-07T14:20:00Z"
+    },
+    {
+      "id": "c3d4e5f6a7b8",
+      "url": "https://blog.chromium.org/2024/01/v8-performance-improvements-in-2023.html",
+      "title": "V8 performance improvements in 2023",
+      "summary": "Chrome V8 团队在 2023 年实现了多项性能优化，包括内存压缩、编译器改进等，显著提升了 Web 应用运行速度。",
+      "tags": ["V8", "性能", "Chrome"],
+      "source": "blog.chromium.org",
+      "created_at": "2026-03-06T09:15:00Z",
+      "updated_at": "2026-03-06T09:15:00Z"
+    },
+    {
+      "id": "d4e5f6a7b8c9",
+      "url": "https://www.solidot.org/story?sid=78421",
+      "title": "Solidot: 量子计算新进展：IBM 推出 1000+ 量子比特处理器",
+      "summary": "IBM 在量子计算领域取得重大突破，发布了超过 1000 量子比特的新一代处理器，并展示了错误缓解技术的实际应用。",
+      "tags": ["量子计算", "IBM", "硬件"],
+      "source": "solidot.org",
+      "created_at": "2026-03-05T16:45:00Z",
+      "updated_at": "2026-03-05T16:45:00Z"
+    },
+    {
+      "id": "e5f6a7b8c9d0",
+      "url": "https://github.com/features/copilot",
+      "title": "GitHub Copilot: Your AI pair programmer",
+      "summary": "GitHub Copilot 是一款基于 AI 的代码补全工具，能够根据上下文自动生成代码片段，大幅提升开发效率。支持多种编程语言。",
+      "tags": ["AI", "工具", "GitHub"],
+      "source": "github.com",
+      "created_at": "2026-03-04T11:20:00Z",
+      "updated_at": "2026-03-04T11:20:00Z"
+    },
+    {
+      "id": "f6a7b8c9d0e1",
+      "url": "https://news.ycombinator.com/",
+      "title": "Hacker News 首页 - 科技与创业话题",
+      "summary": "Hacker News 是 Y Combinator 运营的新闻聚合社区，聚焦计算机科学、创业和技术创新，是极客必备的信息源。",
+      "tags": ["资讯", "社区", "极客"],
+      "source": "news.ycombinator.com",
+      "created_at": "2026-03-09T08:00:00Z",
+      "updated_at": "2026-03-09T08:00:00Z"
+    },
+    {
+      "id": "a7b8c9d0e1f2",
+      "url": "https://www.theverge.com/23769314/solar-powered-plane-circumnavigation",
+      "title": "Solar-powered plane completes round-the-world flight",
+      "summary": "一架完全由太阳能驱动的飞机成功完成环球飞行，这标志着可再生能源在航空领域的重大里程碑，展示了清洁能源的潜力。",
+      "tags": ["能源", "航空", "环保"],
+      "source": "theverge.com",
+      "created_at": "2026-03-03T13:10:00Z",
+      "updated_at": "2026-03-03T13:10:00Z"
+    },
+    {
+      "id": "b8c9d0e1f2a3",
+      "url": "https://lwn.net/Articles/927645/",
+      "title": "LWN: Kernel development process changes proposed",
+      "summary": "Linus Torvalds 提出 Linux 内核开发流程的若干改进建议，包括代码审查流程和合并窗口期的调整，旨在提高内核质量与稳定性。",
+      "tags": ["Linux", "内核", "开源"],
+      "source": "lwn.net",
+      "created_at": "2026-03-02T17:30:00Z",
+      "updated_at": "2026-03-02T17:30:00Z"
+    },
+    {
+      "id": "c9d0e1f2a3b4",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "title": "Rick Astley - Never Gonna Give You Up (Official Music Video)",
+      "summary": "经典的 Rickroll 音乐视频，互联网文化的一部分， NEVER GONNA GIVE YOU UP, NEVER GONNA LET YOU DOWN.",
+      "tags": ["音乐", "文化", "经典"],
+      "source": "youtube.com",
+      "created_at": "2009-10-25T14:00:00Z",
+      "updated_at": "2026-03-01T10:00:00Z"
+    },
+    {
+      "id": "d0e1f2a3b4c5",
+      "url": "https://www.nasa.gov/mission_pages/station/research/news/black_hole_merger",
+      "title": "NASA Observes Black Hole Merger in Distant Galaxy",
+      "summary": "NASA 的望远镜阵列观测到遥远星系中的两个超大质量黑洞合并事件，这有助于理解星系演化过程。",
+      "tags": ["天文", "NASA", "黑洞"],
+      "source": "nasa.gov",
+      "created_at": "2026-02-28T22:15:00Z",
+      "updated_at": "2026-02-28T22:15:00Z"
+    },
+    {
+      "id": "e1f2a3b4c5d6",
+      "url": "https://www.rust-lang.org/",
+      "title": "The Rust Programming Language",
+      "summary": "Rust 是一门赋予每个人构建可靠且高效软件能力的系统编程语言。它拥有零成本抽象、所有权系统等特性。",
+      "tags": ["Rust", "系统编程", "语言"],
+      "source": "rust-lang.org",
+      "created_at": "2026-02-27T08:45:00Z",
+      "updated_at": "2026-02-27T08:45:00Z"
+    },
+    {
+      "id": "f2a3b4c5d6e7",
+      "url": "https://go.dev/doc/effective_go",
+      "title": "Effective Go - The Go Programming Language",
+      "summary": "Go 语言官方文档：Effective Go 教你如何写出地道的 Go 代码，涵盖命名、格式化、注释等风格指南。",
+      "tags": ["Go", "最佳实践", "文档"],
+      "source": "go.dev",
+      "created_at": "2026-02-26T14:00:00Z",
+      "updated_at": "2026-02-26T14:00:00Z"
+    },
+    {
+      "id": "a3b4c5d6e7f8",
+      "url": "https://vuejs.org/guide/introduction.html",
+      "title": "Vue.js - The Progressive JavaScript Framework",
+      "summary": "Vue.js 是一套用于构建用户界面的渐进式框架。与其它大型框架不同的是，Vue 采用自底向上增量开发的设计。",
+      "tags": ["Vue", "前端", "框架"],
+      "source": "vuejs.org",
+      "created_at": "2026-02-25T10:20:00Z",
+      "updated_at": "2026-02-25T10:20:00Z"
+    },
+    {
+      "id": "b4c5d6e7f8a9",
+      "url": "https://svelte.dev/",
+      "title": "Svelte · Cybernetically enhanced web apps",
+      "summary": "Svelte 是一个前端框架，它在构建时将组件编译成高效的原生 JavaScript 代码，而非在运行时操作虚拟 DOM。",
+      "tags": ["Svelte", "前端", "编译时"],
+      "source": "svelte.dev",
+      "created_at": "2026-02-24T12:30:00Z",
+      "updated_at": "2026-02-24T12:30:00Z"
+    },
+    {
+      "id": "c5d6e7f8a9b0",
+      "url": "https://www.python.org/",
+      "title": "Welcome to Python.org",
+      "summary": "Python 是一种易于学习、功能强大的编程语言。它具有高效的高级数据结构和简单而有效的面向对象编程方法。",
+      "tags": ["Python", "后端", "脚本"],
+      "source": "python.org",
+      "created_at": "2026-02-23T09:10:00Z",
+      "updated_at": "2026-02-23T09:10:00Z"
+    },
+    {
+      "id": "d6e7f8a9b0c1",
+      "url": "https://kubernetes.io/",
+      "title": "Kubernetes Production-Grade Container Orchestration",
+      "summary": "Kubernetes 是一个生产级别的容器编排系统，用于自动化部署、扩展和管理容器化应用。",
+      "tags": ["Kubernetes", "容器", "DevOps"],
+      "source": "kubernetes.io",
+      "created_at": "2026-02-22T15:45:00Z",
+      "updated_at": "2026-02-22T15:45:00Z"
+    },
+    {
+      "id": "e7f8a9b0c1d2",
+      "url": "https://www.docker.com/",
+      "title": "Docker: Develop faster. Run anywhere.",
+      "summary": "Docker 提供容器化平台，让开发者能够将应用及其依赖打包成标准化的镜像，实现一致的开发和部署体验。",
+      "tags": ["Docker", "容器", "工具"],
+      "source": "docker.com",
+      "created_at": "2026-02-21T11:00:00Z",
+      "updated_at": "2026-02-21T11:00:00Z"
+    },
+    {
+      "id": "f8a9b0c1d2e3",
+      "url": "https://www.tensorflow.org/",
+      "title": "TensorFlow - Open Source Machine Learning Framework",
+      "summary": "TensorFlow 是一个端到端的开源机器学习平台，具有庞大的生态系统和工具库，适用于生产环境下的 ML 开发。",
+      "tags": ["TensorFlow", "机器学习", "AI"],
+      "source": "tensorflow.org",
+      "created_at": "2026-02-20T08:30:00Z",
+      "updated_at": "2026-02-20T08:30:00Z"
+    },
+    {
+      "id": "a9b0c1d2e3f4",
+      "url": "https://pytorch.org/",
+      "title": "PyTorch: Tensors and Dynamic neural networks in Python",
+      "summary": "PyTorch 是一个基于 Torch 的 Python 机器学习库，提供强大的 GPU 加速张量计算，以及灵活的深度学习框架。",
+      "tags": ["PyTorch", "机器学习", "Python"],
+      "source": "pytorch.org",
+      "created_at": "2026-02-19T14:20:00Z",
+      "updated_at": "2026-02-19T14:20:00Z"
+    },
+    {
+      "id": "b0c1d2e3f4a5",
+      "url": "https://www.anthropic.com/",
+      "title": "Anthropic · Building safe AI systems",
+      "summary": "Anthropic 是一家专注于人工智能安全和研究的公司，其大语言模型 Claude 在对话理解和生成方面表现出色。",
+      "tags": ["Anthropic", "AI", "安全"],
+      "source": "anthropic.com",
+      "created_at": "2026-02-18T10:00:00Z",
+      "updated_at": "2026-02-18T10:00:00Z"
+    },
+    {
+      "id": "c1d2e3f4a5b6",
+      "url": "https://openai.com/",
+      "title": "OpenAI: Creating safe AGI that benefits all of humanity",
+      "summary": "OpenAI 致力于创造安全的人工通用智能（AGI），使其造福全人类。著名产品包括 GPT 系列、DALL-E、ChatGPT。",
+      "tags": ["OpenAI", "GPT", "AI"],
+      "source": "openai.com",
+      "created_at": "2026-02-17T09:15:00Z",
+      "updated_at": "2026-02-17T09:15:00Z"
+    },
+    {
+      "id": "d2e3f4a5b6c7",
+      "url": "https://platform.openai.com/docs/guides/embeddings",
+      "title": "OpenAI Embeddings Guide",
+      "summary": "OpenAI Embeddings API 文档，介绍如何将文本转换为向量表示，用于搜索、聚类、推荐等下游任务。",
+      "tags": ["OpenAI", "Embeddings", "API"],
+      "source": "platform.openai.com",
+      "created_at": "2026-02-16T16:30:00Z",
+      "updated_at": "2026-02-16T16:30:00Z"
+    },
+    {
+      "id": "e3f4a5b6c7d8",
+      "url": "https://huggingface.co/",
+      "title": "Hugging Face – The AI community building the future.",
+      "summary": "Hugging Face 是 AI 领域的 GitHub，提供大量预训练模型数据集，以及 Transformers 库，极大降低了 AI 开发门槛。",
+      "tags": ["HuggingFace", "模型", "社区"],
+      "source": "huggingface.co",
+      "created_at": "2026-02-15T13:45:00Z",
+      "updated_at": "2026-02-15T13:45:00Z"
+    },
+    {
+      "id": "f4a5b6c7d8e9",
+      "url": "https://vercel.com/",
+      "title": "Vercel: Develop. Preview. Ship.",
+      "summary": "Vercel 是前端开发云平台，提供零配置的部署、边缘网络、Serverless Functions 等， Next.js 背后的公司。",
+      "tags": ["Vercel", "前端", "云平台"],
+      "source": "vercel.com",
+      "created_at": "2026-02-14T10:20:00Z",
+      "updated_at": "2026-02-14T10:20:00Z"
+    },
+    {
+      "id": "a5b6c7d8e9f0",
+      "url": "https://netlify.com/",
+      "title": "Netlify: Develop and deploy websites and apps",
+      "summary": "Netlify 提供统一的全栈平台，从静态网站到 Serverless Functions 和边缘函数，让部署变得极其简单。",
+      "tags": ["Netlify", "部署", "云平台"],
+      "source": "netlify.com",
+      "created_at": "2026-02-13T08:40:00Z",
+      "updated_at": "2026-02-13T08:40:00Z"
+    },
+    {
+      "id": "b6c7d8e9f0a1",
+      "url": "https://pages.github.com/",
+      "title": "GitHub Pages | Websites for you and your projects",
+      "summary": "GitHub Pages 允许用户直接从 GitHub 仓库托管静态网站，支持自定义域名，是开源项目展示的理想选择。",
+      "tags": ["GitHub", "Pages", "托管"],
+      "source": "pages.github.com",
+      "created_at": "2026-02-12T15:00:00Z",
+      "updated_at": "2026-02-12T15:00:00Z"
+    },
+    {
+      "id": "c7d8e9f0a1b2",
+      "url": "https://circleci.com/",
+      "title": "CircleCI: Continuous Integration and Delivery",
+      "summary": "CircleCI 是云原生的持续集成与持续交付平台，支持快速构建、测试和部署，与 GitHub、GitLab 等无缝集成。",
+      "tags": ["CI/CD", "CircleCI", "DevOps"],
+      "source": "circleci.com",
+      "created_at": "2026-02-11T12:10:00Z",
+      "updated_at": "2026-02-11T12:10:00Z"
+    },
+    {
+      "id": "d8e9f0a1b2c3",
+      "url": "https://www.jenkins.io/",
+      "title": "Jenkins: Open Source Automation Server",
+      "summary": "Jenkins 是一个开源的自动化服务器，提供数百个插件来支持构建、部署、自动化等各种任务。",
+      "tags": ["Jenkins", "CI/CD", "Java"],
+      "source": "jenkins.io",
+      "created_at": "2026-02-10T09:30:00Z",
+      "updated_at": "2026-02-10T09:30:00Z"
+    },
+    {
+      "id": "e9f0a1b2c3d4",
+      "url": "https://about.gitlab.com/",
+      "title": "GitLab: The most comprehensive AI-powered DevSecOps Platform",
+      "summary": "GitLab 提供一体化的 DevOps 平台，涵盖源代码管理、CI/CD、安全扫描、监控等完整软件交付生命周期。",
+      "tags": ["GitLab", "DevOps", "DevSecOps"],
+      "source": "gitlab.com",
+      "created_at": "2026-02-09T14:15:00Z",
+      "updated_at": "2026-02-09T14:15:00Z"
+    },
+    {
+      "id": "f0a1b2c3d4e5",
+      "url": "https://www.atlassian.com/software/jira",
+      "title": "Jira: Issue & Project Tracking Software for Teams",
+      "summary": "Jira 是 Atlassian 出品的问题追踪和项目管理工具，广泛应用于敏捷开发和团队协作。",
+      "tags": ["Jira", "项目管理", "Atlassian"],
+      "source": "atlassian.com",
+      "created_at": "2026-02-08T11:45:00Z",
+      "updated_at": "2026-02-08T11:45:00Z"
+    },
+    {
+      "id": "a1b2c3d4e5f6",
+      "url": "https://www.notion.so/",
+      "title": "Notion – The all-in-one workspace for your notes, tasks, wikis, and databases",
+      "summary": "Notion 是集笔记、任务、维基、数据库于一体的全能工作区，通过模块化设计赋予极高的自由度。",
+      "tags": ["Notion", "笔记", "协作"],
+      "source": "notion.so",
+      "created_at": "2026-02-07T16:20:00Z",
+      "updated_at": "2026-02-07T16:20:00Z"
+    },
+    {
+      "id": "b2c3d4e5f6a7",
+      "url": "https://slack.com/",
+      "title": "Slack: Where work happens",
+      "summary": "Slack 是企业级即时通讯与协作平台，通过频道、集成和自动化工作流提升团队沟通效率。",
+      "tags": ["Slack", "协作", "通讯"],
+      "source": "slack.com",
+      "created_at": "2026-02-06T10:00:00Z",
+      "updated_at": "2026-02-06T10:00:00Z"
+    },
+    {
+      "id": "c3d4e5f6a7b8",
+      "url": "https://discord.com/",
+      "title": "Discord – Your Place to Hang Out and Talk",
+      "summary": "Discord 是专为社区设计的语音、视频与文字聊天平台，最初服务于游戏玩家，现已扩展到各类兴趣群体。",
+      "tags": ["Discord", "社区", "聊天"],
+      "source": "discord.com",
+      "created_at": "2026-02-05T13:40:00Z",
+      "updated_at": "2026-02-05T13:40:00Z"
+    },
+    {
+      "id": "d4e5f6a7b8c9",
+      "url": "https://zoom.us/",
+      "title": "Zoom: Video Conferencing, Web Conferencing, Webinars",
+      "summary": "Zoom 是领先的视频通讯平台，提供高质量的远程会议、网络研讨会和虚拟活动解决方案。",
+      "tags": ["Zoom", "视频会议", "远程"],
+      "source": "zoom.us",
+      "created_at": "2026-02-04T09:20:00Z",
+      "updated_at": "2026-02-04T09:20:00Z"
+    },
+    {
+      "id": "e5f6a7b8c9d0",
+      "url": "https://www.figma.com/",
+      "title": "Figma: The Collaborative Interface Design Tool",
+      "summary": "Figma 是基于浏览器的协作式界面设计工具，支持多人实时编辑、原型制作和设计交付，已成为 UI/UX 设计标准。",
+      "tags": ["Figma", "设计", "协作"],
+      "source": "figma.com",
+      "created_at": "2026-02-03T15:10:00Z",
+      "updated_at": "2026-02-03T15:10:00Z"
+    },
+    {
+      "id": "f6a7b8c9d0e1",
+      "url": "https://www.sketch.com/",
+      "title": "Sketch: Professional Digital Design for Mac",
+      "summary": "Sketch 是 macOS 平台的首选矢量图形编辑器，广泛应用于界面设计和原型制作，拥有丰富的插件生态。",
+      "tags": ["Sketch", "设计", "Mac"],
+      "source": "sketch.com",
+      "created_at": "2026-02-02T11:50:00Z",
+      "updated_at": "2026-02-02T11:50:00Z"
+    },
+    {
+      "id": "a7b8c9d0e1f2",
+      "url": "https://www.adobe.com/products/xd.html",
+      "title": "Adobe XD: UI/UX Design, Prototyping, and Collaboration",
+      "summary": "Adobe XD 提供完整的设计、原型、共享和交付流程，是创意套件中的用户体验设计工具。",
+      "tags": ["Adobe", "XD", "设计"],
+      "source": "adobe.com",
+      "created_at": "2026-02-01T14:00:00Z",
+      "updated_at": "2026-02-01T14:00:00Z"
+    },
+    {
+      "id": "b8c9d0e1f2a3",
+      "url": "https://www.canva.com/",
+      "title": "Canva: Design anything with ease.",
+      "summary": "Canva 让每个人都能轻松设计，从社交媒体图片到演示文稿和海报，模板丰富，操作简单。",
+      "tags": ["Canva", "设计", "模板"],
+      "source": "canva.com",
+      "created_at": "2026-01-31T10:30:00Z",
+      "updated_at": "2026-01-31T10:30:00Z"
+    },
+    {
+      "id": "c9d0e1f2a3b4",
+      "url": "https://www.blender.org/",
+      "title": "Blender - Open Source 3D Creation",
+      "summary": "Blender 是开源的全能 3D 创作套件，支持建模、动画、渲染、视频剪辑、游戏制作等。",
+      "tags": ["Blender", "3D", "开源"],
+      "source": "blender.org",
+      "created_at": "2026-01-30T12:20:00Z",
+      "updated_at": "2026-01-30T12:20:00Z"
+    },
+    {
+      "id": "d0e1f2a3b4c5",
+      "url": "https://unity.com/",
+      "title": "Unity: 3D and 2D Game Development Engine",
+      "summary": "Unity 是全球最流行的实时 3D 开发平台，支持游戏、汽车、建筑、娱乐等领域的交互式内容创作。",
+      "tags": ["Unity", "游戏开发", "3D"],
+      "source": "unity.com",
+      "created_at": "2026-01-29T09:40:00Z",
+      "updated_at": "2026-01-29T09:40:00Z"
+    },
+    {
+      "id": "e1f2a3b4c5d6",
+      "url": "https://www.unrealengine.com/",
+      "title": "Unreal Engine: The most powerful real-time 3D creation tool",
+      "summary": "Unreal Engine 是 Epic Games 出品的高性能游戏引擎，以其顶级渲染效果和开放源代码著称。",
+      "tags": ["Unreal", "游戏开发", "3D"],
+      "source": "unrealengine.com",
+      "created_at": "2026-01-28T16:30:00Z",
+      "updated_at": "2026-01-28T16:30:00Z"
+    },
+    {
+      "id": "f2a3b4c5d6e7",
+      "url": "https://www.godotengine.org/",
+      "title": "Godot Engine - Free and open source 2D and 3D game engine",
+      "summary": "Godot 是完全免费开源的轻量级游戏引擎，支持 2D 和 3D 开发，以其简洁的节点架构和 MIT 许可证受到 indie 开发者喜爱。",
+      "tags": ["Godot", "游戏开发", "开源"],
+      "source": "godotengine.org",
+      "created_at": "2026-01-27T13:10:00Z",
+      "updated_at": "2026-01-27T13:10:00Z"
+    },
+    {
+      "id": "a3b4c5d6e7f8",
+      "url": "https://web.dev/",
+      "title": "web.dev - Resources for developers, by developers",
+      "summary": "web.dev 是 Google 出品的 Web 开发最佳实践指南，涵盖性能、安全性、可访问性、PWA 等关键主题。",
+      "tags": ["Web", "Google", "最佳实践"],
+      "source": "web.dev",
+      "created_at": "2026-01-26T08:00:00Z",
+      "updated_at": "2026-01-26T08:00:00Z"
+    },
+    {
+      "id": "b4c5d6e7f8a9",
+      "url": "https://developer.apple.com/",
+      "title": "Apple Developer",
+      "summary": "Apple Developer 门户提供 macOS、iOS、iPadOS 等平台的开发工具、文档、技术支持和 App Store 分发服务。",
+      "tags": ["Apple", "iOS", "macOS"],
+      "source": "developer.apple.com",
+      "created_at": "2026-01-25T14:15:00Z",
+      "updated_at": "2026-01-25T14:15:00Z"
+    },
+    {
+      "id": "c5d6e7f8a9b0",
+      "url": "https://developer.android.com/",
+      "title": "Android Developers",
+      "summary": "Android 开发者官方网站，提供 Android SDK、开发指南、API 参考、Material Design 规范等资源。",
+      "tags": ["Android", "Google", "移动开发"],
+      "source": "developer.android.com",
+      "created_at": "2026-01-24T10:50:00Z",
+      "updated_at": "2026-01-24T10:50:00Z"
+    },
+    {
+      "id": "d6e7f8a9b0c1",
+      "url": "https://flutter.dev/",
+      "title": "Flutter - Build Native Platform Apps with Google's UI Toolkit",
+      "summary": "Flutter 是 Google 推出的跨平台 UI 框架，让一套代码可编译成 iOS、Android、Web 甚至桌面应用。",
+      "tags": ["Flutter", "跨平台", "UI"],
+      "source": "flutter.dev",
+      "created_at": "2026-01-23T15:40:00Z",
+      "updated_at": "2026-01-23T15:40:00Z"
+    },
+    {
+      "id": "e7f8a9b0c1d2",
+      "url": "https://reactnative.dev/",
+      "title": "React Native: A framework for building native apps using React",
+      "summary": "React Native 让你使用 React 语法编写原生 iOS 和 Android 应用，实现跨平台开发的同时保持原生性能。",
+      "tags": ["React Native", "跨平台", "移动端"],
+      "source": "reactnative.dev",
+      "created_at": "2026-01-22T11:25:00Z",
+      "updated_at": "2026-01-22T11:25:00Z"
+    },
+    {
+      "id": "f8a9b0c1d2e3",
+      "url": "https://tailwindcss.com/",
+      "title": "Tailwind CSS: Rapidly build modern websites without ever leaving your HTML",
+      "summary": "Tailwind CSS 是一个实用优先的 CSS 框架，通过组合工具类快速构建定制化设计，无需编写自定义 CSS。",
+      "tags": ["Tailwind", "CSS", "工具"],
+      "source": "tailwindcss.com",
+      "created_at": "2026-01-21T09:05:00Z",
+      "updated_at": "2026-01-21T09:05:00Z"
+    },
+    {
+      "id": "a9b0c1d2e3f4",
+      "url": "https://getbootstrap.com/",
+      "title": "Bootstrap: The most popular HTML, CSS, and JS library in the world.",
+      "summary": "Bootstrap 是最流行的前端组件库，提供响应式网格系统、UI 组件和 JavaScript 插件，帮助快速搭建界面。",
+      "tags": ["Bootstrap", "CSS", "组件库"],
+      "source": "getbootstrap.com",
+      "created_at": "2026-01-20T14:30:00Z",
+      "updated_at": "2026-01-20T14:30:00Z"
+    }
+  ]
+}
