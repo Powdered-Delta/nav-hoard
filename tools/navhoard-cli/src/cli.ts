@@ -6,9 +6,18 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 import Parser from 'rss-parser';
 import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { load } from 'cheerio';
 import fetch from 'node-fetch';
 import Ajv from 'ajv';
+import {
+  loadExistingEntries as loadSharedExistingEntries,
+  mergeEntries as mergeSharedEntries,
+  normalizeBatchEntry as normalizeSharedBatchEntry,
+  resolveDataPaths as resolveSharedDataPaths,
+  validateEntries as validateSharedEntries,
+  writeOutputs as writeSharedOutputs
+} from './pipeline.js';
 
 interface Source {
   id: string;
@@ -96,6 +105,12 @@ interface WriteSummary {
   files: string[];
 }
 
+interface DataPaths {
+  canonicalFile: string;
+  canonicalDir: string;
+  publishDir: string;
+}
+
 type HtmlSelectorConfig = {
   item: string;
   title?: string;
@@ -113,6 +128,11 @@ const MAX_SUMMARY_LENGTH = 300;
 const MAX_TAGS = 5;
 const MAX_TAG_LENGTH = 20;
 const SUMMARY_FALLBACK = '暂无摘要';
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const DEFAULT_SOURCES_PATH = path.join(PROJECT_ROOT, 'data/sources.yaml');
+const DEFAULT_CONFIG_PATH = path.join(PROJECT_ROOT, 'data/config.yaml');
+const DEFAULT_CANONICAL_DATA_FILE = path.join(PROJECT_ROOT, 'data/index.json');
+const DEFAULT_PUBLISH_DATA_DIR = path.join(PROJECT_ROOT, 'public/data');
 
 const KEYWORD_TAGS: Array<[RegExp, string]> = [
   [/react/i, 'React'],
@@ -160,12 +180,12 @@ const validateEntry = ajv.compile({
 const program = new Command();
 
 program
-  .name('copenclaw')
+  .name('navhoard-cli')
   .description('Nav Hoard data update tool')
   .version('0.1.0')
-  .option('--sources <path>', 'Path to sources.yaml', 'data/sources.yaml')
-  .option('--config <path>', 'Path to config.yaml', 'data/config.yaml')
-  .option('--output <path>', 'Output data file', 'public/data/index.json')
+  .option('--sources <path>', 'Path to sources.yaml', DEFAULT_SOURCES_PATH)
+  .option('--config <path>', 'Path to config.yaml', DEFAULT_CONFIG_PATH)
+  .option('--output <path>', 'Canonical data file path', DEFAULT_CANONICAL_DATA_FILE)
   .option('--pr', 'Create a pull request (not implemented)')
   .option('--dry-run', 'Do not write files, just print stats')
   .option('--base <branch>', 'Base branch for PR', 'main')
@@ -173,7 +193,7 @@ program
     try {
       const configPath = path.resolve(options.config);
       const sourcesPath = path.resolve(options.sources);
-      const outputPath = path.resolve(options.output);
+      const dataPaths = resolveSharedDataPaths(options.output);
 
       if (!fs.existsSync(configPath)) {
         console.error(`Config file not found: ${configPath}`);
@@ -214,7 +234,7 @@ program
 
           stats.fetched = rawEntries.length;
           const normalizedEntries = rawEntries
-            .map(entry => normalizeEntry(entry, source))
+            .map(entry => normalizeSharedBatchEntry(entry, { sourceName: source.name, sourceId: source.id }))
             .filter((entry): entry is NavEntry => Boolean(entry));
 
           stats.accepted = normalizedEntries.length;
@@ -230,9 +250,9 @@ program
         console.log(`  fetched=${stats.fetched} accepted=${stats.accepted} invalid=${stats.invalid}`);
       }
 
-      const existingEntries = loadExistingEntries(outputPath);
-      const merged = mergeEntries(existingEntries, collectedEntries);
-      const validated = validateEntries(merged.entries);
+      const existingEntries = loadSharedExistingEntries(dataPaths);
+      const merged = mergeSharedEntries(existingEntries, collectedEntries);
+      const validated = validateSharedEntries(merged.entries);
       const sortedEntries = [...validated.entries].sort(
         (left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
       );
@@ -246,11 +266,11 @@ program
           invalidMessages: validated.invalidMessages,
           total: sortedEntries.length,
           mode: nextMode,
-          outputPath,
+          outputPath: dataPaths.canonicalFile,
           writtenFiles: []
         });
       } else {
-        const writeSummary = writeOutputs(outputPath, sortedEntries);
+        const writeSummary = writeSharedOutputs(dataPaths, sortedEntries);
         printSummary({
           fetchStats,
           duplicateCount: merged.duplicateCount,
@@ -258,7 +278,7 @@ program
           invalidMessages: validated.invalidMessages,
           total: sortedEntries.length,
           mode: writeSummary.mode,
-          outputPath,
+          outputPath: dataPaths.canonicalFile,
           writtenFiles: writeSummary.files
         });
       }
@@ -441,28 +461,44 @@ function mergeEntries(existing: NavEntry[], incoming: NavEntry[]): MergeResult {
   };
 }
 
-function loadExistingEntries(outputPath: string): NavEntry[] {
-  const outputDir = path.dirname(outputPath);
-  const manifestPath = path.join(outputDir, 'manifest.json');
-  if (fs.existsSync(manifestPath)) {
-    try {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as ManifestPayload;
-      if (Array.isArray(manifest.groups)) {
-        return manifest.groups.flatMap(group => {
-          const shardPath = path.join(outputDir, `index-${group}.json`);
-          if (!fs.existsSync(shardPath)) {
-            return [];
-          }
-          return readEntryPayload(shardPath);
-        });
-      }
-    } catch (error) {
-      console.warn(`Failed to parse existing manifest: ${manifestPath}`, error);
-    }
+function resolveDataPaths(outputPath: string): DataPaths {
+  const requestedPath = path.resolve(outputPath);
+  const repoDataDir = path.join(PROJECT_ROOT, 'data');
+  const repoPublicDir = DEFAULT_PUBLISH_DATA_DIR;
+
+  if (isWithinDirectory(requestedPath, repoPublicDir)) {
+    const relativePath = path.relative(repoPublicDir, requestedPath) || 'index.json';
+    const canonicalFile = path.join(repoDataDir, relativePath);
+    return {
+      canonicalFile,
+      canonicalDir: path.dirname(canonicalFile),
+      publishDir: repoPublicDir
+    };
   }
 
-  if (fs.existsSync(outputPath)) {
-    return readEntryPayload(outputPath);
+  if (isWithinDirectory(requestedPath, repoDataDir)) {
+    return {
+      canonicalFile: requestedPath,
+      canonicalDir: path.dirname(requestedPath),
+      publishDir: repoPublicDir
+    };
+  }
+
+  return {
+    canonicalFile: requestedPath,
+    canonicalDir: path.dirname(requestedPath),
+    publishDir: path.dirname(requestedPath)
+  };
+}
+
+function isWithinDirectory(targetPath: string, directoryPath: string): boolean {
+  const relativePath = path.relative(directoryPath, targetPath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+}
+
+function loadExistingEntries(dataPaths: DataPaths): NavEntry[] {
+  if (fs.existsSync(dataPaths.canonicalFile)) {
+    return readEntryPayload(dataPaths.canonicalFile);
   }
 
   return [];
@@ -470,7 +506,7 @@ function loadExistingEntries(outputPath: string): NavEntry[] {
 
 function readEntryPayload(filePath: string): NavEntry[] {
   try {
-    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as OutputPayload | NavEntry[];
+    const parsed = parseJsonFile<OutputPayload | NavEntry[]>(filePath);
     if (Array.isArray(parsed)) {
       return parsed.map(entry => normalizePersistedEntry(entry));
     }
@@ -485,19 +521,39 @@ function readEntryPayload(filePath: string): NavEntry[] {
   return [];
 }
 
-function writeOutputs(outputPath: string, entries: NavEntry[]): WriteSummary {
-  const outputDir = path.dirname(outputPath);
-  ensureDir(outputDir);
-  cleanupGeneratedFiles(outputDir);
+function parseJsonFile<T>(filePath: string): T {
+  return JSON.parse(stripUtf8Bom(fs.readFileSync(filePath, 'utf-8'))) as T;
+}
+
+function stripUtf8Bom(content: string): string {
+  return content.charCodeAt(0) === 0xfeff ? content.slice(1) : content;
+}
+
+function writeOutputs(dataPaths: DataPaths, entries: NavEntry[]): WriteSummary {
+  ensureDir(dataPaths.canonicalDir);
+  ensureDir(dataPaths.publishDir);
+
+  cleanupGeneratedFiles(dataPaths.canonicalDir);
+  if (dataPaths.publishDir !== dataPaths.canonicalDir) {
+    cleanupGeneratedFiles(dataPaths.publishDir);
+  }
+
+  const files: string[] = [];
+  const canonicalPayload: OutputPayload = {
+    version: DATA_VERSION,
+    updated_at: new Date().toISOString(),
+    entries
+  };
+  fs.writeFileSync(dataPaths.canonicalFile, JSON.stringify(canonicalPayload, null, 2), 'utf-8');
+  files.push(dataPaths.canonicalFile);
 
   if (entries.length > SHARD_THRESHOLD) {
     const updatedAt = new Date().toISOString();
     const groupedEntries = groupEntries(entries);
-    const files: string[] = [];
     const groups = Array.from(groupedEntries.keys()).sort();
 
     for (const group of groups) {
-      const shardPath = path.join(outputDir, `index-${group}.json`);
+      const shardPath = path.join(dataPaths.publishDir, `index-${group}.json`);
       const payload: OutputPayload = {
         version: DATA_VERSION,
         updated_at: updatedAt,
@@ -507,7 +563,7 @@ function writeOutputs(outputPath: string, entries: NavEntry[]): WriteSummary {
       files.push(shardPath);
     }
 
-    const manifestPath = path.join(outputDir, 'manifest.json');
+    const manifestPath = path.join(dataPaths.publishDir, 'manifest.json');
     const manifest: ManifestPayload = {
       version: DATA_VERSION,
       updated_at: updatedAt,
@@ -520,13 +576,12 @@ function writeOutputs(outputPath: string, entries: NavEntry[]): WriteSummary {
     return { mode: 'sharded', files };
   }
 
-  const payload: OutputPayload = {
-    version: DATA_VERSION,
-    updated_at: new Date().toISOString(),
-    entries
-  };
-  fs.writeFileSync(outputPath, JSON.stringify(payload, null, 2), 'utf-8');
-  return { mode: 'single', files: [outputPath] };
+  const publishFile = path.join(dataPaths.publishDir, 'index.json');
+  fs.writeFileSync(publishFile, JSON.stringify(canonicalPayload, null, 2), 'utf-8');
+  if (publishFile !== dataPaths.canonicalFile) {
+    files.push(publishFile);
+  }
+  return { mode: 'single', files };
 }
 
 function cleanupGeneratedFiles(outputDir: string) {

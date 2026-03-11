@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "copenclaw": "cd tools/copenclaw && npm run cli"
+    "navhoard-cli": "cd tools/navhoard-cli && npm run cli",
+    "navhoard-cli:build": "cd tools/navhoard-cli && npm run build",
+    "entry-workflow": "cd tools/navhoard-cli && npm run entry --"
   },
   "dependencies": {
     "lit": "^3.2.0",

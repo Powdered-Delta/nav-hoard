@@ -1,14 +1,18 @@
 {
-  "name": "copenclaw",
+  "name": "navhoard-cli",
   "version": "0.1.0",
   "description": "Nav Hoard data update CLI",
   "type": "module",
   "bin": {
-    "copenclaw": "./dist/cli.js"
+    "navhoard-cli": "./dist/cli.js",
+    "nav-hoard-entry-workflow": "./dist/entry-workflow.js"
   },
   "scripts": {
     "build": "tsc",
-    "cli": "tsx src/cli.ts",
+    "cli": "node dist/cli.js",
+    "cli:dev": "tsx src/cli.ts",
+    "entry": "node dist/entry-workflow.js",
+    "entry:dev": "tsx src/entry-workflow.ts",
     "lint": "echo '暂未配置'"
   },
   "dependencies": {

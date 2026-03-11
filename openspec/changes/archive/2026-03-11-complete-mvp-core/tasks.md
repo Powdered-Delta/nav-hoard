@@ -6,7 +6,7 @@
 
 ## 2. Content refresh pipeline
 
-- [x] 2.1 Refactor `copenclaw` into fetch, normalize, validate, and write stages
+- [x] 2.1 Refactor `navhoard-cli` into fetch, normalize, validate, and write stages
 - [x] 2.2 Add HTML source extraction and deterministic summary/tag enrichment
 - [x] 2.3 Add schema validation, output summaries, and dry-run reporting
 - [x] 2.4 Add manifest/shard output generation compatible with frontend loading

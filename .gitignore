@@ -1,6 +1,6 @@
 node_modules/
 dist/
-tools/copenclaw/dist/
+tools/navhoard-cli/dist/
 .codex/
 public/data/copenclaw-cache.json
 .DS_Store

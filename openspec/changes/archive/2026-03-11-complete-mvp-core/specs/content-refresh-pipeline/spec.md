@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Manual refresh pipeline SHALL ingest enabled source types
-The `copenclaw` tool SHALL ingest every enabled source defined in `sources.yaml` for the supported source types (`rss` and `html`).
+The `navhoard-cli` tool SHALL ingest every enabled source defined in `sources.yaml` for the supported source types (`rss` and `html`).
 
 #### Scenario: Enabled RSS source is fetched
 - **WHEN** an enabled RSS source is configured
@@ -39,4 +39,3 @@ The tool SHALL support a dry-run mode that performs fetch, normalization, and va
 #### Scenario: Dry-run execution completes
 - **WHEN** the user runs the tool with `--dry-run`
 - **THEN** the tool prints counts and warnings for the computed output without modifying files
-

@@ -334,7 +334,7 @@ export class NavHoard extends LitElement {
     return html`
       <section class="about-panel" aria-label="关于 Nav Hoard">
         <p>这里收录的是公开链接卡片，便于按关键词和标签重新发现内容。</p>
-        <p>数据通过手动执行 <code>copenclaw</code> 更新，收藏状态仅保存在当前浏览器的本地存储中。</p>
+        <p>数据通过手动执行 <code>navhoard-cli</code> 更新，收藏状态仅保存在当前浏览器的本地存储中。</p>
         <p>如果搜索没有结果，可以清空筛选；如果收藏为空，可以切回“全部”继续浏览。</p>
       </section>
     `;

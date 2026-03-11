@@ -5,7 +5,7 @@ Define the manual content refresh workflow that fetches source material, normali
 ## Requirements
 
 ### Requirement: Manual refresh pipeline SHALL ingest enabled source types
-The `copenclaw` tool SHALL ingest every enabled source defined in `sources.yaml` for the supported source types (`rss` and `html`).
+The `navhoard-cli` tool SHALL ingest every enabled source defined in `sources.yaml` for the supported source types (`rss` and `html`).
 
 #### Scenario: Enabled RSS source is fetched
 - **WHEN** an enabled RSS source is configured
