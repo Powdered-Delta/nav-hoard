@@ -1,7 +1,17 @@
-﻿import { LitElement, html, css } from 'lit';
+﻿import { LitElement, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import MiniSearch from 'minisearch';
-import './styles.css';
+
+type NoticeTone = 'info' | 'error';
+type LayoutMode = 'waterfall' | 'list';
+type PreviewMode = 'auto' | 'external' | 'local';
+
+export interface NavPreview {
+  enabled?: boolean;
+  mode?: PreviewMode;
+  src?: string;
+  alt?: string;
+}
 
 export interface NavEntry {
   id: string;
@@ -12,17 +22,36 @@ export interface NavEntry {
   source: string;
   created_at: string;
   updated_at: string;
+  featured?: boolean;
+  featured_rank?: number;
+  preview?: NavPreview;
 }
 
-type NoticeTone = 'info' | 'error';
+interface FavoriteExportItem {
+  id?: string;
+  url?: string;
+  title?: string;
+}
+
+interface ResolvedPreview {
+  mode: PreviewMode;
+  src: string;
+  alt: string;
+}
+
+const FAVORITES_KEY = 'navhoard:favorites';
+const LAYOUT_KEY = 'navhoard:layout-mode';
+const CONTROLS_COLLAPSED_KEY = 'navhoard:controls-collapsed';
+const FAVORITES_REMINDER_DISMISSED_KEY = 'navhoard:favorites-reminder-dismissed';
 
 @customElement('nav-hoard')
 export class NavHoard extends LitElement {
-  static styles = css`
-    /* 主样式由 ./styles.css 提供，使用 CSS 变量 */
-  `;
+  protected createRenderRoot() {
+    return this;
+  }
 
   @property({ type: String }) basePath = '/';
+
   @state() private entries: NavEntry[] = [];
   @state() private filteredEntries: NavEntry[] = [];
   @state() private searchQuery = '';
@@ -30,41 +59,101 @@ export class NavHoard extends LitElement {
   @state() private sortBy: 'newest' | 'relevance' = 'relevance';
   @state() private favorites: string[] = [];
   @state() private view: 'all' | 'favorites' = 'all';
+  @state() private layoutMode: LayoutMode = 'waterfall';
   @state() private loading = true;
   @state() private error = '';
   @state() private notice = '';
   @state() private noticeTone: NoticeTone = 'info';
   @state() private aboutOpen = false;
+  @state() private tagsExpanded = false;
+  @state() private controlsCollapsed = false;
+  @state() private favoriteReminderOpen = false;
+  @state() private favoriteReminderDismissed = false;
+  @state() private showBackToTop = false;
+  @state() private viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
+
+  private miniSearch: MiniSearch | null = null;
+
+  private readonly handleWindowScroll = () => {
+    this.showBackToTop = window.scrollY > 560;
+  };
+  private readonly handleWindowResize = () => {
+    this.viewportWidth = window.innerWidth;
+  };
 
   async connectedCallback() {
     super.connectedCallback();
 
-    // 自动从构建环境变量注入 basePath
     const envBase = import.meta.env?.VITE_BASE_PATH;
     if (this.basePath === '/' && envBase && envBase !== '/') {
       this.basePath = envBase;
     }
 
+    this.loadUiPreferences();
     this.loadFavorites();
+    window.addEventListener('scroll', this.handleWindowScroll, { passive: true });
+    window.addEventListener('resize', this.handleWindowResize, { passive: true });
+    this.handleWindowScroll();
+    this.handleWindowResize();
     await this.loadData();
   }
 
+  disconnectedCallback() {
+    window.removeEventListener('scroll', this.handleWindowScroll);
+    window.removeEventListener('resize', this.handleWindowResize);
+    super.disconnectedCallback();
+  }
+
+  private readStorageValue(key: string): string {
+    try {
+      return localStorage.getItem(key) || '';
+    } catch {
+      return '';
+    }
+  }
+
+  private writeStorageValue(key: string, value: string): boolean {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      console.warn(`Failed to write storage key: ${key}`, error);
+      return false;
+    }
+  }
+
+  private loadUiPreferences() {
+    const layout = this.readStorageValue(LAYOUT_KEY);
+    if (layout === 'waterfall' || layout === 'list') {
+      this.layoutMode = layout;
+    } else if (layout === 'stream' || layout === 'cards') {
+      this.layoutMode = 'waterfall';
+    }
+
+    this.controlsCollapsed = this.readStorageValue(CONTROLS_COLLAPSED_KEY) === 'true';
+    this.favoriteReminderDismissed = this.readStorageValue(FAVORITES_REMINDER_DISMISSED_KEY) === 'true';
+  }
+
   private loadFavorites() {
-    const stored = localStorage.getItem('navhoard:favorites');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        this.favorites = Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === 'string') : [];
-      } catch (e) {
-        console.warn('Failed to parse favorites', e);
-        this.showNotice('本地收藏读取失败，已忽略损坏数据。', 'error');
-      }
+    const stored = this.readStorageValue(FAVORITES_KEY);
+    if (!stored) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(stored);
+      this.favorites = Array.isArray(parsed)
+        ? parsed.filter((value): value is string => typeof value === 'string')
+        : [];
+    } catch (error) {
+      console.warn('Failed to parse favorites', error);
+      this.showNotice('本地收藏读取失败，已忽略损坏数据。', 'error');
     }
   }
 
   private saveFavorites(): boolean {
     try {
-      localStorage.setItem('navhoard:favorites', JSON.stringify(this.favorites));
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(this.favorites));
       return true;
     } catch (error) {
       const message = this.isQuotaExceededError(error)
@@ -76,33 +165,9 @@ export class NavHoard extends LitElement {
     }
   }
 
-  private toggleFavorite(id: string) {
-    const previous = this.favorites;
-    if (this.favorites.includes(id)) {
-      this.favorites = this.favorites.filter(fid => fid !== id);
-    } else {
-      this.favorites = [...this.favorites, id];
-    }
-
-    if (!this.saveFavorites()) {
-      this.favorites = previous;
-      return;
-    }
-
-    this.showNotice(this.favorites.includes(id) ? '已加入收藏。' : '已取消收藏。');
-    this.applyFilters();
-    this.requestUpdate();
-  }
-
-  private isFavorite(id: string): boolean {
-    return this.favorites.includes(id);
-  }
-
   private isQuotaExceededError(error: unknown): boolean {
-    return error instanceof DOMException && (
-      error.name === 'QuotaExceededError' ||
-      error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-    );
+    return error instanceof DOMException
+      && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED');
   }
 
   private showNotice(message: string, tone: NoticeTone = 'info') {
@@ -115,25 +180,40 @@ export class NavHoard extends LitElement {
     this.noticeTone = 'info';
   }
 
+  private resolveUrl(path: string): string {
+    const base = this.basePath || '/';
+    const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${cleanBase}${cleanPath}`;
+  }
+
   private async fetchJsonSafe<T>(url: string): Promise<T | null> {
     const response = await fetch(url);
-    if (!response.ok) return null;
+    if (!response.ok) {
+      return null;
+    }
 
     const text = await response.text();
     try {
       return JSON.parse(text) as T;
-    } catch (err) {
-      console.warn(`Invalid JSON response from ${url}`, err);
+    } catch (error) {
+      console.warn(`Invalid JSON response from ${url}`, error);
       return null;
     }
   }
 
   private normalizeEntries(payload: unknown): NavEntry[] {
-    if (Array.isArray(payload)) return payload as NavEntry[];
+    if (Array.isArray(payload)) {
+      return payload as NavEntry[];
+    }
+
     if (payload && typeof payload === 'object' && 'entries' in payload) {
       const entries = (payload as { entries?: unknown }).entries;
-      if (Array.isArray(entries)) return entries as NavEntry[];
+      if (Array.isArray(entries)) {
+        return entries as NavEntry[];
+      }
     }
+
     return [];
   }
 
@@ -148,15 +228,14 @@ export class NavHoard extends LitElement {
 
       const manifest = await this.fetchJsonSafe<{ groups?: unknown }>(manifestUrl);
       if (manifest && Array.isArray(manifest.groups) && manifest.groups.length > 0) {
-        const groupUrls = manifest.groups.map((g: string) => this.resolveUrl(`data/index-${g}.json`));
-        const groupPayloads = await Promise.all(groupUrls.map((url: string) => this.fetchJsonSafe<unknown>(url)));
+        const groupUrls = manifest.groups.map((group: string) => this.resolveUrl(`data/index-${group}.json`));
+        const groupPayloads = await Promise.all(groupUrls.map(url => this.fetchJsonSafe<unknown>(url)));
         loadedFromManifest = groupPayloads.some(payload => payload !== null);
         entries = groupPayloads.flatMap(payload => this.normalizeEntries(payload));
       }
 
       if (!loadedFromManifest) {
-        const dataUrl = this.resolveUrl('data/index.json');
-        const data = await this.fetchJsonSafe<unknown>(dataUrl);
+        const data = await this.fetchJsonSafe<unknown>(this.resolveUrl('data/index.json'));
         if (data === null) {
           throw new Error('Failed to load data/index.json');
         }
@@ -164,25 +243,25 @@ export class NavHoard extends LitElement {
       }
 
       this.entries = entries;
+      this.reconcileFavorites();
       this.buildSearchIndex();
       this.applyFilters();
-    } catch (err: any) {
-      console.error('Data load failed', err);
-      this.error = err.message || '数据加载失败，请稍后重试';
+    } catch (error: unknown) {
+      console.error('Data load failed', error);
+      this.error = error instanceof Error ? error.message : '数据加载失败，请稍后重试。';
     } finally {
       this.loading = false;
     }
   }
 
-  private resolveUrl(path: string): string {
-    const base = this.basePath || '/';
-    // Keep one slash between base path and relative asset path.
-    const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `${cleanBase}${cleanPath}`;
+  private reconcileFavorites() {
+    const entryIds = new Set(this.entries.map(entry => entry.id));
+    const nextFavorites = this.favorites.filter(id => entryIds.has(id));
+    if (nextFavorites.length !== this.favorites.length) {
+      this.favorites = nextFavorites;
+      this.saveFavorites();
+    }
   }
-
-  private miniSearch: MiniSearch | null = null;
 
   private buildSearchIndex() {
     this.miniSearch = new MiniSearch({
@@ -191,7 +270,7 @@ export class NavHoard extends LitElement {
       searchOptions: { prefix: true, boost: { title: 2 } }
     });
 
-    const docs = this.entries.map(entry => ({
+    this.miniSearch.addAll(this.entries.map(entry => ({
       id: entry.id,
       title: entry.title,
       summary: entry.summary,
@@ -199,61 +278,54 @@ export class NavHoard extends LitElement {
       url: entry.url,
       source: entry.source,
       updated_at: entry.updated_at
-    }));
-
-    this.miniSearch.addAll(docs);
+    })));
   }
 
   private applyFilters() {
     let result = this.entries;
 
-    // 视图过滤
     if (this.view === 'favorites') {
-      result = result.filter(e => this.favorites.includes(e.id));
+      result = result.filter(entry => this.favorites.includes(entry.id));
     }
 
-    // 标签过滤
     if (this.selectedTags.size > 0) {
-      result = result.filter(e =>
-        this.selectedTags.size === 0 || Array.from(this.selectedTags).every(t => e.tags.includes(t))
+      result = result.filter(entry =>
+        Array.from(this.selectedTags).every(tag => entry.tags.includes(tag))
       );
     }
 
-    // 搜索
     if (this.searchQuery.trim()) {
       if (this.miniSearch) {
         const hits = this.miniSearch.search(this.searchQuery);
-        const hitIds = new Set(hits.map(h => h.id));
-        result = result.filter(e => hitIds.has(e.id));
+        const hitIds = new Set(hits.map(hit => hit.id));
+        result = result.filter(entry => hitIds.has(entry.id));
       } else {
-        const q = this.searchQuery.toLowerCase();
-        result = result.filter(e =>
-          e.title.toLowerCase().includes(q) ||
-          e.summary.toLowerCase().includes(q) ||
-          e.tags.some(t => t.toLowerCase().includes(q))
+        const query = this.searchQuery.toLowerCase();
+        result = result.filter(entry =>
+          entry.title.toLowerCase().includes(query)
+          || entry.summary.toLowerCase().includes(query)
+          || entry.tags.some(tag => tag.toLowerCase().includes(query))
         );
       }
     }
 
-    // 排序
     if (this.sortBy === 'newest') {
-      result = [...result].sort((a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      result = [...result].sort(
+        (left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
       );
     } else if (this.sortBy === 'relevance' && this.miniSearch && this.searchQuery.trim()) {
-      // Use MiniSearch score order when in relevance mode.
-      const hitMap = new Map(this.miniSearch.search(this.searchQuery).map(h => [h.id, h]));
+      const hitMap = new Map(this.miniSearch.search(this.searchQuery).map(hit => [hit.id, hit]));
       result = result
-        .map(e => ({ e, score: hitMap.get(e.id)?.score ?? 0 }))
-        .sort((a, b) => b.score - a.score)
-        .map(a => a.e);
+        .map(entry => ({ entry, score: hitMap.get(entry.id)?.score ?? 0 }))
+        .sort((left, right) => right.score - left.score)
+        .map(item => item.entry);
     }
 
     this.filteredEntries = result;
   }
 
-  private onSearch(e: Event) {
-    this.searchQuery = (e.target as HTMLInputElement).value;
+  private onSearch(event: Event) {
+    this.searchQuery = (event.target as HTMLInputElement).value;
     this.applyFilters();
   }
 
@@ -268,18 +340,25 @@ export class NavHoard extends LitElement {
   }
 
   private onTagToggle(tag: string) {
-    const newTags = new Set(this.selectedTags);
-    if (newTags.has(tag)) {
-      newTags.delete(tag);
+    const nextTags = new Set(this.selectedTags);
+    if (nextTags.has(tag)) {
+      nextTags.delete(tag);
     } else {
-      newTags.add(tag);
+      nextTags.add(tag);
     }
-    this.selectedTags = newTags;
+    this.selectedTags = nextTags;
     this.applyFilters();
   }
 
-  private onSortChange(e: Event) {
-    this.sortBy = (e.target as HTMLSelectElement).value as 'newest' | 'relevance';
+  private clearTag(tag: string) {
+    const nextTags = new Set(this.selectedTags);
+    nextTags.delete(tag);
+    this.selectedTags = nextTags;
+    this.applyFilters();
+  }
+
+  private onSortChange(event: Event) {
+    this.sortBy = (event.target as HTMLSelectElement).value as 'newest' | 'relevance';
     this.applyFilters();
   }
 
@@ -288,8 +367,55 @@ export class NavHoard extends LitElement {
     this.applyFilters();
   }
 
-  private toggleAbout() {
-    this.aboutOpen = !this.aboutOpen;
+  private openFavoriteReminder() {
+    if (!this.favoriteReminderDismissed) {
+      this.favoriteReminderOpen = true;
+    }
+  }
+
+  private closeFavoriteReminder() {
+    this.favoriteReminderOpen = false;
+  }
+
+  private dismissFavoriteReminderForever() {
+    this.favoriteReminderDismissed = true;
+    this.writeStorageValue(FAVORITES_REMINDER_DISMISSED_KEY, 'true');
+    this.favoriteReminderOpen = false;
+    this.showNotice('后续收藏时将不再弹出本地保存提醒。');
+  }
+
+  private toggleFavorite(id: string) {
+    const previous = [...this.favorites];
+    const hadFavorite = this.favorites.includes(id);
+    const isFirstFavorite = !hadFavorite && previous.length === 0;
+
+    this.favorites = hadFavorite
+      ? this.favorites.filter(favoriteId => favoriteId !== id)
+      : [...this.favorites, id];
+
+    if (!this.saveFavorites()) {
+      this.favorites = previous;
+      return;
+    }
+
+    this.showNotice(
+      isFirstFavorite
+        ? '已加入第一次收藏。收藏数据只保存在当前浏览器本地，建议及时导出备份。'
+        : (this.favorites.includes(id) ? '已加入收藏。' : '已取消收藏。')
+    );
+
+    if (!hadFavorite) {
+      this.openFavoriteReminder();
+    }
+    this.applyFilters();
+    this.requestUpdate();
+  }
+
+  private getLayoutLabel(mode: LayoutMode): string {
+    if (mode === 'list') {
+      return '列表';
+    }
+    return '瀑布流';
   }
 
   private hasActiveFilters(): boolean {
@@ -297,14 +423,312 @@ export class NavHoard extends LitElement {
   }
 
   private formatDate(dateStr: string): string {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
-  private getAllTags(): string[] {
-    const tagSet = new Set<string>();
-    this.entries.forEach(e => e.tags.forEach(t => tagSet.add(t)));
-    return Array.from(tagSet).sort();
+  private getTagStats(): Array<{ tag: string; count: number }> {
+    const counts = new Map<string, number>();
+
+    for (const entry of this.entries) {
+      for (const tag of entry.tags) {
+        counts.set(tag, (counts.get(tag) || 0) + 1);
+      }
+    }
+
+    return Array.from(counts.entries())
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((left, right) => right.count - left.count || left.tag.localeCompare(right.tag, 'zh-CN'));
+  }
+
+  private getVisibleTags(): Array<{ tag: string; count: number }> {
+    const tags = this.getTagStats();
+    return this.tagsExpanded || tags.length <= 12 ? tags : tags.slice(0, 12);
+  }
+
+  private getFeaturedEntries(): NavEntry[] {
+    if (this.view !== 'all' || this.hasActiveFilters()) {
+      return [];
+    }
+
+    return this.entries
+      .filter(entry => entry.featured)
+      .sort((left, right) => {
+        const rankDelta = (left.featured_rank ?? 100) - (right.featured_rank ?? 100);
+        if (rankDelta !== 0) {
+          return rankDelta;
+        }
+        return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime();
+      });
+  }
+
+  private getVisibleEntries(): NavEntry[] {
+    const featuredEntries = this.getFeaturedEntries();
+    if (featuredEntries.length === 0) {
+      return this.filteredEntries;
+    }
+
+    const featuredIds = new Set(featuredEntries.map(entry => entry.id));
+    const regularEntries = this.filteredEntries.filter(entry => !featuredIds.has(entry.id));
+    return [...featuredEntries, ...regularEntries];
+  }
+
+  private getWaterfallColumnCount(): number {
+    if (this.viewportWidth <= 768) {
+      return 1;
+    }
+    if (this.viewportWidth <= 1120) {
+      return 2;
+    }
+    return 3;
+  }
+
+  private estimateWaterfallWeight(entry: NavEntry): number {
+    const preview = this.getResolvedPreview(entry);
+    const summaryLength = entry.summary.length;
+    const tagWeight = entry.tags.length * 18;
+    const featuredWeight = entry.featured ? 24 : 0;
+    return 180 + (preview ? 120 : 0) + summaryLength * 0.52 + tagWeight + featuredWeight;
+  }
+
+  private buildWaterfallColumns(entries: NavEntry[]): NavEntry[][] {
+    const columnCount = this.getWaterfallColumnCount();
+    const columns = Array.from({ length: columnCount }, () => [] as NavEntry[]);
+    const heights = Array.from({ length: columnCount }, () => 0);
+
+    for (const entry of entries) {
+      let targetIndex = 0;
+      for (let index = 1; index < heights.length; index += 1) {
+        if (heights[index] < heights[targetIndex]) {
+          targetIndex = index;
+        }
+      }
+
+      columns[targetIndex].push(entry);
+      heights[targetIndex] += this.estimateWaterfallWeight(entry);
+    }
+
+    return columns;
+  }
+
+  private resolvePreviewUrl(preview: NavPreview | undefined): string {
+    const rawSrc = String(preview?.src || '').trim();
+    if (!preview || preview.enabled === false || !rawSrc) {
+      return '';
+    }
+
+    if (/^(https?:)?\/\//i.test(rawSrc) || rawSrc.startsWith('data:')) {
+      return rawSrc;
+    }
+
+    if (preview.mode === 'local') {
+      return this.resolveUrl(rawSrc.replace(/^\/+/, ''));
+    }
+
+    try {
+      return new URL(rawSrc, window.location.href).toString();
+    } catch {
+      return '';
+    }
+  }
+
+  private getResolvedPreview(entry: NavEntry): ResolvedPreview | null {
+    const preview = entry.preview;
+    const src = this.resolvePreviewUrl(preview);
+    if (!src) {
+      return null;
+    }
+
+    return {
+      mode: preview?.mode || 'external',
+      src,
+      alt: String(preview?.alt || '').trim() || `${entry.title} 的预览图`
+    };
+  }
+
+  private buildCopyPayload(entry: NavEntry): NavEntry {
+    const preview = this.getResolvedPreview(entry);
+    if (!preview) {
+      return entry;
+    }
+
+    return {
+      ...entry,
+      preview: {
+        enabled: true,
+        mode: preview.mode === 'local' ? 'external' : preview.mode,
+        src: preview.src,
+        alt: preview.alt
+      }
+    };
+  }
+
+  private toggleAbout() {
+    this.aboutOpen = !this.aboutOpen;
+  }
+
+  private toggleTagsExpanded() {
+    this.tagsExpanded = !this.tagsExpanded;
+  }
+
+  private toggleControlsCollapsed() {
+    this.controlsCollapsed = !this.controlsCollapsed;
+    this.writeStorageValue(CONTROLS_COLLAPSED_KEY, String(this.controlsCollapsed));
+  }
+
+  private onLayoutChange(mode: LayoutMode) {
+    this.layoutMode = mode;
+    this.writeStorageValue(LAYOUT_KEY, mode);
+  }
+
+  private scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private getControlsSummaryText(): string {
+    const parts: string[] = [];
+
+    if (this.searchQuery.trim()) {
+      parts.push(`搜索：${this.searchQuery}`);
+    }
+    if (this.selectedTags.size > 0) {
+      parts.push(`标签：${Array.from(this.selectedTags).join('、')}`);
+    }
+
+    parts.push(this.view === 'favorites' ? `收藏 ${this.favorites.length} 条` : `全部 ${this.entries.length} 条`);
+    parts.push(this.getLayoutLabel(this.layoutMode));
+
+    return parts.join(' · ');
+  }
+
+  private isFavorite(id: string): boolean {
+    return this.favorites.includes(id);
+  }
+
+  private getSourceMonogram(source: string): string {
+    const primary = source
+      .replace(/^www\./i, '')
+      .split('.')
+      .find(part => /^[a-z0-9]/i.test(part)) || 'NH';
+    return primary.slice(0, 2).toUpperCase();
+  }
+
+  private findFavoriteEntry(item: FavoriteExportItem): NavEntry | null {
+    if (item.id) {
+      const byId = this.entries.find(entry => entry.id === item.id);
+      if (byId) {
+        return byId;
+      }
+    }
+
+    if (item.url) {
+      const byUrl = this.entries.find(entry => entry.url === item.url);
+      if (byUrl) {
+        return byUrl;
+      }
+    }
+
+    return null;
+  }
+
+  private openFavoritesImport() {
+    const input = this.querySelector('#favorites-import-input') as HTMLInputElement | null;
+    input?.click();
+  }
+
+  private async handleFavoritesImport(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text) as { favorites?: FavoriteExportItem[] } | FavoriteExportItem[];
+      const items = Array.isArray(payload) ? payload : Array.isArray(payload.favorites) ? payload.favorites : [];
+      const nextFavorites = new Set(this.favorites);
+      let importedCount = 0;
+
+      for (const item of items) {
+        const matched = this.findFavoriteEntry(item);
+        if (!matched || nextFavorites.has(matched.id)) {
+          continue;
+        }
+        nextFavorites.add(matched.id);
+        importedCount += 1;
+      }
+
+      if (importedCount === 0) {
+        this.showNotice('导入完成，但没有匹配到当前站点中的条目。', 'error');
+        return;
+      }
+
+      this.favorites = Array.from(nextFavorites);
+      if (!this.saveFavorites()) {
+        return;
+      }
+
+      this.applyFilters();
+      this.showNotice(`已导入 ${importedCount} 条收藏。收藏数据仍只保存在当前浏览器本地。`);
+    } catch (error) {
+      console.warn('Failed to import favorites', error);
+      this.showNotice('导入失败：文件格式不正确。', 'error');
+    }
+  }
+
+  private exportFavorites() {
+    if (this.favorites.length === 0) {
+      this.showNotice('当前还没有收藏内容可导出。', 'error');
+      return;
+    }
+
+    const favoriteEntries = this.entries.filter(entry => this.favorites.includes(entry.id));
+    const payload = {
+      version: 'nav-hoard-favorites/v1',
+      exported_at: new Date().toISOString(),
+      favorites: favoriteEntries.map(entry => ({
+        id: entry.id,
+        url: entry.url,
+        title: entry.title
+      }))
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `nav-hoard-favorites-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    this.showNotice('已导出收藏备份文件。你可以稍后在任意浏览器中导入它。');
+  }
+
+  private async copyEntry(entry: NavEntry) {
+    const payload = JSON.stringify(this.buildCopyPayload(entry), null, 2);
+
+    try {
+      await navigator.clipboard.writeText(payload);
+      this.showNotice('已复制条目 JSON，可直接粘贴到你的 NavHoard 编辑器或录入流程。');
+    } catch (error) {
+      console.warn('Failed to copy entry', error);
+      this.showNotice('复制失败：当前浏览器不允许访问剪贴板。', 'error');
+    }
+  }
+
+  private async copyLink(entry: NavEntry) {
+    try {
+      await navigator.clipboard.writeText(entry.url);
+      this.showNotice('已复制链接，可直接分享给别人或保存到别处。');
+    } catch (error) {
+      console.warn('Failed to copy link', error);
+      this.showNotice('复制失败：当前浏览器不允许访问剪贴板。', 'error');
+    }
   }
 
   private renderEmptyState() {
@@ -315,12 +739,14 @@ export class NavHoard extends LitElement {
       <div class="empty-state">
         ${isFavoritesEmpty ? html`
           <p>你还没有收藏内容。</p>
-          <button @click=${() => this.onViewChange('all')}>去首页看看</button>
+          <p class="empty-hint">收藏只保存在当前浏览器本地，建议定期导出一份备份文件。</p>
+          <button @click=${() => this.onViewChange('all')}>先去看看全部内容</button>
         ` : hasFilters ? html`
-          <p>未找到匹配内容。</p>
+          <p>没有找到符合当前条件的内容。</p>
+          <p class="empty-hint">可以清空筛选，或者试试更宽松的关键词。</p>
           <button @click=${() => this.clearFilters()}>清空筛选</button>
         ` : html`
-          <p>暂无可展示内容。</p>
+          <p>暂时还没有可展示的内容。</p>
         `}
       </div>
     `;
@@ -332,43 +758,308 @@ export class NavHoard extends LitElement {
     }
 
     return html`
-      <section class="about-panel" aria-label="关于 Nav Hoard">
-        <p>这里收录的是公开链接卡片，便于按关键词和标签重新发现内容。</p>
-        <p>数据通过手动执行 <code>navhoard-cli</code> 更新，收藏状态仅保存在当前浏览器的本地存储中。</p>
-        <p>如果搜索没有结果，可以清空筛选；如果收藏为空，可以切回“全部”继续浏览。</p>
+      <section class="about-panel" aria-label="关于 NavHoard">
+        <p>这里收录的是公开链接卡片，方便你通过搜索、标签和收藏重新发现内容。</p>
+        <p>收藏状态只保存在当前浏览器本地，不会自动同步；如果准备长期使用，建议定期导出收藏。</p>
+        <p>如果你想把某条内容带到自己的 NavHoard，可以点击卡片复制图标，把条目 JSON 粘贴到编辑器或录入流程里。</p>
       </section>
     `;
   }
 
-  private renderCard(entry: NavEntry) {
-    const fav = this.isFavorite(entry.id);
+  private renderFavoriteReminderToast() {
+    if (!this.favoriteReminderOpen) {
+      return null;
+    }
+
     return html`
-      <article class="card">
-        <header>
-          <h3><a href="${entry.url}" target="_blank" rel="noopener noreferrer">${entry.title}</a></h3>
-          <div class="meta">
-            <span class="source">${entry.source}</span>
-            <span class="date">${this.formatDate(entry.updated_at)}</span>
-          </div>
-        </header>
-        <p class="summary">${entry.summary}</p>
-        <footer>
-          <div class="tags">
-            ${entry.tags.map(tag => html`
-              <button
-                class="tag ${this.selectedTags.has(tag) ? 'active' : ''}"
-                @click=${() => this.onTagToggle(tag)}
-                title="点击筛选此标签"
-              >
-                #${tag}
-              </button>
-            `)}
-          </div>
-          <button class="fav-btn" title="${fav ? '取消收藏' : '收藏'}" @click=${() => this.toggleFavorite(entry.id)}>
-            ${fav ? '★' : '☆'}
+      <section
+        class="favorite-reminder-toast"
+        role="status"
+        aria-live="polite"
+        aria-label="收藏提醒"
+        @animationend=${() => this.closeFavoriteReminder()}
+      >
+        <div class="favorite-reminder-copy">
+          <p class="favorite-reminder-kicker">收藏提醒</p>
+          <p class="favorite-reminder-text">
+            收藏仅保存在当前浏览器本地，可用“导出收藏 / 导入收藏”备份或迁移。
+          </p>
+        </div>
+        <div class="favorite-reminder-actions">
+          <button class="ghost-btn" type="button" @click=${() => this.closeFavoriteReminder()}>
+            关闭
           </button>
-        </footer>
+          <button class="primary-btn" type="button" @click=${() => this.dismissFavoriteReminderForever()}>
+            不再提醒
+          </button>
+        </div>
+      </section>
+    `;
+  }
+
+  private renderActiveFilters() {
+    const hasSearch = Boolean(this.searchQuery.trim());
+    const tags = Array.from(this.selectedTags);
+
+    if (!hasSearch && tags.length === 0) {
+      return html`
+        <div class="active-filters empty">
+          <span>当前未使用筛选，正在展示 ${this.view === 'favorites' ? '收藏视图' : '全部内容'}。</span>
+        </div>
+      `;
+    }
+
+    return html`
+      <div class="active-filters">
+        <span class="active-filters-label">当前筛选</span>
+        ${hasSearch ? html`<span class="active-filter-pill">搜索：${this.searchQuery}</span>` : ''}
+        ${tags.map(tag => html`
+          <button class="active-filter-pill removable" @click=${() => this.clearTag(tag)} title="移除该标签">
+            #${tag}
+          </button>
+        `)}
+        <button class="clear-link" @click=${() => this.clearFilters()}>清空筛选</button>
+      </div>
+    `;
+  }
+
+  private renderResultMeta() {
+    return html`
+      <div class="result-meta">
+        <div>
+          <p class="result-title">${this.view === 'favorites' ? '我的收藏' : '发现内容'}</p>
+          <p class="result-subtitle">
+            当前共显示 ${this.filteredEntries.length} 条结果
+            ${this.view === 'favorites' ? ` / 已收藏 ${this.favorites.length} 条` : ` / 总计 ${this.entries.length} 条`}
+          </p>
+        </div>
+        <div class="result-actions">
+          <button class="ghost-btn" @click=${() => this.exportFavorites()} ?disabled=${this.favorites.length === 0}>
+            导出收藏
+          </button>
+          <button class="ghost-btn" @click=${() => this.openFavoritesImport()}>
+            导入收藏
+          </button>
+          <input
+            id="favorites-import-input"
+            class="hidden-file-input"
+            type="file"
+            accept="application/json,.json"
+            @change=${(event: Event) => this.handleFavoritesImport(event)}
+          />
+          <div class="sort-control">
+            <select .value=${this.sortBy} @change=${this.onSortChange}>
+              <option value="relevance">相关度优先</option>
+              <option value="newest">最新优先</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private renderLayoutSwitch() {
+    const options: Array<{ value: LayoutMode; label: string }> = [
+      { value: 'waterfall', label: '瀑布' },
+      { value: 'list', label: '列表' }
+    ];
+
+    return html`
+      <div class="layout-switch" role="tablist" aria-label="切换布局">
+        ${options.map(option => html`
+          <button
+            type="button"
+            class="${this.layoutMode === option.value ? 'active' : ''}"
+            @click=${() => this.onLayoutChange(option.value)}
+          >
+            ${option.label}
+          </button>
+        `)}
+      </div>
+    `;
+  }
+
+  private renderControls(tagStats: Array<{ tag: string; count: number }>, visibleTags: Array<{ tag: string; count: number }>, hasMoreTags: boolean) {
+    return html`
+      <section class="controls-shell">
+        <div class="controls-sticky">
+          <div class="controls-bar">
+            <div class="controls-bar-copy">
+              <p class="controls-kicker">发现工具</p>
+              <h2>搜索、筛选和布局</h2>
+              <p class="controls-summary">${this.getControlsSummaryText()}</p>
+            </div>
+            <div class="controls-bar-actions">
+              ${this.renderLayoutSwitch()}
+              <button class="ghost-btn" type="button" @click=${() => this.toggleControlsCollapsed()}>
+                ${this.controlsCollapsed ? '展开搜索' : '收起搜索'}
+              </button>
+            </div>
+          </div>
+
+          ${this.controlsCollapsed ? '' : html`
+            <section class="controls">
+              <div class="search-bar">
+                <input
+                  type="search"
+                  placeholder="搜索标题、摘要或标签，例如 React、浏览器、编译器..."
+                  .value=${this.searchQuery}
+                  @input=${this.onSearch}
+                />
+              </div>
+
+              <div class="top-toolbar">
+                <div class="view-switch">
+                  <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
+                    全部 (${this.entries.length})
+                  </button>
+                  <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
+                    我的收藏 (${this.favorites.length})
+                  </button>
+                </div>
+                <div class="toolbar-tip">收藏仅保存在本地浏览器，可随时导入 / 导出。</div>
+              </div>
+
+              ${this.renderResultMeta()}
+              ${this.renderActiveFilters()}
+
+              <section class="tag-section" aria-label="标签筛选">
+                <div class="tag-section-head">
+                  <div>
+                    <p class="tag-section-title">热门标签</p>
+                    <p class="tag-section-subtitle">先用少量高频标签缩小范围，再决定要不要展开全部。</p>
+                  </div>
+                  ${tagStats.length > 12 ? html`
+                    <button class="ghost-btn" @click=${() => this.toggleTagsExpanded()}>
+                      ${this.tagsExpanded ? '收起标签' : `展开全部 ${tagStats.length} 个标签`}
+                    </button>
+                  ` : ''}
+                </div>
+                <div class="tags-filter">
+                  ${visibleTags.map(({ tag, count }) => html`
+                    <button
+                      class="tag-chip ${this.selectedTags.has(tag) ? 'active' : ''}"
+                      @click=${() => this.onTagToggle(tag)}
+                      title="按此标签筛选"
+                    >
+                      <span>#${tag}</span>
+                      <small>${count}</small>
+                    </button>
+                  `)}
+                </div>
+                ${hasMoreTags && !this.tagsExpanded ? html`
+                  <p class="tag-collapse-hint">还有 ${tagStats.length - visibleTags.length} 个标签未展开。</p>
+                ` : ''}
+              </section>
+            </section>
+          `}
+        </div>
+      </section>
+    `;
+  }
+
+  private renderCard(entry: NavEntry, featured = entry.featured === true) {
+    const favorite = this.isFavorite(entry.id);
+    const preview = this.getResolvedPreview(entry);
+    const showMediaRail = Boolean(preview) || this.layoutMode === 'list';
+    const copyTooltip = '复制条目 JSON，可粘贴到你的 NavHoard 编辑器或录入流程';
+    const linkTooltip = '复制当前卡片链接，适合直接分享';
+
+    return html`
+      <article class="card ${featured ? 'featured-card' : ''} ${showMediaRail ? 'has-preview' : 'no-preview'}">
+        <div class="card-top-actions">
+          <button
+            class="fav-btn ${favorite ? 'is-active' : ''}"
+            type="button"
+            title="${favorite ? '取消收藏' : '加入收藏'}"
+            aria-label="${favorite ? '取消收藏' : '加入收藏'}"
+            aria-pressed="${favorite}"
+            @click=${() => this.toggleFavorite(entry.id)}
+          >
+            ${favorite ? '★' : '☆'}
+          </button>
+        </div>
+
+        ${showMediaRail ? (preview ? html`
+          <a class="card-preview" href="${entry.url}" target="_blank" rel="noopener noreferrer" aria-label="${entry.title}">
+            <img src="${preview.src}" alt="${preview.alt}" loading="lazy" decoding="async" />
+          </a>
+        ` : html`
+          <div class="card-preview card-preview-placeholder" aria-hidden="true">
+            <span class="card-preview-placeholder-mark">${this.getSourceMonogram(entry.source)}</span>
+            <span class="card-preview-placeholder-source">${entry.source}</span>
+          </div>
+        `) : ''}
+
+        <div class="card-body">
+          <header>
+            ${featured ? html`<span class="featured-badge">作者推荐</span>` : ''}
+            <h3><a href="${entry.url}" target="_blank" rel="noopener noreferrer">${entry.title}</a></h3>
+            <div class="meta">
+              <span class="source">${entry.source}</span>
+              <span class="date">${this.formatDate(entry.updated_at)}</span>
+              <button
+                class="copy-link-inline"
+                type="button"
+                @click=${() => this.copyLink(entry)}
+                aria-label="${linkTooltip}"
+                data-tooltip="${linkTooltip}"
+              >
+                复制链接
+              </button>
+            </div>
+          </header>
+
+          <p class="summary">${entry.summary}</p>
+
+          <footer>
+            <div class="tags">
+              ${entry.tags.map(tag => html`
+                <button
+                  class="tag ${this.selectedTags.has(tag) ? 'active' : ''}"
+                  @click=${() => this.onTagToggle(tag)}
+                  title="按此标签筛选"
+                >
+                  #${tag}
+                </button>
+              `)}
+            </div>
+          </footer>
+        </div>
+
+        <div class="card-bottom-actions">
+          <button
+            class="copy-btn"
+            type="button"
+            @click=${() => this.copyEntry(entry)}
+            aria-label="${copyTooltip}"
+            data-tooltip="${copyTooltip}"
+          >
+            ⤴
+          </button>
+        </div>
       </article>
+    `;
+  }
+
+  private renderEntries(entries: NavEntry[]) {
+    if (entries.length === 0) {
+      return this.renderEmptyState();
+    }
+
+    if (this.layoutMode !== 'waterfall') {
+      return entries.map(entry => this.renderCard(entry));
+    }
+
+    const columns = this.buildWaterfallColumns(entries);
+    return html`
+      <div class="waterfall-columns">
+        ${columns.map(column => html`
+          <div class="waterfall-column">
+            ${column.map(entry => this.renderCard(entry))}
+          </div>
+        `)}
+      </div>
     `;
   }
 
@@ -386,16 +1077,26 @@ export class NavHoard extends LitElement {
       `;
     }
 
-    const allTags = this.getAllTags();
-    const activeTagCount = this.selectedTags.size;
+    const tagStats = this.getTagStats();
+    const visibleTags = this.getVisibleTags();
+    const hasMoreTags = tagStats.length > visibleTags.length;
+    const visibleEntries = this.getVisibleEntries();
 
     return html`
       <div class="nh-container">
         <header class="nh-header">
-          <h1>积径 · Nav Hoard</h1>
-          <p class="subtitle">精选链接，随手收藏</p>
+          <div class="hero-copy">
+            <p class="eyebrow">NavHoard</p>
+            <h1>轻量收藏，专注发现</h1>
+            <p class="subtitle">把公开链接整理成可搜索、可筛选、可复制的导航卡片；推荐内容会直接置顶在主列表里。</p>
+          </div>
+          <div class="hero-meta">
+            <span>${this.entries.length} 条公开卡片</span>
+            <span>${this.favorites.length} 条本地收藏</span>
+            <span>${this.getLayoutLabel(this.layoutMode)}布局</span>
+          </div>
           <button type="button" class="about-toggle" @click=${() => this.toggleAbout()} aria-expanded=${this.aboutOpen ? 'true' : 'false'}>
-            ${this.aboutOpen ? '收起说明' : 'About'}
+            ${this.aboutOpen ? '收起说明' : '了解这个站点'}
           </button>
           ${this.renderAboutPanel()}
         </header>
@@ -407,55 +1108,25 @@ export class NavHoard extends LitElement {
           </div>
         ` : ''}
 
-        <div class="controls">
-          <div class="search-bar">
-            <input
-              type="search"
-              placeholder="搜索标题、摘要或标签..."
-              .value=${this.searchQuery}
-              @input=${this.onSearch}
-            />
-          </div>
+        ${this.renderFavoriteReminderToast()}
+        ${this.renderControls(tagStats, visibleTags, hasMoreTags)}
 
-          <div class="filter-bar">
-            <div class="view-switch">
-              <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
-                全部 (${this.entries.length})
-              </button>
-              <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
-                我的收藏 (${this.favorites.length})
-              </button>
-            </div>
-
-            <div class="tags-filter">
-              ${allTags.map(tag => html`
-                <button
-                  class="tag-chip ${this.selectedTags.has(tag) ? 'active' : ''}"
-                  @click=${() => this.onTagToggle(tag)}
-                >
-                  #${tag}
-                </button>
-              `)}
-            </div>
-
-            <div class="sort-control">
-              <select .value=${this.sortBy} @change=${this.onSortChange}>
-                <option value="relevance">相关度优先</option>
-                <option value="newest">最新优先</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <main class="entries-grid">
-          ${this.filteredEntries.length === 0 ? this.renderEmptyState() : this.filteredEntries.map(entry => this.renderCard(entry))}
+        <main class="entries-grid layout-${this.layoutMode}">
+          ${this.renderEntries(visibleEntries)}
         </main>
 
         <footer class="nh-footer">
-          <p>数据来自公开源 | 手动更新</p>
+          <p>公开链接卡片 · 手动维护 · 收藏只保存在当前浏览器</p>
         </footer>
+
+        ${this.showBackToTop ? html`
+          <button class="back-to-top" type="button" @click=${() => this.scrollToTop()}>
+            回到顶部
+          </button>
+        ` : ''}
       </div>
     `;
   }
 }
+
 

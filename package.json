@@ -4,12 +4,13 @@
   "description": "积径 - 个人网址导航页",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "navhoard-cli": "cd tools/navhoard-cli && npm run cli",
     "navhoard-cli:build": "cd tools/navhoard-cli && npm run build",
-    "entry-workflow": "cd tools/navhoard-cli && npm run entry --"
+    "entry-workflow": "cd tools/navhoard-cli && npm run entry --",
+    "edit": "cd tools/navhoard-cli && npm run edit"
   },
   "dependencies": {
     "lit": "^3.2.0",

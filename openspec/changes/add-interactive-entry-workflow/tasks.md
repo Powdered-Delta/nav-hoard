@@ -22,14 +22,23 @@
 - [x] 4.2 Wire the skill to the shared single-entry pipeline instead of duplicating business rules
 - [x] 4.3 Return clear next-step prompts after write, including optional local verification
 
-## 5. Follow-Up Enhancements
+## 5. Local Visual Editor
 
-- [ ] 5.1 Add repository submission checks for git identity, remote, and related prerequisites
-- [ ] 5.2 Add optional LLM configuration checks with deterministic fallback messaging
-- [ ] 5.3 Decide whether repository submission remains guidance-only or gains an execution path in a later iteration
+- [x] 5.1 Add a local `npm run edit` entry that starts a dedicated editor service
+- [x] 5.2 Implement read/save APIs that reuse the shared canonical write path
+- [x] 5.3 Build a minimal web editor for add/edit/delete/save against `data/index.json`
+- [x] 5.4 Support browser bookmark HTML import through the shared normalization pipeline
 
-## 6. Verification
+## 6. Follow-Up Enhancements
 
-- [x] 6.1 Type-check the refactored pipeline and any new skill support scripts
-- [x] 6.2 Exercise one successful and one failed URL capture flow end to end
-- [x] 6.3 Verify duplicate URLs merge as expected in the confirmed write path
+- [ ] 6.1 Add repository submission checks for git identity, remote, and related prerequisites
+- [ ] 6.2 Add optional LLM configuration checks with deterministic fallback messaging
+- [ ] 6.3 Decide whether repository submission remains guidance-only or gains an execution path in a later iteration
+
+## 7. Verification
+
+- [x] 7.1 Type-check the refactored pipeline and any new skill support scripts
+- [x] 7.2 Exercise one successful and one failed URL capture flow end to end
+- [x] 7.3 Verify duplicate URLs merge as expected in the confirmed write path
+- [x] 7.4 Verify the local editor can read, save, and persist valid entries
+- [ ] 7.5 Verify bookmark HTML import produces normalized entries and merges duplicates correctly

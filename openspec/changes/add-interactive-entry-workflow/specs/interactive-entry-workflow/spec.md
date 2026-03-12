@@ -39,3 +39,25 @@ After a confirmed entry is written, the system SHALL provide clear next-step gui
 #### Scenario: Offer local verification after write
 - **WHEN** the system successfully writes the confirmed entry
 - **THEN** it returns suggested local verification steps or commands for the user to run next
+
+### Requirement: Local editor SHALL provide a visual maintenance entry
+The system SHALL provide a local browser-based editor that reads from and writes to the canonical data source for manual maintenance.
+
+#### Scenario: Open local editor
+- **WHEN** the user runs the local edit command
+- **THEN** the system starts a local editor service and loads the current canonical entry list in a browser-accessible page
+
+#### Scenario: Save edited entries
+- **WHEN** the user edits entries and clicks save
+- **THEN** the system validates, normalizes, deduplicates, and writes the resulting entries through the shared write path
+
+#### Scenario: Sync URL into entry draft
+- **WHEN** the user creates a new local entry, fills in a URL, and clicks sync
+- **THEN** the system attempts to capture the target page and auto-fills available title, summary, tags, and source fields before save
+
+### Requirement: Local editor SHALL support bookmark import
+The system SHALL support importing browser bookmark HTML into the canonical data source through the shared normalization pipeline.
+
+#### Scenario: Import bookmark HTML
+- **WHEN** the user uploads a browser bookmark export file in the local editor
+- **THEN** the system extracts bookmark links, converts them into entry drafts, merges duplicates, and saves the result through the shared write path

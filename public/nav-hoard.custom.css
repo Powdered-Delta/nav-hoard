@@ -1,0 +1,29 @@
+/*
+  NavHoard custom styles
+  ----------------------
+  这个文件会在默认样式之后加载。
+
+  推荐优先在 `:root` 上覆盖通用变量，这样主站和 editor 都能复用：
+
+  :root {
+    --primary: #c084fc;
+    --primary-strong: #a855f7;
+    --primary-soft: rgba(192, 132, 252, 0.14);
+    --background: #0b1020;
+    --max-width: 1240px;
+  }
+
+  如果只想覆盖主站组件，也可以继续写 `nav-hoard { ... }`：
+
+  nav-hoard {
+    --nh-accent: #c084fc;
+    --nh-accent-strong: #a855f7;
+    --nh-max-width: 1240px;
+  }
+
+  也可以继续追加具体选择器覆盖，例如：
+
+  .nh-header {
+    border-radius: 36px;
+  }
+*/

@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +17,9 @@ export interface NavEntry {
   created_at: string;
   updated_at: string;
   confidence?: number;
+  featured?: boolean;
+  featured_rank?: number;
+  preview?: NavPreview;
 }
 
 export interface EntryDraft {
@@ -28,6 +31,16 @@ export interface EntryDraft {
   created_at: string;
   updated_at: string;
   confidence?: number;
+  featured?: boolean;
+  featured_rank?: number;
+  preview?: NavPreview;
+}
+
+export interface NavPreview {
+  enabled?: boolean;
+  mode?: 'auto' | 'external' | 'local';
+  src?: string;
+  alt?: string;
 }
 
 export interface OutputPayload {
@@ -129,6 +142,21 @@ export type ConfirmWriteResult =
       invalidMessages: string[];
     };
 
+export type PersistEntriesResult =
+  | {
+      ok: true;
+      entries: NavEntry[];
+      total: number;
+      duplicateCount: number;
+      mode: 'single' | 'sharded';
+      writtenFiles: string[];
+      outputPath: string;
+    }
+  | {
+      ok: false;
+      invalidMessages: string[];
+    };
+
 export const DATA_VERSION = '0.2';
 export const SHARD_THRESHOLD = 500;
 export const MAX_TITLE_LENGTH = 120;
@@ -180,7 +208,20 @@ const validateEntry = ajv.compile({
     source: { type: 'string', minLength: 1 },
     created_at: { type: 'string', minLength: 1 },
     updated_at: { type: 'string', minLength: 1 },
-    confidence: { type: 'number', minimum: 0, maximum: 1, nullable: true }
+    confidence: { type: 'number', minimum: 0, maximum: 1, nullable: true },
+    featured: { type: 'boolean', nullable: true },
+    featured_rank: { type: 'integer', minimum: 1, maximum: 999, nullable: true },
+    preview: {
+      type: 'object',
+      nullable: true,
+      properties: {
+        enabled: { type: 'boolean', nullable: true },
+        mode: { type: 'string', enum: ['auto', 'external', 'local'], nullable: true },
+        src: { type: 'string', minLength: 1, nullable: true },
+        alt: { type: 'string', minLength: 1, maxLength: MAX_TITLE_LENGTH, nullable: true }
+      },
+      additionalProperties: false
+    }
   },
   required: ['id', 'url', 'title', 'summary', 'tags', 'source', 'created_at', 'updated_at'],
   additionalProperties: false
@@ -211,7 +252,10 @@ export function normalizeBatchEntry(entry: EntryDraft, context: BatchNormalizeCo
     source: cleanText(entry.source) || deriveSourceLabel(normalizedUrl, context.sourceName || context.sourceId),
     created_at: toIsoDate(entry.created_at),
     updated_at: toIsoDate(entry.updated_at),
-    confidence: normalizeConfidence(entry.confidence, 0.7)
+    confidence: normalizeConfidence(entry.confidence, 0.7),
+    featured: normalizeFeatured(entry.featured),
+    featured_rank: normalizeFeaturedRank(entry.featured_rank, entry.featured),
+    preview: normalizePreview(entry.preview)
   };
 }
 
@@ -370,14 +414,80 @@ export function confirmAndWriteEntry(draft: EntryDraft, outputPath = DEFAULT_CAN
     };
   }
 
-  const sortedEntries = [...validated.entries].sort(
-    (left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
-  );
+  const sortedEntries = sortEntries(validated.entries);
   const writeSummary = writeOutputs(dataPaths, sortedEntries);
 
   return {
     ok: true,
     entry: normalized.entry,
+    total: sortedEntries.length,
+    duplicateCount: merged.duplicateCount,
+    mode: writeSummary.mode,
+    writtenFiles: writeSummary.files,
+    outputPath: dataPaths.canonicalFile
+  };
+}
+
+export function replaceDraftEntries(
+  drafts: EntryDraft[],
+  outputPath = DEFAULT_CANONICAL_DATA_FILE
+): PersistEntriesResult {
+  return persistDraftEntries(drafts, outputPath, 'replace');
+}
+
+export function mergeDraftEntries(
+  drafts: EntryDraft[],
+  outputPath = DEFAULT_CANONICAL_DATA_FILE
+): PersistEntriesResult {
+  return persistDraftEntries(drafts, outputPath, 'merge');
+}
+
+function persistDraftEntries(
+  drafts: EntryDraft[],
+  outputPath: string,
+  strategy: 'replace' | 'merge'
+): PersistEntriesResult {
+  const invalidMessages: string[] = [];
+  const normalizedEntries: NavEntry[] = [];
+
+  for (const [index, draft] of drafts.entries()) {
+    const normalized = normalizeBatchEntry(draft, {
+      sourceName: draft.source || draft.title || `entry-${index + 1}`
+    });
+
+    if (!normalized) {
+      invalidMessages.push(`entry ${index + 1}: unable to normalize draft`);
+      continue;
+    }
+
+    normalizedEntries.push(normalized);
+  }
+
+  if (invalidMessages.length > 0) {
+    return {
+      ok: false,
+      invalidMessages
+    };
+  }
+
+  const dataPaths = resolveDataPaths(outputPath);
+  const existingEntries = strategy === 'merge' ? loadExistingEntries(dataPaths) : [];
+  const merged = mergeEntries(existingEntries, normalizedEntries);
+  const validated = validateEntries(merged.entries);
+
+  if (validated.invalidCount > 0) {
+    return {
+      ok: false,
+      invalidMessages: validated.invalidMessages
+    };
+  }
+
+  const sortedEntries = sortEntries(validated.entries);
+  const writeSummary = writeOutputs(dataPaths, sortedEntries);
+
+  return {
+    ok: true,
+    entries: sortedEntries,
     total: sortedEntries.length,
     duplicateCount: merged.duplicateCount,
     mode: writeSummary.mode,
@@ -415,7 +525,10 @@ function normalizeConfirmedEntry(draft: EntryDraft): ConfirmWriteResult | { ok: 
     source: cleanText(draft.source) || deriveSourceLabel(normalizedUrl),
     created_at: toIsoDate(draft.created_at),
     updated_at: toIsoDate(draft.updated_at),
-    confidence: normalizeConfidence(draft.confidence, 0.7)
+    confidence: normalizeConfidence(draft.confidence, 0.7),
+    featured: normalizeFeatured(draft.featured),
+    featured_rank: normalizeFeaturedRank(draft.featured_rank, draft.featured),
+    preview: normalizePreview(draft.preview)
   };
 
   const validated = validateEntries([entry]);
@@ -456,6 +569,14 @@ function parseHtmlToDraft(url: string, html: string, now: string, explicitSource
     .filter(Boolean);
 
   const source = cleanText(explicitSource || deriveSourceLabel(url));
+  const previewImage = resolvePreviewImage(
+    url,
+    cleanText(
+      $('meta[property="og:image"]').attr('content')
+      || $('meta[name="twitter:image"]').attr('content')
+      || ''
+    )
+  );
   const warnings: string[] = [];
   const finalTitle = title || truncate(source, MAX_TITLE_LENGTH);
   const finalSummary = summary || generateSummary(finalTitle, url);
@@ -475,7 +596,13 @@ function parseHtmlToDraft(url: string, html: string, now: string, explicitSource
     source,
     created_at: now,
     updated_at: now,
-    confidence: warnings.length > 0 ? 0.6 : 0.8
+    confidence: warnings.length > 0 ? 0.6 : 0.8,
+    preview: previewImage ? {
+      enabled: true,
+      mode: 'auto',
+      src: previewImage,
+      alt: finalTitle
+    } : undefined
   };
 
   return {
@@ -551,7 +678,8 @@ function normalizeTemplateDraft(entry: Partial<EntryDraft> | undefined): {
       source: cleanText(String(entry.source || '')),
       created_at: cleanText(String(entry.created_at || '')),
       updated_at: cleanText(String(entry.updated_at || '')),
-      confidence: normalizeTemplateConfidence(entry.confidence)
+      confidence: normalizeTemplateConfidence(entry.confidence),
+      preview: normalizeTemplatePreview((entry as { preview?: unknown }).preview)
     },
     invalidMessages
   };
@@ -621,6 +749,9 @@ function validateDraftFields(draft: EntryDraft): string[] {
   if (!cleanText(draft.updated_at)) {
     invalidMessages.push('entry.updated_at is required');
   }
+  if (draft.preview && !normalizePreview(draft.preview)) {
+    invalidMessages.push('entry.preview is invalid');
+  }
 
   return invalidMessages;
 }
@@ -687,13 +818,19 @@ export function mergeEntries(existing: NavEntry[], incoming: NavEntry[]): MergeR
         summary: entry.summary || current.summary,
         created_at: current.created_at || entry.created_at,
         updated_at: entry.updated_at,
-        confidence: Math.max(current.confidence ?? 0, entry.confidence ?? 0)
+        confidence: Math.max(current.confidence ?? 0, entry.confidence ?? 0),
+        featured: entry.featured ?? current.featured ?? false,
+        featured_rank: normalizeMergedFeaturedRank(entry, current),
+        preview: normalizePreview(entry.preview) ?? normalizePreview(current.preview)
       });
     } else {
       mergedMap.set(entry.id, {
         ...current,
         tags: mergedTags,
-        confidence: Math.max(current.confidence ?? 0, entry.confidence ?? 0)
+        confidence: Math.max(current.confidence ?? 0, entry.confidence ?? 0),
+        featured: current.featured ?? false,
+        featured_rank: normalizeMergedFeaturedRank(current, entry),
+        preview: normalizePreview(current.preview) ?? normalizePreview(entry.preview)
       });
     }
   }
@@ -836,6 +973,12 @@ function cleanupGeneratedFiles(outputDir: string) {
   }
 }
 
+function sortEntries(entries: NavEntry[]): NavEntry[] {
+  return [...entries].sort(
+    (left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
+  );
+}
+
 function groupEntries(entries: NavEntry[]): Map<string, NavEntry[]> {
   const groups = new Map<string, NavEntry[]>();
   for (const entry of entries) {
@@ -863,8 +1006,95 @@ function normalizePersistedEntry(entry: NavEntry): NavEntry {
     source: cleanText(entry.source) || 'unknown',
     created_at: toIsoDate(entry.created_at),
     updated_at: toIsoDate(entry.updated_at),
-    confidence: typeof entry.confidence === 'number' ? entry.confidence : 1
+    confidence: typeof entry.confidence === 'number' ? entry.confidence : 1,
+    featured: normalizeFeatured(entry.featured),
+    featured_rank: normalizeFeaturedRank(entry.featured_rank, entry.featured),
+    preview: normalizePreview(entry.preview)
   };
+}
+
+function normalizeFeatured(value: unknown): boolean {
+  return value === true;
+}
+
+function normalizeFeaturedRank(value: unknown, featured?: unknown): number | undefined {
+  if (!normalizeFeatured(featured) && featured !== undefined) {
+    return undefined;
+  }
+
+  if (typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 999) {
+    return value;
+  }
+
+  const parsed = Number(String(value ?? '').trim());
+  if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 999) {
+    return parsed;
+  }
+
+  return normalizeFeatured(featured) ? 100 : undefined;
+}
+
+function normalizeMergedFeaturedRank(primary: NavEntry, fallback: NavEntry): number | undefined {
+  if (primary.featured) {
+    return normalizeFeaturedRank(primary.featured_rank, true);
+  }
+
+  if (fallback.featured) {
+    return normalizeFeaturedRank(fallback.featured_rank, true);
+  }
+
+  return undefined;
+}
+
+function normalizePreview(value: unknown): NavPreview | undefined {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const preview = value as NavPreview;
+  const src = cleanText(String(preview.src || ''));
+  const enabled = preview.enabled !== false;
+  if (!enabled || !src) {
+    return undefined;
+  }
+
+  const mode = normalizePreviewMode(preview.mode, src);
+  const normalizedSrc = mode === 'local' ? src.replace(/^\/+/, '') : src;
+  if (!normalizedSrc) {
+    return undefined;
+  }
+
+  const alt = truncate(cleanText(String(preview.alt || '')), MAX_TITLE_LENGTH);
+  return {
+    enabled: true,
+    mode,
+    src: normalizedSrc,
+    alt: alt || undefined
+  };
+}
+
+function normalizeTemplatePreview(value: unknown): NavPreview | undefined {
+  return normalizePreview(value);
+}
+
+function normalizePreviewMode(value: unknown, src: string): NavPreview['mode'] {
+  const normalized = cleanText(String(value || '')).toLowerCase();
+  if (normalized === 'auto' || normalized === 'external' || normalized === 'local') {
+    return normalized;
+  }
+  return /^https?:\/\//i.test(src) ? 'external' : 'local';
+}
+
+function resolvePreviewImage(pageUrl: string, src: string): string {
+  if (!src) {
+    return '';
+  }
+
+  try {
+    return new URL(src, pageUrl).toString();
+  } catch {
+    return '';
+  }
 }
 
 function isWithinDirectory(targetPath: string, directoryPath: string): boolean {

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">前端缓存策略实践预览图</title>
+  <desc id="desc">GitHub Pages 技术博客示意图</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#052e16"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g fill="rgba(255,255,255,0.1)">
+    <rect x="760" y="120" width="300" height="70" rx="18"/>
+    <rect x="700" y="228" width="360" height="70" rx="18"/>
+    <rect x="640" y="336" width="420" height="70" rx="18"/>
+  </g>
+  <text x="88" y="180" fill="#99f6e4" font-size="28" font-family="Segoe UI, Arial, sans-serif">mqyqingfeng.github.io</text>
+  <text x="88" y="286" fill="#ffffff" font-size="64" font-weight="700" font-family="Segoe UI, Arial, sans-serif">前端缓存策略实践</text>
+  <text x="88" y="364" fill="#ccfbf1" font-size="30" font-family="Segoe UI, Arial, sans-serif">静态资源缓存、更新策略与性能优化</text>
+</svg>

@@ -43,3 +43,18 @@ The tool SHALL support a dry-run mode that performs fetch, normalization, and va
 #### Scenario: Dry-run execution completes
 - **WHEN** the user runs the tool with `--dry-run`
 - **THEN** the tool prints counts and warnings for the computed output without modifying files
+
+### Requirement: Refresh pipeline SHALL normalize optional preview image metadata
+The tool SHALL accept optional preview image metadata, normalize it with the rest of the entry payload, and keep it consistent across canonical and publish outputs.
+
+#### Scenario: Captured page exposes an Open Graph image
+- **WHEN** a captured page contains preview image metadata such as `og:image` or `twitter:image`
+- **THEN** the pipeline stores a normalized preview image payload on the draft result
+
+#### Scenario: User provides a local preview asset path
+- **WHEN** an entry draft specifies a local preview asset path for a repository-hosted image
+- **THEN** the pipeline stores the path in normalized local-preview form instead of converting it to an invalid external URL
+
+#### Scenario: Preview metadata is invalid
+- **WHEN** the preview payload is disabled or missing a usable source
+- **THEN** the pipeline omits the preview payload from the final entry instead of writing broken metadata
