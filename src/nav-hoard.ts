@@ -601,9 +601,6 @@ export class NavHoard extends LitElement {
     if (this.searchQuery.trim()) {
       parts.push(`搜索：${this.searchQuery}`);
     }
-    if (this.selectedTags.size > 0) {
-      parts.push(`标签：${Array.from(this.selectedTags).join('、')}`);
-    }
 
     parts.push(this.view === 'favorites' ? `收藏 ${this.favorites.length} 条` : `全部 ${this.entries.length} 条`);
     parts.push(this.getLayoutLabel(this.layoutMode));
@@ -883,7 +880,7 @@ export class NavHoard extends LitElement {
             <div class="search-dock-copy">
               <p class="search-dock-kicker">NavHoard</p>
               <h2>先搜索，再决定要不要筛选</h2>
-              <p class="search-dock-summary">${this.getControlsSummaryText()}</p>
+              <p class="search-dock-summary" title=${this.getControlsSummaryText()}>${this.getControlsSummaryText()}</p>
             </div>
 
             <div class="search-bar search-bar-dock">

@@ -31,6 +31,8 @@ body {
     radial-gradient(circle at top, rgba(124, 156, 255, 0.18), transparent 30%),
     radial-gradient(circle at 85% 10%, rgba(110, 231, 255, 0.14), transparent 22%),
     linear-gradient(180deg, #08101f 0%, #0d1730 42%, #101b37 100%);
+  background-attachment: fixed, fixed, fixed;
+  background-color: #0d1730;
   color: var(--text-color);
   font-family: var(--font-sans);
 }

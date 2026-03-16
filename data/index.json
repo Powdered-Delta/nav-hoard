@@ -1,7 +1,78 @@
 {
   "version": "0.2",
-  "updated_at": "2026-03-13T05:56:29.543Z",
+  "updated_at": "2026-03-16T09:06:33.683Z",
   "entries": [
+    {
+      "id": "255d4ca4296b",
+      "url": "https://www.52pojie.cn/",
+      "title": "吾爱破解 - 52pojie.cn",
+      "summary": "吾爱破解论坛致力于软件逆向工程与反病毒技术的研究，汇聚众多技术爱好者的智慧与经验，共同探索与分享前沿安全技术、破解分析方案，服务于软件安全、移动应用和数字取证等领域的学习与交流。",
+      "tags": [
+        "编程",
+        "安全",
+        "逆向",
+        "论坛",
+        "软件"
+      ],
+      "source": "52pojie.cn",
+      "created_at": "2025-04-18T12:13:54.732Z",
+      "updated_at": "2026-03-16T09:30:00.000Z",
+      "confidence": 0.95,
+      "featured": false,
+      "preview": {
+        "enabled": true,
+        "mode": "external",
+        "src": "https://rdl.ink/render/https%3A%2F%2Fwww.52pojie.cn%2F",
+        "alt": "吾爱破解 - 52pojie.cn"
+      }
+    },
+    {
+      "id": "3f87c66e67bc",
+      "url": "https://www.daxiaamu.com/8044",
+      "title": "做了一个简易的scrcpy启动器，可以实时检测手机连接并自动启动scrcpy - 大侠阿木博客",
+      "summary": "原版scrcpy用的不爽 原版的scrcpy以及一众的第三方GUI修改版，在打开scrcpy窗口之前，是不知道能不能正常…",
+      "tags": [
+        "安卓",
+        "折腾",
+        "博客",
+        "scrcpy"
+      ],
+      "source": "daxiaamu.com",
+      "created_at": "2025-04-16T05:07:28.721Z",
+      "updated_at": "2026-03-16T09:06:31.111Z",
+      "confidence": 0.95,
+      "featured": false,
+      "preview": {
+        "enabled": true,
+        "mode": "auto",
+        "src": "https://www.daxiaamu.com/wp-content/uploads/2021/09/cropped-android-chrome-512x512-1.png",
+        "alt": "做了一个简易的scrcpy启动器，可以实时检测手机连接并自动启动scrcpy - 大侠阿木博客"
+      }
+    },
+    {
+      "id": "398775d97615",
+      "url": "https://www.daxiaamu.com/",
+      "title": "大侠阿木博客 - 杂七杂八技术博客",
+      "summary": "杂七杂八技术博客",
+      "tags": [
+        "安卓",
+        "折腾",
+        "学习",
+        "大侠阿木",
+        "博客"
+      ],
+      "source": "daxiaamu.com",
+      "created_at": "2025-04-16T05:08:09.531Z",
+      "updated_at": "2026-03-16T09:05:41.494Z",
+      "confidence": 0.95,
+      "featured": false,
+      "preview": {
+        "enabled": true,
+        "mode": "auto",
+        "src": "https://www.daxiaamu.com/wp-content/uploads/2021/09/cropped-android-chrome-512x512-1.png",
+        "alt": "大侠阿木博客 - 杂七杂八技术博客"
+      }
+    },
     {
       "id": "7d7674a509cf",
       "url": "https://barretlee.github.io/blog/2024/03/06/open-source-notes.html",
@@ -1655,30 +1726,6 @@
       }
     },
     {
-      "id": "255d4ca4296b",
-      "url": "https://www.52pojie.cn/",
-      "title": "吾爱破解 - 52pojie.cn",
-      "summary": "吾爱破解论坛致力于软件逆向工程与反病毒技术的研究，汇聚众多技术爱好者的智慧与经验，共同探索与分享前沿安全技术、破解分析方案，服务于软件安全、移动应用和数字取证等领域的学习与交流。",
-      "tags": [
-        "编程",
-        "安全",
-        "逆向",
-        "论坛",
-        "软件"
-      ],
-      "source": "52pojie.cn",
-      "created_at": "2025-04-18T12:13:54.732Z",
-      "updated_at": "2026-03-16T09:30:00.000Z",
-      "confidence": 0.95,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "external",
-        "src": "https://rdl.ink/render/https%3A%2F%2Fwww.52pojie.cn%2F",
-        "alt": "吾爱破解 - 52pojie.cn"
-      }
-    },
-    {
       "id": "0b2c7e6d8348",
       "url": "https://keylol.com/",
       "title": "其乐 Keylol",
@@ -1748,54 +1795,6 @@
         "mode": "external",
         "src": "https://rdl.ink/render/https%3A%2F%2Fdmvr.xyz%2F",
         "alt": "DMVR - Login"
-      }
-    },
-    {
-      "id": "398775d97615",
-      "url": "https://www.daxiaamu.com/",
-      "title": "大侠阿木博客 - 杂七杂八技术博客",
-      "summary": "杂七杂八技术博客",
-      "tags": [
-        "安卓",
-        "折腾",
-        "学习",
-        "大侠阿木博客",
-        "一加手机一键Root"
-      ],
-      "source": "daxiaamu.com",
-      "created_at": "2025-04-16T05:08:09.531Z",
-      "updated_at": "2025-04-16T05:08:09.531Z",
-      "confidence": 0.95,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "auto",
-        "src": "https://www.daxiaamu.com/wp-content/uploads/2021/09/cropped-android-chrome-512x512-1.png",
-        "alt": "大侠阿木博客 - 杂七杂八技术博客"
-      }
-    },
-    {
-      "id": "3f87c66e67bc",
-      "url": "https://www.daxiaamu.com/8044",
-      "title": "做了一个简易的scrcpy启动器，可以实时检测手机连接并自动启动scrcpy - 大侠阿木博客",
-      "summary": "原版scrcpy用的不爽 原版的scrcpy以及一众的第三方GUI修改版，在打开scrcpy窗口之前，是不知道能不能正常…",
-      "tags": [
-        "安卓",
-        "折腾",
-        "大侠阿木博客",
-        "一加手机一键Root",
-        "一加全能盒子"
-      ],
-      "source": "daxiaamu.com",
-      "created_at": "2025-04-16T05:07:28.721Z",
-      "updated_at": "2025-04-16T05:07:28.721Z",
-      "confidence": 0.95,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "auto",
-        "src": "https://www.daxiaamu.com/wp-content/uploads/2021/09/cropped-android-chrome-512x512-1.png",
-        "alt": "做了一个简易的scrcpy启动器，可以实时检测手机连接并自动启动scrcpy - 大侠阿木博客"
       }
     },
     {
