@@ -497,6 +497,26 @@
         return state.entries.find(function(entry) { return entry.localId === state.selectedId; }) || null;
       }
 
+      function parseEntryTags(value) {
+        return String(value || '')
+          .split(',')
+          .map(function(item) { return item.trim(); })
+          .filter(Boolean);
+      }
+
+      function buildKnownTagSet(excludeLocalId) {
+        const known = new Set();
+        state.entries.forEach(function(entry) {
+          if (excludeLocalId && entry.localId === excludeLocalId) {
+            return;
+          }
+          parseEntryTags(entry.tags).forEach(function(tag) {
+            known.add(tag);
+          });
+        });
+        return known;
+      }
+
       function toTimestamp(value) {
         const timestamp = Date.parse(String(value || ''));
         return Number.isFinite(timestamp) ? timestamp : 0;
@@ -818,14 +838,20 @@
 
       function applyCaptureResult(result) {
         const entry = currentEntry();
-        if (!entry || !result || !result.draft) return;
+        if (!entry || !result || !result.draft) return { addedTags: [], newGlobalTags: [] };
         const draft = result.draft;
+        const previousTags = new Set(parseEntryTags(entry.tags));
+        const knownTags = buildKnownTagSet(entry.localId);
+        let addedTags = [];
+        let newGlobalTags = [];
 
         entry.url = draft.url || entry.url;
         if (draft.title) entry.title = draft.title;
         if (draft.summary) entry.summary = draft.summary;
         if (draft.source) entry.source = draft.source;
         if (Array.isArray(draft.tags) && draft.tags.length > 0) {
+          addedTags = draft.tags.filter(function(tag) { return !previousTags.has(tag); });
+          newGlobalTags = addedTags.filter(function(tag) { return !knownTags.has(tag); });
           entry.tags = draft.tags.join(', ');
         }
         if (draft.created_at) entry.created_at = draft.created_at;
@@ -842,6 +868,10 @@
         entry.featured = entry.featured === true;
         entry.featured_rank = entry.featured_rank || '';
         markDirty(true);
+        return {
+          addedTags: addedTags,
+          newGlobalTags: newGlobalTags
+        };
       }
 
       async function fileToDataUrl(file) {
@@ -917,7 +947,7 @@
             return;
           }
 
-          applyCaptureResult(payload);
+          const tagMeta = applyCaptureResult(payload);
           render();
 
           const messages = [];
@@ -933,6 +963,12 @@
           }
           if (Array.isArray(payload.warnings) && payload.warnings.length > 0) {
             messages.push('提示：' + payload.warnings.join('；'));
+          }
+          if (tagMeta && Array.isArray(tagMeta.addedTags) && tagMeta.addedTags.length > 0) {
+            messages.push('已补充标签：' + tagMeta.addedTags.join('、') + '。');
+          }
+          if (tagMeta && Array.isArray(tagMeta.newGlobalTags) && tagMeta.newGlobalTags.length > 0) {
+            messages.push('发现新的标签词：' + tagMeta.newGlobalTags.join('、') + '。');
           }
 
           setStatus(messages.join(' '), payload.status === 'failed' ? 'error' : (payload.status === 'partial' ? 'info' : 'success'));

@@ -87,6 +87,10 @@ export interface CaptureFetchResponse {
   ok: boolean;
   status: number;
   statusText: string;
+  headers?: {
+    get(name: string): string | null;
+  };
+  arrayBuffer?(): Promise<ArrayBuffer>;
   text(): Promise<string>;
 }
 
@@ -547,14 +551,14 @@ function normalizeConfirmedEntry(draft: EntryDraft): ConfirmWriteResult | { ok: 
 
 function parseHtmlToDraft(url: string, html: string, now: string, explicitSource?: string): CaptureDraftResult {
   const $ = load(html);
-  const title = cleanText(
+  const extractedTitle = cleanText(
     $('meta[property="og:title"]').attr('content')
       || $('meta[name="twitter:title"]').attr('content')
       || $('title').first().text()
       || $('h1').first().text()
   );
 
-  const summary = cleanText(
+  const extractedSummary = cleanText(
     $('meta[name="description"]').attr('content')
       || $('meta[property="og:description"]').attr('content')
       || $('meta[name="twitter:description"]').attr('content')
@@ -563,7 +567,7 @@ function parseHtmlToDraft(url: string, html: string, now: string, explicitSource
       || $('p').first().text()
   );
 
-  const keywordTags = cleanText($('meta[name="keywords"]').attr('content') || '')
+  const extractedKeywordTags = cleanText($('meta[name="keywords"]').attr('content') || '')
     .split(/[，,、|/]/)
     .map(tag => truncate(cleanText(tag), MAX_TAG_LENGTH))
     .filter(Boolean);
@@ -578,14 +582,25 @@ function parseHtmlToDraft(url: string, html: string, now: string, explicitSource
     )
   );
   const warnings: string[] = [];
-  const finalTitle = title || truncate(source, MAX_TITLE_LENGTH);
-  const finalSummary = summary || generateSummary(finalTitle, url);
+  const hasBrokenTitle = isLikelyMojibake(extractedTitle);
+  const hasBrokenSummary = isLikelyMojibake(extractedSummary);
+  const keywordTags = extractedKeywordTags.filter(tag => !isLikelyMojibake(tag));
+  const droppedBrokenTags = extractedKeywordTags.length - keywordTags.length;
+  const finalTitle = !hasBrokenTitle && extractedTitle ? extractedTitle : truncate(source, MAX_TITLE_LENGTH);
+  const finalSummary = !hasBrokenSummary && extractedSummary ? extractedSummary : generateSummary(finalTitle, url);
 
-  if (!title) {
+  if (hasBrokenTitle) {
+    warnings.push('captured title may contain encoding issues; fallback title was used');
+  } else if (!extractedTitle) {
     warnings.push('title was generated from source');
   }
-  if (!summary) {
+  if (hasBrokenSummary) {
+    warnings.push('captured summary may contain encoding issues; fallback summary was used');
+  } else if (!extractedSummary) {
     warnings.push('summary was generated from fallback');
+  }
+  if (droppedBrokenTags > 0) {
+    warnings.push('some captured tags may contain encoding issues and were skipped');
   }
 
   const draft: EntryDraft = {
@@ -761,7 +776,100 @@ async function fetchPageHtml(url: string, fetcher?: CaptureFetcher): Promise<str
   if (!response.ok) {
     throw new Error(`HTTP ${response.status} ${response.statusText}`);
   }
+
+  if (response.arrayBuffer) {
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const contentType = response.headers?.get('content-type') || '';
+    return decodeHtmlBuffer(buffer, contentType);
+  }
+
   return response.text();
+}
+
+function decodeHtmlBuffer(buffer: Buffer, contentType: string): string {
+  const headerCharset = normalizeCharsetLabel(extractCharsetFromContentType(contentType));
+  const metaCharset = normalizeCharsetLabel(extractCharsetFromHtml(buffer));
+  const candidates = uniqueCharsets([
+    headerCharset,
+    metaCharset,
+    'utf-8',
+    'gb18030',
+    'gbk',
+    'big5'
+  ]);
+
+  for (const charset of candidates) {
+    const decoded = tryDecodeBuffer(buffer, charset);
+    if (decoded) {
+      return decoded;
+    }
+  }
+
+  return buffer.toString('utf8');
+}
+
+function extractCharsetFromContentType(contentType: string): string | null {
+  const match = contentType.match(/charset\s*=\s*["']?\s*([^;"'\s>]+)/i);
+  return match ? match[1] : null;
+}
+
+function extractCharsetFromHtml(buffer: Buffer): string | null {
+  const head = buffer.subarray(0, 4096).toString('latin1');
+  const directMatch = head.match(/<meta[^>]+charset\s*=\s*["']?\s*([^"'>\s/]+)/i);
+  if (directMatch) {
+    return directMatch[1];
+  }
+
+  const httpEquivMatch = head.match(
+    /<meta[^>]+http-equiv\s*=\s*["']content-type["'][^>]+content\s*=\s*["'][^"']*charset\s*=\s*([^"'>\s;]+)/i
+  );
+  if (httpEquivMatch) {
+    return httpEquivMatch[1];
+  }
+
+  return null;
+}
+
+function normalizeCharsetLabel(charset: string | null | undefined): string | null {
+  if (!charset) {
+    return null;
+  }
+
+  const normalized = charset.trim().toLowerCase();
+  switch (normalized) {
+    case 'utf8':
+      return 'utf-8';
+    case 'gb2312':
+    case 'gb_2312':
+    case 'gb-2312':
+      return 'gb18030';
+    case 'gbk':
+    case 'cp936':
+    case 'ms936':
+    case 'x-gbk':
+      return 'gbk';
+    default:
+      return normalized;
+  }
+}
+
+function uniqueCharsets(candidates: Array<string | null>): string[] {
+  const result: string[] = [];
+  for (const candidate of candidates) {
+    if (!candidate || result.includes(candidate)) {
+      continue;
+    }
+    result.push(candidate);
+  }
+  return result;
+}
+
+function tryDecodeBuffer(buffer: Buffer, charset: string): string | null {
+  try {
+    return new TextDecoder(charset, { fatal: true }).decode(buffer);
+  } catch {
+    return null;
+  }
 }
 
 export function validateEntries(entries: NavEntry[]): ValidationResult {
@@ -1136,6 +1244,20 @@ function cleanText(value: string): string {
     .replace(/\s+/g, ' ')
     .replace(/[\u0000-\u001F]+/g, ' ')
     .trim();
+}
+
+function isLikelyMojibake(value: string): boolean {
+  if (!value) {
+    return false;
+  }
+
+  return (
+    value.includes('�')
+    || value.includes('锟斤拷')
+    || /Ã[\u0080-\u00BF]/u.test(value)
+    || /Â[\u0080-\u00BF]/u.test(value)
+    || /ðŸ[\u0080-\u00BF]/u.test(value)
+  );
 }
 
 function truncate(value: string, maxLength: number): string {

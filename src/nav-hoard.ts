@@ -70,12 +70,18 @@ export class NavHoard extends LitElement {
   @state() private favoriteReminderOpen = false;
   @state() private favoriteReminderDismissed = false;
   @state() private showBackToTop = false;
+  @state() private compactSearchVisible = false;
+  @state() private compactFiltersExpanded = false;
   @state() private viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
 
   private miniSearch: MiniSearch | null = null;
 
   private readonly handleWindowScroll = () => {
     this.showBackToTop = window.scrollY > 560;
+    this.compactSearchVisible = window.scrollY > 220;
+    if (window.scrollY <= 220) {
+      this.compactFiltersExpanded = false;
+    }
   };
   private readonly handleWindowResize = () => {
     this.viewportWidth = window.innerWidth;
@@ -576,6 +582,10 @@ export class NavHoard extends LitElement {
     this.writeStorageValue(CONTROLS_COLLAPSED_KEY, String(this.controlsCollapsed));
   }
 
+  private toggleCompactFiltersExpanded() {
+    this.compactFiltersExpanded = !this.compactFiltersExpanded;
+  }
+
   private onLayoutChange(mode: LayoutMode) {
     this.layoutMode = mode;
     this.writeStorageValue(LAYOUT_KEY, mode);
@@ -752,13 +762,13 @@ export class NavHoard extends LitElement {
     `;
   }
 
-  private renderAboutPanel() {
+  private renderAboutPanel(variant: 'inline' | 'popover' = 'inline') {
     if (!this.aboutOpen) {
       return null;
     }
 
     return html`
-      <section class="about-panel" aria-label="关于 NavHoard">
+      <section class="about-panel ${variant === 'popover' ? 'about-panel-popover' : ''}" aria-label="关于 NavHoard">
         <p>这里收录的是公开链接卡片，方便你通过搜索、标签和收藏重新发现内容。</p>
         <p>收藏状态只保存在当前浏览器本地，不会自动同步；如果准备长期使用，建议定期导出收藏。</p>
         <p>如果你想把某条内容带到自己的 NavHoard，可以点击卡片复制图标，把条目 JSON 粘贴到编辑器或录入流程里。</p>
@@ -824,36 +834,22 @@ export class NavHoard extends LitElement {
   }
 
   private renderResultMeta() {
+    const featuredCount = this.getFeaturedEntries().length;
     return html`
       <div class="result-meta">
         <div>
-          <p class="result-title">${this.view === 'favorites' ? '我的收藏' : '发现内容'}</p>
+          <p class="result-title">${this.view === 'favorites' ? '我的收藏' : '结果列表'}</p>
           <p class="result-subtitle">
             当前共显示 ${this.filteredEntries.length} 条结果
             ${this.view === 'favorites' ? ` / 已收藏 ${this.favorites.length} 条` : ` / 总计 ${this.entries.length} 条`}
+            ${featuredCount > 0 ? ` / 含推荐 ${featuredCount} 条` : ''}
           </p>
         </div>
-        <div class="result-actions">
-          <button class="ghost-btn" @click=${() => this.exportFavorites()} ?disabled=${this.favorites.length === 0}>
-            导出收藏
+        ${this.hasActiveFilters() ? html`
+          <button class="ghost-btn" @click=${() => this.clearFilters()}>
+            清空筛选
           </button>
-          <button class="ghost-btn" @click=${() => this.openFavoritesImport()}>
-            导入收藏
-          </button>
-          <input
-            id="favorites-import-input"
-            class="hidden-file-input"
-            type="file"
-            accept="application/json,.json"
-            @change=${(event: Event) => this.handleFavoritesImport(event)}
-          />
-          <div class="sort-control">
-            <select .value=${this.sortBy} @change=${this.onSortChange}>
-              <option value="relevance">相关度优先</option>
-              <option value="newest">最新优先</option>
-            </select>
-          </div>
-        </div>
+        ` : ''}
       </div>
     `;
   }
@@ -879,62 +875,102 @@ export class NavHoard extends LitElement {
     `;
   }
 
-  private renderControls(tagStats: Array<{ tag: string; count: number }>, visibleTags: Array<{ tag: string; count: number }>, hasMoreTags: boolean) {
+  private renderSearchDock(tagStats: Array<{ tag: string; count: number }>, visibleTags: Array<{ tag: string; count: number }>, hasMoreTags: boolean) {
     return html`
-      <section class="controls-shell">
-        <div class="controls-sticky">
-          <div class="controls-bar">
-            <div class="controls-bar-copy">
-              <p class="controls-kicker">发现工具</p>
-              <h2>搜索、筛选和布局</h2>
-              <p class="controls-summary">${this.getControlsSummaryText()}</p>
+      <section class="search-dock-shell">
+        <div class="search-dock">
+          <div class="search-dock-main">
+            <div class="search-dock-copy">
+              <p class="search-dock-kicker">NavHoard</p>
+              <h2>先搜索，再决定要不要筛选</h2>
+              <p class="search-dock-summary">${this.getControlsSummaryText()}</p>
             </div>
-            <div class="controls-bar-actions">
-              ${this.renderLayoutSwitch()}
+
+            <div class="search-bar search-bar-dock">
+              <input
+                type="search"
+                placeholder="搜索标题、摘要或标签，例如 React、浏览器、编译器..."
+                .value=${this.searchQuery}
+                @input=${this.onSearch}
+              />
+            </div>
+
+            <div class="search-dock-actions">
+              ${this.hasActiveFilters() ? html`
+                <button class="ghost-btn" type="button" @click=${() => this.clearFilters()}>
+                  清空筛选
+                </button>
+              ` : ''}
               <button class="ghost-btn" type="button" @click=${() => this.toggleControlsCollapsed()}>
-                ${this.controlsCollapsed ? '展开搜索' : '收起搜索'}
+                ${this.controlsCollapsed ? '展开筛选面板' : '收起筛选面板'}
               </button>
             </div>
           </div>
 
+          <div class="search-dock-toolbar">
+            <div class="toolbar-group">
+              <span class="toolbar-label">视图</span>
+              <div class="view-switch">
+                <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
+                  全部 (${this.entries.length})
+                </button>
+                <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
+                  收藏 (${this.favorites.length})
+                </button>
+              </div>
+            </div>
+
+            <div class="toolbar-group">
+              <span class="toolbar-label">布局</span>
+              ${this.renderLayoutSwitch()}
+            </div>
+
+            <div class="toolbar-group toolbar-group-sort">
+              <span class="toolbar-label">排序</span>
+              <div class="sort-control">
+                <select .value=${this.sortBy} @change=${this.onSortChange}>
+                  <option value="relevance">相关度优先</option>
+                  <option value="newest">最新优先</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="toolbar-group toolbar-group-favorites">
+              <span class="toolbar-label">收藏</span>
+              <button class="ghost-btn" @click=${() => this.exportFavorites()} ?disabled=${this.favorites.length === 0}>
+                导出收藏
+              </button>
+              <button class="ghost-btn" @click=${() => this.openFavoritesImport()}>
+                导入收藏
+              </button>
+              <input
+                id="favorites-import-input"
+                class="hidden-file-input"
+                type="file"
+                accept="application/json,.json"
+                @change=${(event: Event) => this.handleFavoritesImport(event)}
+              />
+            </div>
+          </div>
+
           ${this.controlsCollapsed ? '' : html`
-            <section class="controls">
-              <div class="search-bar">
-                <input
-                  type="search"
-                  placeholder="搜索标题、摘要或标签，例如 React、浏览器、编译器..."
-                  .value=${this.searchQuery}
-                  @input=${this.onSearch}
-                />
-              </div>
-
-              <div class="top-toolbar">
-                <div class="view-switch">
-                  <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
-                    全部 (${this.entries.length})
-                  </button>
-                  <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
-                    我的收藏 (${this.favorites.length})
-                  </button>
+            <div class="search-dock-panel">
+              <div class="search-dock-panel-head">
+                <div>
+                  <p class="tag-section-title">热门标签</p>
+                  <p class="tag-section-subtitle">先搜索，再用标签快速缩小范围。</p>
                 </div>
-                <div class="toolbar-tip">收藏仅保存在本地浏览器，可随时导入 / 导出。</div>
-              </div>
-
-              ${this.renderResultMeta()}
-              ${this.renderActiveFilters()}
-
-              <section class="tag-section" aria-label="标签筛选">
-                <div class="tag-section-head">
-                  <div>
-                    <p class="tag-section-title">热门标签</p>
-                    <p class="tag-section-subtitle">先用少量高频标签缩小范围，再决定要不要展开全部。</p>
-                  </div>
+                <div class="search-dock-panel-actions">
+                  <span class="toolbar-tip">收藏只保存在本地浏览器，可随时导入 / 导出。</span>
                   ${tagStats.length > 12 ? html`
                     <button class="ghost-btn" @click=${() => this.toggleTagsExpanded()}>
                       ${this.tagsExpanded ? '收起标签' : `展开全部 ${tagStats.length} 个标签`}
                     </button>
                   ` : ''}
                 </div>
+              </div>
+
+              <div class="tags-scroll tags-scroll-inline">
                 <div class="tags-filter">
                   ${visibleTags.map(({ tag, count }) => html`
                     <button
@@ -950,10 +986,118 @@ export class NavHoard extends LitElement {
                 ${hasMoreTags && !this.tagsExpanded ? html`
                   <p class="tag-collapse-hint">还有 ${tagStats.length - visibleTags.length} 个标签未展开。</p>
                 ` : ''}
-              </section>
-            </section>
+              </div>
+            </div>
           `}
         </div>
+      </section>
+    `;
+  }
+
+  private renderSidebar() {
+    return null;
+  }
+
+  private renderCompactSearchBar(tagStats: Array<{ tag: string; count: number }>, visibleTags: Array<{ tag: string; count: number }>, hasMoreTags: boolean) {
+    if (!this.compactSearchVisible) {
+      return null;
+    }
+
+    return html`
+      <section class="compact-search-shell" aria-label="快速搜索">
+        <div class="compact-search-bar">
+          <div class="compact-search-meta">
+            <span class="compact-search-title">${this.view === 'favorites' ? '收藏' : '全部'} · ${this.filteredEntries.length} 条</span>
+            ${this.hasActiveFilters() ? html`
+              <span class="compact-search-hint">已启用筛选</span>
+            ` : html`
+              <span class="compact-search-hint">快速搜索</span>
+            `}
+          </div>
+
+          <div class="search-bar compact-search-input">
+            <input
+              type="search"
+              placeholder="快速搜索标题、摘要或标签..."
+              .value=${this.searchQuery}
+              @input=${this.onSearch}
+            />
+          </div>
+
+          <div class="compact-search-actions">
+            ${this.hasActiveFilters() ? html`
+              <button class="ghost-btn" type="button" @click=${() => this.clearFilters()}>
+                清空
+              </button>
+            ` : ''}
+            <button class="ghost-btn" type="button" @click=${() => this.toggleCompactFiltersExpanded()}>
+              ${this.compactFiltersExpanded ? '收起筛选' : '展开筛选'}
+            </button>
+          </div>
+        </div>
+
+        ${this.compactFiltersExpanded ? html`
+          <div class="compact-search-panel">
+            <div class="compact-search-panel-toolbar">
+              <div class="toolbar-group">
+                <span class="toolbar-label">视图</span>
+                <div class="view-switch">
+                  <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
+                    全部 (${this.entries.length})
+                  </button>
+                  <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
+                    收藏 (${this.favorites.length})
+                  </button>
+                </div>
+              </div>
+
+              <div class="toolbar-group">
+                <span class="toolbar-label">布局</span>
+                ${this.renderLayoutSwitch()}
+              </div>
+
+              <div class="toolbar-group toolbar-group-sort">
+                <span class="toolbar-label">排序</span>
+                <div class="sort-control">
+                  <select .value=${this.sortBy} @change=${this.onSortChange}>
+                    <option value="relevance">相关度优先</option>
+                    <option value="newest">最新优先</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="compact-search-panel-head">
+              <div>
+                <p class="tag-section-title">热门标签</p>
+                <p class="tag-section-subtitle">滚动时也能继续细化筛选条件。</p>
+              </div>
+              ${tagStats.length > 12 ? html`
+                <button class="ghost-btn" @click=${() => this.toggleTagsExpanded()}>
+                  ${this.tagsExpanded ? '收起标签' : `展开全部 ${tagStats.length} 个标签`}
+                </button>
+              ` : ''}
+            </div>
+
+            <div class="tags-scroll tags-scroll-inline">
+              <div class="tags-filter">
+                ${visibleTags.map(({ tag, count }) => html`
+                  <button
+                    class="tag-chip ${this.selectedTags.has(tag) ? 'active' : ''}"
+                    @click=${() => this.onTagToggle(tag)}
+                    title="按此标签筛选"
+                  >
+                    <span>#${tag}</span>
+                    <small>${count}</small>
+                  </button>
+                `)}
+              </div>
+              ${hasMoreTags && !this.tagsExpanded ? html`
+                <p class="tag-collapse-hint">还有 ${tagStats.length - visibleTags.length} 个标签未展开。</p>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
       </section>
     `;
   }
@@ -982,7 +1126,7 @@ export class NavHoard extends LitElement {
 
         ${showMediaRail ? (preview ? html`
           <a class="card-preview" href="${entry.url}" target="_blank" rel="noopener noreferrer" aria-label="${entry.title}">
-            <img src="${preview.src}" alt="${preview.alt}" loading="lazy" decoding="async" />
+            <img class="card-preview-media" src="${preview.src}" alt="${preview.alt}" loading="lazy" decoding="async" />
           </a>
         ` : html`
           <div class="card-preview card-preview-placeholder" aria-hidden="true">
@@ -1084,21 +1228,18 @@ export class NavHoard extends LitElement {
 
     return html`
       <div class="nh-container">
-        <header class="nh-header">
-          <div class="hero-copy">
+        <header class="nh-topbar">
+          <div class="nh-topbar-main">
             <p class="eyebrow">NavHoard</p>
-            <h1>轻量收藏，专注发现</h1>
-            <p class="subtitle">把公开链接整理成可搜索、可筛选、可复制的导航卡片；推荐内容会直接置顶在主列表里。</p>
+            <div class="topbar-title-row">
+              <h1>公开链接收藏站</h1>
+              <button type="button" class="about-toggle about-toggle-topbar" @click=${() => this.toggleAbout()} aria-expanded=${this.aboutOpen ? 'true' : 'false'}>
+                ${this.aboutOpen ? '收起说明' : '了解站点'}
+              </button>
+            </div>
+            ${this.renderAboutPanel('popover')}
           </div>
-          <div class="hero-meta">
-            <span>${this.entries.length} 条公开卡片</span>
-            <span>${this.favorites.length} 条本地收藏</span>
-            <span>${this.getLayoutLabel(this.layoutMode)}布局</span>
-          </div>
-          <button type="button" class="about-toggle" @click=${() => this.toggleAbout()} aria-expanded=${this.aboutOpen ? 'true' : 'false'}>
-            ${this.aboutOpen ? '收起说明' : '了解这个站点'}
-          </button>
-          ${this.renderAboutPanel()}
+          <p class="topbar-summary">优先搜索，必要时再筛选；主列表默认直接展示推荐与最新内容。</p>
         </header>
 
         ${this.notice ? html`
@@ -1109,10 +1250,15 @@ export class NavHoard extends LitElement {
         ` : ''}
 
         ${this.renderFavoriteReminderToast()}
-        ${this.renderControls(tagStats, visibleTags, hasMoreTags)}
+        ${this.renderCompactSearchBar(tagStats, visibleTags, hasMoreTags)}
+        ${this.renderSearchDock(tagStats, visibleTags, hasMoreTags)}
 
-        <main class="entries-grid layout-${this.layoutMode}">
-          ${this.renderEntries(visibleEntries)}
+        <main class="content-stack content-stack-full">
+          ${this.renderActiveFilters()}
+          ${this.renderResultMeta()}
+          <section class="entries-grid layout-${this.layoutMode}">
+            ${this.renderEntries(visibleEntries)}
+          </section>
         </main>
 
         <footer class="nh-footer">
