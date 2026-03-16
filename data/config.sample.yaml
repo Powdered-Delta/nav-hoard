@@ -1,9 +1,9 @@
 llm:
   provider: "openai"
-  # 建议通过环境变量设置：LLM_API_KEY
   apiKey: "${LLM_API_KEY}"
-  endpoint: "https://api.openai.com/v1/chat/completions"
+  endpoint: "https://api.openai.com/v1"
   model: "gpt-4o-mini"
+  wireApi: "chat_completions"
   temperature: 0.3
   maxTokens: 200
   timeout: 30000

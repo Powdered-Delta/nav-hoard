@@ -7,3 +7,4 @@ public/data/copenclaw-cache.json
 *.log
 .env
 .env.local
+data/config.yaml

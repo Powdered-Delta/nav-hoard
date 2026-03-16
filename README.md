@@ -21,6 +21,7 @@ pnpm run build
 常用命令：
 - 启动前端开发：`pnpm run dev`
 - 启动本地可视化编辑器：`pnpm run edit`
+- 导入 Raindrop 导出：`pnpm run import:raindrop -- --input export --output data/index.json`
 - 自定义样式覆盖：编辑 `public/nav-hoard.custom.css`
 
 典型流程：
@@ -112,7 +113,7 @@ nav-hoard/
 ├─ data/
 │  ├─ index.json              # 规范数据源（single source of truth）
 │  ├─ sources.yaml            # 批量抓取源配置
-│  └─ config.yaml             # 抓取 / 模型配置
+│  └─ config.sample.yaml      # 抓取 / 模型配置示例
 ├─ public/
 │  ├─ data/                   # 前端运行时数据（由 data/index.json 发布生成）
 │  └─ nav-hoard.custom.css    # 自定义样式覆盖入口
@@ -205,17 +206,93 @@ pnpm run navhoard-cli:build
 
 ## 批量更新数据
 
-如果已经配置好了 `data/sources.yaml` 和 `data/config.yaml`：
+如果已经配置好了 `data/sources.yaml` 和本地 `data/config.yaml`：
 
 ```bash
 pnpm run navhoard-cli -- --sources data/sources.yaml --config data/config.yaml --output data/index.json
+
+pnpm run import:raindrop -- --input export --output data/index.json --config data/config.yaml
+pnpm run import:raindrop -- --input .tmp/raindrop-sample.csv --output data/index.json --config data/config.yaml --llm-enhance
 ```
+
+首次使用可先复制示例配置：
+
+```bash
+# macOS / Linux
+cp data/config.sample.yaml data/config.yaml
+
+# Windows PowerShell
+Copy-Item data/config.sample.yaml data/config.yaml
+
+# Windows CMD
+copy data\\config.sample.yaml data\\config.yaml
+```
+
+`data/config.yaml` 已加入 `.gitignore`，用于存放你自己的本地模型配置。
 
 这条链路会：
 - 读取抓取源配置
 - 拉取并归一化条目
 - 合并写入 `data/index.json`
 - 同步生成 `public/data/` 下的前端数据
+
+## 导入 Raindrop 导出
+
+如果你已经从 Raindrop.io 导出了 `export.csv` 或整个 `export/` 目录，可以直接导入到当前项目。
+
+### 推荐流程
+
+1. 先复制本地配置：
+
+```bash
+# macOS / Linux
+cp data/config.sample.yaml data/config.yaml
+
+# Windows PowerShell
+Copy-Item data/config.sample.yaml data/config.yaml
+
+# Windows CMD
+copy data\\config.sample.yaml data\\config.yaml
+```
+
+2. 先跑小样本，确认抓取与 LLM 配置可用：
+
+```bash
+pnpm run import:raindrop -- --input .tmp/raindrop-sample.csv --output data/index.json --config data/config.yaml --llm-enhance
+```
+
+3. 小样本确认无误后，再跑全量：
+
+```bash
+pnpm run import:raindrop -- --input export --output data/index.json --config data/config.yaml --llm-enhance
+```
+
+### 导入模式
+
+- 普通导入：保留 Raindrop 原始字段，并尝试抓取站点内容补全标题、摘要、预览图
+- LLM 增强导入：在抓取结果基础上，继续生成或优化标签
+- 抓取失败回退：站点抓取失败时自动回退到 CSV 原始字段，不会中断整批导入
+- 标签合并：保留原始 tags，并与抓取 / LLM 结果合并
+
+### 常用命令
+
+普通导入：
+
+```bash
+pnpm run import:raindrop -- --input export --output data/index.json --config data/config.yaml
+```
+
+导入并启用 LLM 标签增强：
+
+```bash
+pnpm run import:raindrop -- --input export --output data/index.json --config data/config.yaml --llm-enhance
+```
+
+只导入 CSV，不做站点抓取：
+
+```bash
+pnpm run import:raindrop -- --input export --output data/index.json --config data/config.yaml --no-fetch
+```
 
 ## 单条链接录入
 
@@ -388,6 +465,8 @@ pnpm run preview
 
 pnpm run navhoard-cli:build
 pnpm run navhoard-cli -- --sources data/sources.yaml --config data/config.yaml --output data/index.json
+pnpm run import:raindrop -- --input export --output data/index.json --config data/config.yaml
+pnpm run import:raindrop -- --input .tmp/raindrop-sample.csv --output data/index.json --config data/config.yaml --llm-enhance
 
 pnpm run entry-workflow -- capture --url "https://example.com" --write .tmp/navhoard-entry-review.yaml
 pnpm run entry-workflow -- parse --template .tmp/navhoard-entry-review.yaml

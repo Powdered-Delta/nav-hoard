@@ -6,7 +6,8 @@
   "bin": {
     "navhoard-cli": "./dist/cli.js",
     "nav-hoard-entry-workflow": "./dist/entry-workflow.js",
-    "navhoard-editor": "./dist/editor.js"
+    "navhoard-editor": "./dist/editor.js",
+    "navhoard-import-raindrop": "./dist/import-raindrop.js"
   },
   "scripts": {
     "build": "tsc",
@@ -14,6 +15,7 @@
     "cli:dev": "tsx src/cli.ts",
     "entry": "node dist/entry-workflow.js",
     "entry:dev": "tsx src/entry-workflow.ts",
+    "import:raindrop": "tsx src/import-raindrop.ts",
     "lint": "echo '暂未配置'",
     "edit": "tsx watch src/editor.ts",
     "edit:dev": "tsx watch src/editor.ts"

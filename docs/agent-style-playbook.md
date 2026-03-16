@@ -1,13 +1,13 @@
-# Agent Style Playbook
+# Nav Hoard Agent Style Playbook
 
-这份文档面向需要为 Nav Hord 修改样式的 Agent。
+这份文档面向需要为 Nav Hoard 修改样式的 Agent。
 
 目标是让 Agent 在改视觉时尽量：
 - 不破坏现有结构
 - 不把共享样式改散
 - 不误把“项目默认样式”和“用户自定义覆盖”混在一起
 
-## 一句话原则
+## 核心原则
 
 - 先分清“默认样式”与“项目自定义覆盖”
 - 先改共享层，再改页面层，最后才改局部选择器
@@ -37,7 +37,7 @@
    - 在默认样式之后加载
    - 用于项目级主题定制，不应该承载核心默认视觉逻辑
 
-## Agent 应如何选择修改位置
+## 修改落点选择
 
 ### 场景一：改主站和 editor 都会用到的视觉
 
@@ -117,7 +117,7 @@ public/nav-hoard.custom.css
 - 如果 editor 新增了可复用样式，考虑上提到 `src/styles-base.css`
 - 小步修改，避免一次重写整段样式
 
-## 不推荐做法
+## 禁止事项
 
 - 把本应属于默认样式的逻辑塞进 `public/nav-hoard.custom.css`
 - 为了解决局部问题，复制整大段主样式
@@ -158,7 +158,7 @@ pnpm run build
 pnpm run navhoard-cli:build
 ```
 
-## 快速决策表
+## 决策表
 
 | 需求 | 优先修改位置 |
 | --- | --- |
@@ -167,7 +167,7 @@ pnpm run navhoard-cli:build
 | 改 editor 布局 / editor 列表 / editor 表单 | `tools/navhoard-cli/src/editor-html.ts` |
 | 做项目级主题覆盖 | `public/nav-hoard.custom.css` |
 
-## 最后的判断标准
+## 判断标准
 
 如果 Agent 改完样式后，满足下面这几点，就说明落点大概率是对的：
 

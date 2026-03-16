@@ -1,4 +1,4 @@
-# Agent Playbook
+# Nav Hoard Agent Playbook
 
 这份文档面向支持本地 skill / prompt / 会话工作流的 Agent（例如龙虾一类工具）。
 
@@ -8,7 +8,7 @@
 - 本地验证
 - 提交与部署前准备
 
-## 一句话原则
+## 核心原则
 
 - 唯一规范数据源是 `data/index.json`
 - `pnpm run edit` 是本地维护工具，不属于线上部署产物
@@ -41,7 +41,7 @@ Agent 应优先判断用户更适合哪种入口：
 data/index.json
 ```
 
-## 数据修改后的固定顺序
+## 标准推进顺序
 
 在条目录入或编辑完成后，Agent 应默认按以下顺序推进：
 
@@ -56,7 +56,7 @@ data/index.json
    - `git push`
 5. 若仓库使用 GitHub Pages，则等待 Actions 自动部署
 
-## 不应做的事
+## 禁止事项
 
 Agent 不应：
 
@@ -66,7 +66,7 @@ Agent 不应：
 - 未经用户确认直接 `git commit` 或 `git push`
 - 绕过 `data/index.json`，只改 `public/data/`
 
-## GitHub Pages 约定
+## 部署约定
 
 如果用户采用 GitHub Pages 方案，Agent 应默认理解为：
 
@@ -80,7 +80,7 @@ Agent 不应：
 2. 进入 `Pages`
 3. 在 `Source` 中选择 `GitHub Actions`
 
-## 推荐检查清单
+## 检查清单
 
 在准备提交或部署前，Agent 可按以下清单自检：
 
