@@ -304,6 +304,12 @@ pnpm run import:raindrop -- --input export --output data/index.json --config dat
 pnpm run entry-workflow -- capture --url "https://example.com" --write .tmp/navhoard-entry-review.yaml
 ```
 
+默认规则：
+- 只要是“指定 URL / 指定站点 / 指定条目”的新增、纠错、补摘要、修乱码、改标签，都先走这条 CLI 工作流
+- 不要把直接手改 `data/index.json` 当成首选方案
+- 如果在线抓取失败，仍然要继续使用审阅模板，人工补齐字段后再确认写入
+- 如果用户要求的是“更新已有条目”，且新结果相对现有数据出现大幅描述变更，或存在明显的 tag 增删，先向用户确认，再执行最终写入
+
 这一步会：
 - 尝试抓取并提取页面内容
 - 生成统一的审阅模板
@@ -332,7 +338,7 @@ pnpm run entry-workflow -- parse --template .tmp/navhoard-entry-review.yaml
 #### 第 4 步：确认并写入数据源
 
 ```bash
-pnpm run entry-workflow -- confirm --template .tmp/navhoard-entry-review.yaml --output data/index.json
+pnpm run entry-workflow -- confirm --template .tmp/navhoard-entry-review.yaml
 ```
 
 这一步会：
@@ -342,6 +348,10 @@ pnpm run entry-workflow -- confirm --template .tmp/navhoard-entry-review.yaml --
 - 与现有数据去重合并
 - 写入 `data/index.json`
 - 同步生成 `public/data/` 发布产物
+
+补充说明：
+- 默认不传 `--output`，会直接写入仓库根目录下的 `data/index.json`，并同步 `public/data/index.json`
+- 如果确实要覆盖输出路径，优先传仓库根目录的绝对路径；不要依赖相对 `--output data/index.json`
 
 ### 方式二：通过 skill / 会话能力模板
 
@@ -369,6 +379,18 @@ pnpm run edit
 ```
 
 默认访问：`http://127.0.0.1:3210`
+
+如需开放局域网访问，可使用：
+
+```bash
+pnpm run edit -- --host 0.0.0.0
+```
+
+也支持同时指定端口：
+
+```bash
+pnpm run edit -- --host 0.0.0.0 --port 3210
+```
 
 #### 编辑器当前支持
 

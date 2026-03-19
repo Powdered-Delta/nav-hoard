@@ -10,6 +10,8 @@ nav-hoard {
   --nh-surface-text-soft: var(--surface-text-soft, #4e5f83);
   --nh-surface-text-muted: var(--surface-text-muted, #5c6f98);
   --nh-surface-accent-text: var(--surface-accent-text, #4258a0);
+  --nh-card-title: var(--card-title-color, var(--surface-text, #1c2942));
+  --nh-card-title-hover: var(--card-title-hover-color, var(--primary-strong, #5a78ff));
   --nh-accent: var(--primary, #7c9cff);
   --nh-accent-strong: var(--primary-strong, #5a78ff);
   --nh-accent-soft: var(--primary-soft, rgba(124, 156, 255, 0.14));
@@ -198,11 +200,18 @@ nav-hoard select {
 }
 
 .notice {
+  position: fixed;
+  bottom: 72px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  z-index: 22;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 0 18px;
+  width: min(460px, calc(100vw - 24px));
+  margin: 0;
   padding: 14px 18px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(148, 163, 184, 0.26);
@@ -219,6 +228,11 @@ nav-hoard select {
   border: 0;
   background: var(--nh-accent-soft);
   color: var(--nh-accent-strong);
+  min-width: 92px;
+  padding-inline: 14px;
+  justify-content: center;
+  white-space: nowrap;
+  align-self: flex-end;
 }
 
 .primary-btn {
@@ -926,29 +940,48 @@ nav-hoard select {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: rgba(124, 156, 255, 0.08);
+  min-height: 34px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--nh-surface-accent-text);
   cursor: pointer;
+  position: relative;
+}
+
+.tag-chip::before,
+.card .tag::before {
+  content: "#";
+  opacity: 0.78;
+}
+
+.tag-chip span,
+.card .tag {
+  position: relative;
 }
 
 .tag-chip small {
   color: inherit;
-  opacity: 0.75;
+  opacity: 0.6;
+  font-size: 0.74rem;
 }
 
 .tag-chip:hover,
 .tag-chip.active {
-  background: rgba(90, 120, 255, 0.14);
-  border-color: rgba(90, 120, 255, 0.24);
-  color: #2d3f88;
+  background: transparent;
+  color: var(--nh-accent-strong);
+}
+
+.tag-chip:hover small,
+.tag-chip.active small {
+  opacity: 0.78;
 }
 
 .tag-chip.active {
-  box-shadow: inset 0 0 0 1px rgba(90, 120, 255, 0.1);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
 }
 
 .hidden-file-input {
@@ -1102,12 +1135,12 @@ nav-hoard select {
 }
 
 .card header h3 a {
-  color: var(--nh-surface-text);
+  color: var(--nh-card-title);
   text-decoration: none;
 }
 
 .card header h3 a:hover {
-  color: var(--nh-accent-strong);
+  color: var(--nh-card-title-hover);
 }
 
 .card-top-actions {
@@ -1132,18 +1165,30 @@ nav-hoard select {
 
 .card .meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
+  flex-wrap: nowrap;
+  gap: 8px;
   margin-top: 10px;
   font-size: 0.84rem;
   color: var(--nh-surface-text-muted);
   align-items: center;
 }
 
+.card .source {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .copy-link-inline {
   position: relative;
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   margin-left: auto;
   padding: 0;
   border: 0;
@@ -1201,8 +1246,9 @@ nav-hoard select {
 
 .card footer {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: flex-start;
+  flex-direction: column;
   gap: 12px;
   padding-right: 52px;
 }
@@ -1211,23 +1257,46 @@ nav-hoard select {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  width: 100%;
+}
+
+.card-footer-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 32px;
+  width: 100%;
+  flex: 0 0 auto;
+  color: var(--nh-surface-text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.card-footer-meta .date {
+  opacity: 0.88;
 }
 
 .card .tag {
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: rgba(124, 156, 255, 0.08);
+  min-height: 28px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--nh-surface-accent-text);
   cursor: pointer;
 }
 
 .card .tag:hover,
 .card .tag.active {
-  background: rgba(90, 120, 255, 0.14);
-  border-color: rgba(90, 120, 255, 0.22);
-  color: #2d3f88;
+  background: transparent;
+  color: var(--nh-accent-strong);
+}
+
+.card .tag.active {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
 }
 
 .card-bottom-actions {
@@ -1596,6 +1665,11 @@ nav-hoard select {
   }
 
   .notice {
+    bottom: 12px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100vw - 20px);
     flex-direction: column;
     align-items: flex-start;
   }
@@ -1672,6 +1746,10 @@ nav-hoard select {
 
   .card footer {
     padding-right: 48px;
+  }
+
+  .card-footer-meta {
+    width: 100%;
   }
 
   .copy-btn::after,

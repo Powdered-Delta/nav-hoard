@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@fontsource-variable/jetbrains-mono':
+        specifier: ^5.2.7
+        version: 5.2.8
+      '@fontsource/fusion-pixel-12px-monospaced-sc':
+        specifier: ^5.2.5
+        version: 5.2.5
       lit:
         specifier: ^3.2.0
         version: 3.3.2
@@ -161,6 +167,12 @@ packages:
     engines: {node: '>=12'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource-variable/jetbrains-mono@5.2.8':
+    resolution: {integrity: sha512-WBA9elru6Jdp5df2mES55wuOO0WIrn3kpXnI4+W2ek5u3ZgLS9XS4gmIlcQhiZOWEKl95meYdvK7xI+ETLCq/Q==}
+
+  '@fontsource/fusion-pixel-12px-monospaced-sc@5.2.5':
+    resolution: {integrity: sha512-WrPLh27o8+kiHywZYB9uny7izDOpjY2nCeNKxhfXZVCz2th9iL5jG4tW9WB+4830ZHqzPYs31U/JhyFFPsyfYA==}
 
   '@lit-labs/ssr-dom-shim@1.5.1':
     resolution: {integrity: sha512-Aou5UdlSpr5whQe8AA/bZG0jMj96CoJIWbGfZ91qieWu5AWUMKw8VR/pAkQkJYvBNhmCcWnZlyyk5oze8JIqYA==}
@@ -461,6 +473,10 @@ snapshots:
 
   '@esbuild/win32-x64@0.21.5':
     optional: true
+
+  '@fontsource-variable/jetbrains-mono@5.2.8': {}
+
+  '@fontsource/fusion-pixel-12px-monospaced-sc@5.2.5': {}
 
   '@lit-labs/ssr-dom-shim@1.5.1': {}
 

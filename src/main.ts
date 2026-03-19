@@ -1,3 +1,5 @@
+import '@fontsource-variable/jetbrains-mono';
+import '@fontsource/fusion-pixel-12px-monospaced-sc';
 import './styles-base.css';
 import './styles-default.css';
 import './nav-hoard.ts';

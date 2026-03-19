@@ -2,28 +2,447 @@
   NavHoard custom styles
   ----------------------
   这个文件会在默认样式之后加载。
-
-  推荐优先在 `:root` 上覆盖通用变量，这样主站和 editor 都能复用：
-
-  :root {
-    --primary: #c084fc;
-    --primary-strong: #a855f7;
-    --primary-soft: rgba(192, 132, 252, 0.14);
-    --background: #0b1020;
-    --max-width: 1240px;
-  }
-
-  如果只想覆盖主站组件，也可以继续写 `nav-hoard { ... }`：
-
-  nav-hoard {
-    --nh-accent: #c084fc;
-    --nh-accent-strong: #a855f7;
-    --nh-max-width: 1240px;
-  }
-
-  也可以继续追加具体选择器覆盖，例如：
-
-  .nh-header {
-    border-radius: 36px;
-  }
+  建议优先覆盖主题变量；如果需要，也可以继续补充具体选择器。
 */
+
+body:has(> nav-hoard) {
+  color-scheme: dark;
+  background:
+    linear-gradient(180deg, rgba(170, 217, 76, 0.04), transparent 180px),
+    #0b0e14;
+  background-attachment: fixed, fixed;
+  background-color: #0b0e14;
+  color: #bfbdb6;
+  font-family: "Fusion Pixel 12px Monospaced SC", "JetBrains Mono", "Cascadia Code", "SFMono-Regular", ui-monospace, monospace;
+}
+
+body:has(> nav-hoard) nav-hoard {
+  --background: #0b0e14;
+  --card-bg: rgba(17, 21, 29, 0.94);
+  --card-border: rgba(191, 189, 182, 0.14);
+  --text-color: #bfbdb6;
+  --text-soft: rgba(191, 189, 182, 0.72);
+  --text-strong: #d9d7d1;
+  --surface-text: #d9d7d1;
+  --surface-text-soft: rgba(191, 189, 182, 0.78);
+  --surface-text-muted: rgba(191, 189, 182, 0.56);
+  --surface-accent-text: #aad94c;
+  --card-title-color: #aad94c;
+  --card-title-hover-color: #c5f36d;
+  --primary: #aad94c;
+  --primary-strong: #95c561;
+  --primary-soft: rgba(170, 217, 76, 0.12);
+  --border-color: rgba(191, 189, 182, 0.16);
+  --font-sans: "Fusion Pixel 12px Monospaced SC", "JetBrains Mono", "Cascadia Code", "SFMono-Regular", ui-monospace, monospace;
+  --max-width: 1040px;
+  --nh-shadow: 0 0 0 1px rgba(170, 217, 76, 0.06);
+  --nh-shadow-soft: 0 0 0 1px rgba(170, 217, 76, 0.04);
+  --nh-radius-xl: 24px;
+  --nh-radius-lg: 18px;
+  --nh-radius-md: 12px;
+}
+
+body:has(> nav-hoard) .nh-container {
+  padding: 28px 18px 56px;
+}
+
+body:has(> nav-hoard) .nh-header {
+  background:
+    linear-gradient(135deg, rgba(13, 17, 23, 0.98), rgba(18, 23, 31, 0.94)),
+    linear-gradient(135deg, rgba(170, 217, 76, 0.12), rgba(170, 217, 76, 0.03));
+  border: 1px solid rgba(170, 217, 76, 0.14);
+  box-shadow: var(--nh-shadow);
+}
+
+body:has(> nav-hoard) .nh-header::after {
+  background: radial-gradient(circle, rgba(170, 217, 76, 0.14), transparent 68%);
+}
+
+body:has(> nav-hoard) .eyebrow,
+body:has(> nav-hoard) .search-dock-kicker,
+body:has(> nav-hoard) .controls-kicker,
+body:has(> nav-hoard) .featured-kicker {
+  color: var(--primary);
+}
+
+body:has(> nav-hoard) .nh-topbar h1,
+body:has(> nav-hoard) .result-title,
+body:has(> nav-hoard) .tag-section-title,
+body:has(> nav-hoard) .featured-head h2,
+body:has(> nav-hoard) .compact-search-title,
+body:has(> nav-hoard) .search-dock-copy h2,
+body:has(> nav-hoard) .active-filters-label {
+  color: var(--text-strong);
+  letter-spacing: 0;
+}
+
+body:has(> nav-hoard) .topbar-summary,
+body:has(> nav-hoard) .result-subtitle,
+body:has(> nav-hoard) .tag-section-subtitle,
+body:has(> nav-hoard) .tag-collapse-hint,
+body:has(> nav-hoard) .empty-hint,
+body:has(> nav-hoard) .card .summary,
+body:has(> nav-hoard) .card .meta,
+body:has(> nav-hoard) .nh-footer,
+body:has(> nav-hoard) .toolbar-tip,
+body:has(> nav-hoard) .toolbar-label,
+body:has(> nav-hoard) .favorite-reminder-text,
+body:has(> nav-hoard) .favorite-reminder-kicker,
+body:has(> nav-hoard) .compact-search-hint,
+body:has(> nav-hoard) .featured-description,
+body:has(> nav-hoard) .featured-collapsed-hint,
+body:has(> nav-hoard) .search-dock-summary,
+body:has(> nav-hoard) .clear-link {
+  color: rgba(191, 189, 182, 0.72);
+}
+
+body:has(> nav-hoard) .hero-meta span,
+body:has(> nav-hoard) .about-toggle,
+body:has(> nav-hoard) .about-panel,
+body:has(> nav-hoard) .active-filters,
+body:has(> nav-hoard) .active-filters.empty {
+  color: rgba(191, 189, 182, 0.86);
+}
+
+body:has(> nav-hoard) .about-toggle-topbar,
+body:has(> nav-hoard) .ghost-btn,
+body:has(> nav-hoard) .search-dock-actions .ghost-btn,
+body:has(> nav-hoard) .notice button,
+body:has(> nav-hoard) .sort-control select,
+body:has(> nav-hoard) .view-switch button,
+body:has(> nav-hoard) .layout-switch button,
+body:has(> nav-hoard) .active-filter-pill,
+body:has(> nav-hoard) .featured-count,
+body:has(> nav-hoard) .fav-btn,
+body:has(> nav-hoard) .back-to-top,
+body:has(> nav-hoard) .error button,
+body:has(> nav-hoard) .empty-state button,
+body:has(> nav-hoard) .primary-btn {
+  border-color: rgba(170, 217, 76, 0.18);
+  color: var(--primary);
+  background: rgba(170, 217, 76, 0.06);
+  box-shadow: none;
+  border-radius: 12px;
+}
+
+body:has(> nav-hoard) .primary-btn,
+body:has(> nav-hoard) .back-to-top,
+body:has(> nav-hoard) .error button,
+body:has(> nav-hoard) .empty-state button {
+  border: 2px double rgba(170, 217, 76, 0.28);
+}
+
+body:has(> nav-hoard) .ghost-btn:hover,
+body:has(> nav-hoard) .ghost-btn:focus-visible,
+body:has(> nav-hoard) .clear-link:hover,
+body:has(> nav-hoard) .clear-link:focus-visible,
+body:has(> nav-hoard) .view-switch button.active,
+body:has(> nav-hoard) .view-switch button:hover,
+body:has(> nav-hoard) .layout-switch button.active,
+body:has(> nav-hoard) .layout-switch button:hover,
+body:has(> nav-hoard) .active-filter-pill.removable:hover,
+body:has(> nav-hoard) .active-filter-pill.removable:focus-visible,
+body:has(> nav-hoard) .fav-btn:hover {
+  border-color: rgba(170, 217, 76, 0.28);
+  background: rgba(170, 217, 76, 0.14);
+  color: var(--primary);
+  box-shadow: none;
+}
+
+body:has(> nav-hoard) .fav-btn.is-active {
+  color: #aad94c;
+  background: transparent;
+  text-shadow:
+    0 0 10px rgba(170, 217, 76, 0.28),
+    0 0 18px rgba(170, 217, 76, 0.14);
+}
+
+body:has(> nav-hoard) .fav-btn {
+  color: rgba(170, 217, 76, 0.52);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+body:has(> nav-hoard) .fav-btn:hover,
+body:has(> nav-hoard) .fav-btn:focus-visible {
+  color: rgba(170, 217, 76, 0.82);
+  background: transparent;
+  text-shadow: 0 0 8px rgba(170, 217, 76, 0.18);
+}
+
+body:has(> nav-hoard) .fav-btn.is-active:hover,
+body:has(> nav-hoard) .fav-btn.is-active:focus-visible {
+  color: #c5f36d;
+  background: transparent;
+  text-shadow:
+    0 0 12px rgba(170, 217, 76, 0.34),
+    0 0 20px rgba(170, 217, 76, 0.18);
+}
+
+body:has(> nav-hoard) .card-top-actions {
+  padding: 3px;
+  isolation: isolate;
+  top: 10px;
+  right: 10px;
+}
+
+body:has(> nav-hoard) .card-top-actions::before {
+  content: "";
+  position: absolute;
+  inset: -12px -14px -10px -8px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(11, 14, 20, 0.58) 0%,
+    rgba(11, 14, 20, 0.34) 42%,
+    rgba(11, 14, 20, 0.16) 64%,
+    rgba(11, 14, 20, 0) 100%
+  );
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+body:has(> nav-hoard) .card-top-actions:has(.fav-btn.is-active)::before {
+  background: radial-gradient(
+    circle,
+    rgba(170, 217, 76, 0.22) 0%,
+    rgba(32, 48, 20, 0.42) 28%,
+    rgba(11, 14, 20, 0.26) 56%,
+    rgba(11, 14, 20, 0) 100%
+  );
+}
+
+body:has(> nav-hoard) .card-top-actions:has(.fav-btn.is-active:hover)::before,
+body:has(> nav-hoard) .card-top-actions:has(.fav-btn.is-active:focus-visible)::before {
+  background: radial-gradient(
+    circle,
+    rgba(197, 243, 109, 0.28) 0%,
+    rgba(42, 62, 24, 0.46) 28%,
+    rgba(11, 14, 20, 0.24) 58%,
+    rgba(11, 14, 20, 0) 100%
+  );
+}
+
+body:has(> nav-hoard) .search-dock,
+body:has(> nav-hoard) .compact-search-bar,
+body:has(> nav-hoard) .compact-search-panel,
+body:has(> nav-hoard) .controls,
+body:has(> nav-hoard) .about-panel-popover,
+body:has(> nav-hoard) .about-panel,
+body:has(> nav-hoard) .featured-section,
+body:has(> nav-hoard) .notice,
+body:has(> nav-hoard) .favorite-reminder-toast,
+body:has(> nav-hoard) .loading,
+body:has(> nav-hoard) .error,
+body:has(> nav-hoard) .empty-state,
+body:has(> nav-hoard) .nh-footer,
+body:has(> nav-hoard) .card {
+  background: rgba(17, 21, 29, 0.9);
+  border: 1px solid rgba(170, 217, 76, 0.12);
+  box-shadow: var(--nh-shadow-soft);
+  backdrop-filter: blur(10px);
+}
+
+body:has(> nav-hoard) .notice {
+  bottom: 72px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  z-index: 22;
+}
+
+body:has(> nav-hoard) .featured-card {
+  background: rgba(18, 24, 32, 0.98);
+}
+
+body:has(> nav-hoard) .hero-meta span,
+body:has(> nav-hoard) .about-toggle,
+body:has(> nav-hoard) .about-panel,
+body:has(> nav-hoard) .featured-count,
+body:has(> nav-hoard) .card-preview-placeholder-mark {
+  background: rgba(170, 217, 76, 0.06);
+  border: 1px solid rgba(170, 217, 76, 0.14);
+}
+
+body:has(> nav-hoard) .about-panel,
+body:has(> nav-hoard) .active-filters {
+  backdrop-filter: blur(10px);
+}
+
+body:has(> nav-hoard) .active-filters,
+body:has(> nav-hoard) .active-filters.empty {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(17, 21, 29, 0.58);
+  border: 1px solid rgba(170, 217, 76, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(170, 217, 76, 0.02);
+}
+
+body:has(> nav-hoard) .active-filters-label {
+  color: #aad94c;
+}
+
+body:has(> nav-hoard) .active-filter-pill {
+  border-radius: 999px;
+  border: 1px solid rgba(170, 217, 76, 0.12);
+  background: rgba(170, 217, 76, 0.06);
+  color: rgba(191, 189, 182, 0.9);
+}
+
+body:has(> nav-hoard) .active-filter-pill.removable::before {
+  content: "#";
+  margin-right: 2px;
+  color: rgba(170, 217, 76, 0.76);
+}
+
+body:has(> nav-hoard) .active-filter-pill.removable:hover,
+body:has(> nav-hoard) .active-filter-pill.removable:focus-visible {
+  border-color: rgba(170, 217, 76, 0.22);
+  background: rgba(170, 217, 76, 0.12);
+  color: #d9d7d1;
+}
+
+body:has(> nav-hoard) .clear-link {
+  min-height: 34px;
+  padding: 0 4px;
+  color: rgba(170, 217, 76, 0.84);
+}
+
+body:has(> nav-hoard) .clear-link:hover,
+body:has(> nav-hoard) .clear-link:focus-visible {
+  color: #c5f36d;
+  background: transparent;
+}
+
+body:has(> nav-hoard) .card,
+body:has(> nav-hoard) .search-bar input,
+body:has(> nav-hoard) .sort-control select,
+body:has(> nav-hoard) .view-switch button,
+body:has(> nav-hoard) .layout-switch button,
+body:has(> nav-hoard) .featured-count,
+body:has(> nav-hoard) .back-to-top {
+  border-radius: 12px;
+}
+
+body:has(> nav-hoard) .search-bar input {
+  background: rgba(11, 14, 20, 0.96);
+  border: 1px solid rgba(170, 217, 76, 0.18);
+  color: var(--text-strong);
+  box-shadow: inset 0 0 0 1px rgba(170, 217, 76, 0.03);
+}
+
+body:has(> nav-hoard) .search-bar input:focus {
+  border-color: rgba(170, 217, 76, 0.42);
+  box-shadow: 0 0 0 3px rgba(170, 217, 76, 0.14);
+}
+
+body:has(> nav-hoard) .search-bar input::placeholder {
+  color: rgba(191, 189, 182, 0.46);
+}
+
+body:has(> nav-hoard) .card-preview {
+  background: rgba(170, 217, 76, 0.03);
+  border: 1px solid rgba(170, 217, 76, 0.08);
+  border-radius: 14px;
+}
+
+body:has(> nav-hoard) .entries-grid.layout-list .card-preview-placeholder,
+body:has(> nav-hoard) .featured-grid.layout-list .card-preview-placeholder {
+  background:
+    linear-gradient(180deg, rgba(170, 217, 76, 0.05), rgba(170, 217, 76, 0.02)),
+    rgba(16, 20, 27, 0.96);
+  color: var(--text-strong);
+}
+
+body:has(> nav-hoard) .entries-grid.layout-list .card-preview-placeholder-source,
+body:has(> nav-hoard) .featured-grid.layout-list .card-preview-placeholder-source {
+  color: rgba(191, 189, 182, 0.72);
+}
+
+body:has(> nav-hoard) .card:hover {
+  border-color: rgba(170, 217, 76, 0.2);
+  box-shadow: 0 0 0 1px rgba(170, 217, 76, 0.08);
+}
+
+body:has(> nav-hoard) .tag-chip,
+body:has(> nav-hoard) .card .tag {
+  color: rgba(170, 217, 76, 0.88);
+  transition:
+    color 160ms ease,
+    text-shadow 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+body:has(> nav-hoard) .tag-chip::before,
+body:has(> nav-hoard) .card .tag::before {
+  color: rgba(170, 217, 76, 0.72);
+}
+
+body:has(> nav-hoard) .tag-chip:hover,
+body:has(> nav-hoard) .tag-chip.active,
+body:has(> nav-hoard) .card .tag:hover,
+body:has(> nav-hoard) .card .tag.active {
+  color: #c5f36d;
+  text-shadow:
+    0 0 10px rgba(170, 217, 76, 0.22),
+    0 0 18px rgba(170, 217, 76, 0.12);
+}
+
+body:has(> nav-hoard) .card header h3 a {
+  transition:
+    color 180ms ease,
+    text-shadow 180ms ease,
+    transform 180ms ease;
+  transform: translateY(0);
+  display: inline-block;
+}
+
+body:has(> nav-hoard) .card header h3 a:hover,
+body:has(> nav-hoard) .card header h3 a:focus-visible {
+  color: #c5f36d;
+  transform: translateY(-1px);
+  text-shadow:
+    0 0 10px rgba(170, 217, 76, 0.2),
+    0 0 18px rgba(170, 217, 76, 0.1);
+}
+
+body:has(> nav-hoard) .copy-btn,
+body:has(> nav-hoard) .copy-link-inline {
+  color: rgba(191, 189, 182, 0.56);
+}
+
+body:has(> nav-hoard) .copy-btn:hover,
+body:has(> nav-hoard) .copy-link-inline:hover {
+  color: var(--primary);
+}
+
+body:has(> nav-hoard) .copy-btn::after,
+body:has(> nav-hoard) .copy-link-inline::after {
+  background: rgba(17, 21, 29, 0.98);
+  color: var(--text-strong);
+  border: 1px solid rgba(170, 217, 76, 0.14);
+  box-shadow: var(--nh-shadow);
+}
+
+body:has(> nav-hoard) .search-dock-toolbar,
+body:has(> nav-hoard) .search-dock-panel,
+body:has(> nav-hoard) .compact-search-panel-head,
+body:has(> nav-hoard) .compact-search-panel-toolbar,
+body:has(> nav-hoard) .result-meta,
+body:has(> nav-hoard) .tag-section {
+  border-color: rgba(170, 217, 76, 0.12);
+}
+
+body:has(> nav-hoard) .active-filters::-webkit-scrollbar-thumb,
+body:has(> nav-hoard) .tags-scroll::-webkit-scrollbar-thumb {
+  background: rgba(170, 217, 76, 0.32);
+}
+
+body:has(> nav-hoard) .active-filters::-webkit-scrollbar-thumb:hover,
+body:has(> nav-hoard) .tags-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(170, 217, 76, 0.44);
+}

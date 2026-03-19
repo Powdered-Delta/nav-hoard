@@ -28,8 +28,9 @@ interface ImageUploadPayload {
   dataUrl?: string;
 }
 
-const port = normalizePort(process.env.NAVHOARD_EDIT_PORT) ?? 3210;
-const host = process.env.NAVHOARD_EDIT_HOST || '127.0.0.1';
+const cliOptions = parseCliArgs(process.argv.slice(2));
+const port = normalizePort(cliOptions.port ?? process.env.NAVHOARD_EDIT_PORT) ?? 3210;
+const host = cliOptions.host || process.env.NAVHOARD_EDIT_HOST || '127.0.0.1';
 const outputPath = DEFAULT_CANONICAL_DATA_FILE;
 const serverInstanceId = `${process.pid}-${Date.now()}`;
 const liveReloadClients = new Set<ServerResponse>();
@@ -51,6 +52,9 @@ server.listen(port, host, () => {
   const dataPaths = resolveDataPaths(outputPath);
   console.log('[navhoard-editor] Local editor ready');
   console.log(`[navhoard-editor] URL: http://${host}:${port}`);
+  if (host === '0.0.0.0') {
+    console.log(`[navhoard-editor] LAN access enabled. Use your machine IP with port ${port}.`);
+  }
   console.log(`[navhoard-editor] Canonical data: ${dataPaths.canonicalFile}`);
   console.log('[navhoard-editor] Press Ctrl+C to stop');
 });
@@ -285,6 +289,38 @@ function normalizePort(value: string | undefined): number | null {
   }
 
   return parsed;
+}
+
+function parseCliArgs(argv: string[]): { host?: string; port?: string } {
+  const result: { host?: string; port?: string } = {};
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    const next = argv[index + 1];
+
+    if (arg === '--host' && next) {
+      result.host = next;
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--host=')) {
+      result.host = arg.slice('--host='.length);
+      continue;
+    }
+
+    if (arg === '--port' && next) {
+      result.port = next;
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--port=')) {
+      result.port = arg.slice('--port='.length);
+    }
+  }
+
+  return result;
 }
 
 function getErrorMessage(error: unknown): string {

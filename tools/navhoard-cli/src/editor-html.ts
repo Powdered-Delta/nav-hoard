@@ -133,6 +133,17 @@
       .list-toolbar .nh-input {
         flex: 1 1 auto;
       }
+      .list-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .selection-summary {
+        font-size: 12px;
+        color: var(--editor-text-soft);
+      }
       .entry-item {
         width: 100%;
         border: 1px solid rgba(255, 255, 255, 0.18);
@@ -163,6 +174,18 @@
       .entry-item:hover {
         border-color: rgba(124, 156, 255, 0.24);
         transform: translateY(-1px);
+      }
+      .entry-item.bulk-mode {
+        cursor: default;
+      }
+      .entry-item.bulk-mode:hover {
+        transform: none;
+      }
+      .entry-item.selected-for-bulk {
+        border-color: color-mix(in srgb, var(--editor-accent) 46%, transparent);
+        box-shadow:
+          0 0 0 1px color-mix(in srgb, var(--editor-accent) 24%, transparent) inset,
+          0 14px 30px rgba(27, 39, 94, 0.16);
       }
       .entry-item strong {
         display: block;
@@ -208,6 +231,25 @@
         align-items: center;
         gap: 8px;
         min-width: 0;
+      }
+      .entry-select-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        margin-right: 6px;
+        border-radius: 8px;
+        border: 1px solid color-mix(in srgb, var(--editor-accent) 26%, transparent);
+        background: color-mix(in srgb, var(--editor-accent) 8%, transparent);
+        color: var(--editor-text-soft);
+        cursor: pointer;
+        flex: 0 0 auto;
+      }
+      .entry-select-toggle.active {
+        color: #fff;
+        border-color: color-mix(in srgb, var(--editor-accent) 54%, transparent);
+        background: color-mix(in srgb, var(--editor-accent) 24%, transparent);
       }
       .panel {
         background: var(--editor-panel);
@@ -264,6 +306,94 @@
       .url-row input {
         flex: 1 1 auto;
       }
+      .tag-field {
+        gap: 8px;
+      }
+      .tag-editor {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid var(--editor-border);
+        border-radius: 14px;
+        background: var(--editor-panel-muted);
+      }
+      .tag-chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 24px;
+      }
+      .tag-token,
+      .tag-suggestion {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 1px solid color-mix(in srgb, var(--editor-accent) 28%, transparent);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--editor-accent) 10%, transparent);
+        color: var(--editor-text);
+        line-height: 1;
+      }
+      .tag-token::before,
+      .tag-suggestion::before {
+        content: '#';
+        color: var(--editor-accent);
+        opacity: 0.88;
+      }
+      .tag-token-remove {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: var(--editor-text-soft);
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .tag-token-remove:hover {
+        color: var(--editor-text);
+      }
+      .tag-input-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .tag-input-row .nh-input {
+        flex: 1 1 220px;
+      }
+      .tag-editor-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: var(--editor-text-soft);
+      }
+      .tag-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .tag-suggestion {
+        cursor: pointer;
+        transition: 180ms ease;
+      }
+      .tag-suggestion:hover {
+        border-color: color-mix(in srgb, var(--editor-accent) 42%, transparent);
+        background: color-mix(in srgb, var(--editor-accent) 16%, transparent);
+        color: #fff;
+      }
+      .tag-suggestion small {
+        color: inherit;
+        opacity: 0.7;
+      }
+      .tag-empty {
+        color: var(--editor-text-soft);
+        font-size: 12px;
+      }
       @media (max-width: 960px) {
         html, body {
           overflow: auto;
@@ -286,6 +416,13 @@
         }
         .form-grid { grid-template-columns: 1fr; }
         .url-row { flex-direction: column; }
+        .list-actions {
+          align-items: stretch;
+        }
+        .tag-input-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
       }
     </style>
   </head>
@@ -302,6 +439,12 @@
         <div class="list-toolbar" style="margin-top: 16px;">
           <input id="search-input" class="nh-input" type="search" placeholder="搜索标题 / URL / 标签" />
           <button id="featured-filter" class="nh-button nh-button--ghost" type="button">只看置顶</button>
+        </div>
+        <div class="list-actions">
+          <button id="bulk-toggle" class="nh-button nh-button--ghost" type="button">批量选择</button>
+          <button id="bulk-select-all" class="nh-button nh-button--ghost hidden" type="button">全选当前结果</button>
+          <button id="bulk-delete" class="nh-button nh-button--danger hidden" type="button">删除选中</button>
+          <span id="bulk-summary" class="selection-summary hidden">未选择条目</span>
         </div>
         <div class="muted" id="entry-count" style="margin-top: 10px;">加载中…</div>
         <div class="entry-list" id="entry-list"></div>
@@ -342,9 +485,21 @@
               来源
               <input id="field-source" class="nh-input" type="text" placeholder="example.com" />
             </label>
-            <label>
-              标签（逗号分隔）
-              <input id="field-tags" class="nh-input" type="text" placeholder="React, Hooks, 前端" />
+            <label class="full tag-field">
+              标签
+              <div class="tag-editor">
+                <div id="field-tags-selected" class="tag-chip-list"></div>
+                <div class="tag-input-row">
+                  <input id="field-tags-input" class="nh-input" type="text" placeholder="输入标签后按回车 / 逗号添加" />
+                  <button id="field-tags-add" class="nh-button nh-button--ghost" type="button">添加标签</button>
+                </div>
+                <div class="tag-editor-meta">
+                  <span>支持回车、逗号、粘贴多个标签；点击已添加标签右侧 × 可删除。</span>
+                  <span id="field-tags-count">0 个标签</span>
+                </div>
+                <div id="field-tags-suggestions" class="tag-suggestions"></div>
+              </div>
+              <input id="field-tags" type="hidden" />
             </label>
             <label class="full">
               摘要
@@ -416,7 +571,9 @@
         isSaving: false,
         pendingReload: false,
         ignoreReloadUntil: 0,
-        featuredOnly: false
+        featuredOnly: false,
+        bulkMode: false,
+        bulkSelectedIds: []
       };
 
       const elements = {
@@ -425,6 +582,10 @@
         status: document.getElementById('status'),
         searchInput: document.getElementById('search-input'),
         featuredFilter: document.getElementById('featured-filter'),
+        bulkToggle: document.getElementById('bulk-toggle'),
+        bulkSelectAll: document.getElementById('bulk-select-all'),
+        bulkDelete: document.getElementById('bulk-delete'),
+        bulkSummary: document.getElementById('bulk-summary'),
         newEntry: document.getElementById('new-entry'),
         deleteEntry: document.getElementById('delete-entry'),
         saveAll: document.getElementById('save-all'),
@@ -437,6 +598,11 @@
         url: document.getElementById('field-url'),
         source: document.getElementById('field-source'),
         tags: document.getElementById('field-tags'),
+        tagsInput: document.getElementById('field-tags-input'),
+        tagsAdd: document.getElementById('field-tags-add'),
+        tagsSelected: document.getElementById('field-tags-selected'),
+        tagsSuggestions: document.getElementById('field-tags-suggestions'),
+        tagsCount: document.getElementById('field-tags-count'),
         summary: document.getElementById('field-summary'),
         previewEnabled: document.getElementById('field-preview-enabled'),
         previewMode: document.getElementById('field-preview-mode'),
@@ -498,10 +664,20 @@
       }
 
       function parseEntryTags(value) {
+        const seen = new Set();
         return String(value || '')
-          .split(',')
+          .split(/[,，]/)
           .map(function(item) { return item.trim(); })
-          .filter(Boolean);
+          .map(function(item) { return item.replace(/^#+/, '').replace(/\s+/g, ' ').trim(); })
+          .filter(function(item) {
+            if (!item || seen.has(item)) return false;
+            seen.add(item);
+            return true;
+          });
+      }
+
+      function tagsToString(tags) {
+        return parseEntryTags((tags || []).join(', ')).join(', ');
       }
 
       function buildKnownTagSet(excludeLocalId) {
@@ -515,6 +691,23 @@
           });
         });
         return known;
+      }
+
+      function buildKnownTagStats(excludeLocalId) {
+        const counts = new Map();
+        state.entries.forEach(function(entry) {
+          if (excludeLocalId && entry.localId === excludeLocalId) {
+            return;
+          }
+          parseEntryTags(entry.tags).forEach(function(tag) {
+            counts.set(tag, (counts.get(tag) || 0) + 1);
+          });
+        });
+        return Array.from(counts.entries())
+          .map(function(tuple) { return { tag: tuple[0], count: tuple[1] }; })
+          .sort(function(left, right) {
+            return right.count - left.count || String(left.tag).localeCompare(String(right.tag), 'zh-CN');
+          });
       }
 
       function toTimestamp(value) {
@@ -550,6 +743,51 @@
         return sortEntriesForList(filtered);
       }
 
+      function bulkSelectedSet() {
+        return new Set(state.bulkSelectedIds);
+      }
+
+      function syncBulkSelection() {
+        const known = new Set(state.entries.map(function(entry) { return entry.localId; }));
+        state.bulkSelectedIds = state.bulkSelectedIds.filter(function(localId) {
+          return known.has(localId);
+        });
+      }
+
+      function setBulkMode(nextMode) {
+        state.bulkMode = nextMode;
+        if (!nextMode) {
+          state.bulkSelectedIds = [];
+        }
+        renderList();
+      }
+
+      function toggleBulkSelection(localId) {
+        const selected = bulkSelectedSet();
+        if (selected.has(localId)) {
+          selected.delete(localId);
+        } else {
+          selected.add(localId);
+        }
+        state.bulkSelectedIds = Array.from(selected);
+        renderList();
+      }
+
+      function toggleSelectAllFiltered() {
+        const items = filteredEntries();
+        const selected = bulkSelectedSet();
+        const allSelected = items.length > 0 && items.every(function(entry) { return selected.has(entry.localId); });
+
+        if (allSelected) {
+          items.forEach(function(entry) { selected.delete(entry.localId); });
+        } else {
+          items.forEach(function(entry) { selected.add(entry.localId); });
+        }
+
+        state.bulkSelectedIds = Array.from(selected);
+        renderList();
+      }
+
       function setStatus(message, kind) {
         elements.status.textContent = message;
         elements.status.className = 'status ' + (kind || 'info');
@@ -575,9 +813,25 @@
       }
 
       function renderList() {
+        const previousScrollTop = elements.entryList.scrollTop;
         const items = filteredEntries();
+        syncBulkSelection();
+        const selected = bulkSelectedSet();
+        const selectedCount = state.bulkSelectedIds.length;
+        const allFilteredSelected = items.length > 0 && items.every(function(entry) { return selected.has(entry.localId); });
+
         elements.entryCount.textContent = '当前条目：' + state.entries.length + '；筛选结果：' + items.length + (state.featuredOnly ? '；仅看置顶' : '');
         elements.featuredFilter.textContent = state.featuredOnly ? '查看全部' : '只看置顶';
+        elements.bulkToggle.textContent = state.bulkMode ? '退出批量' : '批量选择';
+        elements.bulkSelectAll.classList.toggle('hidden', !state.bulkMode);
+        elements.bulkDelete.classList.toggle('hidden', !state.bulkMode);
+        elements.bulkSummary.classList.toggle('hidden', !state.bulkMode);
+        elements.bulkSelectAll.textContent = allFilteredSelected ? '取消全选' : '全选当前结果';
+        elements.bulkDelete.textContent = selectedCount > 0 ? '删除选中（' + selectedCount + '）' : '删除选中';
+        elements.bulkDelete.disabled = !state.bulkMode || selectedCount === 0;
+        elements.bulkSummary.textContent = state.bulkMode
+          ? (selectedCount > 0 ? '已选 ' + selectedCount + ' 条，可直接删除。' : '勾选或点击条目来选择待删除项。')
+          : '未选择条目';
         elements.entryList.innerHTML = '';
 
         if (items.length === 0) {
@@ -585,16 +839,23 @@
           empty.className = 'entry-item';
           empty.innerHTML = '<strong>没有匹配条目</strong><small>' + (state.featuredOnly ? '当前没有置顶条目，或搜索条件未命中置顶内容。' : '可以新建条目，或清空搜索条件。') + '</small>';
           elements.entryList.appendChild(empty);
+          elements.entryList.scrollTop = previousScrollTop;
           return;
         }
 
         items.forEach(function(entry) {
           const card = document.createElement('div');
-          card.className = 'entry-item' + (entry.localId === state.selectedId ? ' active' : '');
+          card.className = 'entry-item'
+            + (entry.localId === state.selectedId ? ' active' : '')
+            + (state.bulkMode ? ' bulk-mode' : '')
+            + (selected.has(entry.localId) ? ' selected-for-bulk' : '');
           card.tabIndex = 0;
           card.setAttribute('role', 'button');
           card.innerHTML = '<div class="entry-item-head">'
             + '<div class="entry-featured-meta">'
+            + (state.bulkMode
+              ? '<button class="entry-select-toggle' + (selected.has(entry.localId) ? ' active' : '') + '" type="button" aria-label="' + (selected.has(entry.localId) ? '取消选择' : '选择条目') + '">' + (selected.has(entry.localId) ? '✓' : '') + '</button>'
+              : '')
             + (entry.featured ? '<span class="entry-featured-badge">置顶</span>' : '')
             + '<strong>' + escapeHtml(entry.title || '(未命名条目)') + '</strong>'
             + '</div>'
@@ -605,16 +866,32 @@
             + (entry.featured ? '<small>排序 ' + escapeHtml(entry.featured_rank || '100') + '</small>' : '');
 
           card.addEventListener('click', function() {
+            if (state.bulkMode) {
+              toggleBulkSelection(entry.localId);
+              return;
+            }
             state.selectedId = entry.localId;
             render();
           });
           card.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
+              if (state.bulkMode) {
+                toggleBulkSelection(entry.localId);
+                return;
+              }
               state.selectedId = entry.localId;
               render();
             }
           });
+
+          const selectToggle = card.querySelector('.entry-select-toggle');
+          if (selectToggle) {
+            selectToggle.addEventListener('click', function(event) {
+              event.stopPropagation();
+              toggleBulkSelection(entry.localId);
+            });
+          }
 
           const featuredToggle = card.querySelector('.entry-featured-toggle');
           if (featuredToggle) {
@@ -626,6 +903,8 @@
 
           elements.entryList.appendChild(card);
         });
+
+        elements.entryList.scrollTop = previousScrollTop;
       }
 
       function renderForm() {
@@ -635,7 +914,8 @@
           elements.title,
           elements.url,
           elements.source,
-          elements.tags,
+          elements.tagsInput,
+          elements.tagsAdd,
           elements.summary,
           elements.previewEnabled,
           elements.previewMode,
@@ -659,6 +939,10 @@
           elements.url.value = '';
           elements.source.value = '';
           elements.tags.value = '';
+          elements.tagsInput.value = '';
+          elements.tagsCount.textContent = '0 个标签';
+          elements.tagsSelected.innerHTML = '<span class="tag-empty">暂无标签，输入后按回车快速添加。</span>';
+          elements.tagsSuggestions.innerHTML = '';
           elements.summary.value = '';
           elements.previewEnabled.checked = false;
           elements.previewMode.value = 'auto';
@@ -676,6 +960,7 @@
         elements.url.value = entry.url;
         elements.source.value = entry.source;
         elements.tags.value = entry.tags;
+        elements.tagsInput.value = '';
         elements.summary.value = entry.summary;
         elements.previewEnabled.checked = entry.preview_enabled === true;
         elements.previewMode.value = entry.preview_mode || 'auto';
@@ -686,6 +971,112 @@
         elements.confidence.value = entry.confidence;
         elements.featured.checked = entry.featured === true;
         elements.featuredRank.value = entry.featured_rank || '';
+        renderTagEditor(entry);
+      }
+
+      function renderTagEditor(entry) {
+        if (!entry) {
+          return;
+        }
+
+        const tags = parseEntryTags(entry.tags);
+        elements.tags.value = tags.join(', ');
+        elements.tagsCount.textContent = tags.length + ' 个标签';
+        elements.tagsSelected.innerHTML = '';
+
+        if (tags.length === 0) {
+          elements.tagsSelected.innerHTML = '<span class="tag-empty">暂无标签，输入后按回车快速添加。</span>';
+        } else {
+          tags.forEach(function(tag) {
+            const chip = document.createElement('span');
+            chip.className = 'tag-token';
+            chip.innerHTML = '<span>' + escapeHtml(tag) + '</span>';
+
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'tag-token-remove';
+            remove.textContent = '×';
+            remove.setAttribute('aria-label', '移除标签 ' + tag);
+            remove.addEventListener('click', function() {
+              removeTag(tag);
+            });
+
+            chip.appendChild(remove);
+            elements.tagsSelected.appendChild(chip);
+          });
+        }
+
+        renderTagSuggestions(entry);
+      }
+
+      function renderTagSuggestions(entry) {
+        const currentTags = new Set(parseEntryTags(entry.tags));
+        const keyword = String(elements.tagsInput.value || '')
+          .replace(/^#+/, '')
+          .trim()
+          .toLowerCase();
+        const suggestions = buildKnownTagStats(entry.localId)
+          .filter(function(item) {
+            if (currentTags.has(item.tag)) return false;
+            if (!keyword) return true;
+            return item.tag.toLowerCase().includes(keyword);
+          })
+          .slice(0, keyword ? 10 : 12);
+
+        elements.tagsSuggestions.innerHTML = '';
+
+        if (suggestions.length === 0) {
+          elements.tagsSuggestions.innerHTML = '<span class="tag-empty">没有可推荐的现有标签。</span>';
+          return;
+        }
+
+        suggestions.forEach(function(item) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'tag-suggestion';
+          button.innerHTML = '<span>' + escapeHtml(item.tag) + '</span><small>' + item.count + '</small>';
+          button.addEventListener('click', function() {
+            addTags([item.tag]);
+          });
+          elements.tagsSuggestions.appendChild(button);
+        });
+      }
+
+      function addTags(nextTags) {
+        const entry = currentEntry();
+        if (!entry) return;
+        const merged = parseEntryTags(entry.tags).concat(nextTags || []);
+        const normalized = parseEntryTags(merged.join(', '));
+        entry.tags = tagsToString(normalized);
+        entry.updated_at = nowIso();
+        markDirty(true);
+        elements.tagsInput.value = '';
+        renderTagEditor(entry);
+        renderList();
+      }
+
+      function removeTag(targetTag) {
+        const entry = currentEntry();
+        if (!entry) return;
+        entry.tags = tagsToString(parseEntryTags(entry.tags).filter(function(tag) {
+          return tag !== targetTag;
+        }));
+        entry.updated_at = nowIso();
+        markDirty(true);
+        renderTagEditor(entry);
+        renderList();
+      }
+
+      function commitTagInput() {
+        const raw = String(elements.tagsInput.value || '');
+        const nextTags = parseEntryTags(raw);
+        if (nextTags.length === 0) {
+          elements.tagsInput.value = '';
+          const entry = currentEntry();
+          if (entry) renderTagSuggestions(entry);
+          return;
+        }
+        addTags(nextTags);
       }
 
       function render() {
@@ -747,6 +1138,32 @@
         markDirty(true);
         setStatus('已删除当前条目，记得保存。', 'info');
         render();
+      }
+
+      function removeBulkEntries() {
+        syncBulkSelection();
+        const selectedIds = state.bulkSelectedIds.slice();
+        if (selectedIds.length === 0) {
+          setStatus('请先选择要删除的条目。', 'info');
+          return;
+        }
+
+        const ok = window.confirm('确认删除已选中的 ' + selectedIds.length + ' 条内容？此操作在保存前可通过刷新页面撤销。');
+        if (!ok) return;
+
+        state.entries = state.entries.filter(function(entry) {
+          return !selectedIds.includes(entry.localId);
+        });
+
+        if (selectedIds.includes(state.selectedId)) {
+          state.selectedId = state.entries[0] ? state.entries[0].localId : null;
+        }
+
+        state.bulkSelectedIds = [];
+        state.bulkMode = false;
+        markDirty(true);
+        render();
+        setStatus('已删除 ' + selectedIds.length + ' 条条目，记得保存。', 'success');
       }
 
       function entryToPayload(entry) {
@@ -1028,6 +1445,15 @@
         state.featuredOnly = !state.featuredOnly;
         renderList();
       });
+      elements.bulkToggle.addEventListener('click', function() {
+        setBulkMode(!state.bulkMode);
+      });
+      elements.bulkSelectAll.addEventListener('click', function() {
+        toggleSelectAllFiltered();
+      });
+      elements.bulkDelete.addEventListener('click', function() {
+        removeBulkEntries();
+      });
       elements.newEntry.addEventListener('click', createEmptyEntry);
       elements.deleteEntry.addEventListener('click', removeCurrentEntry);
       elements.saveAll.addEventListener('click', saveAll);
@@ -1057,7 +1483,6 @@
         [elements.title, 'title'],
         [elements.url, 'url'],
         [elements.source, 'source'],
-        [elements.tags, 'tags'],
         [elements.summary, 'summary'],
         [elements.previewSrc, 'preview_src'],
         [elements.previewAlt, 'preview_alt'],
@@ -1067,6 +1492,40 @@
         tuple[0].addEventListener('input', function(event) {
           updateCurrentField(tuple[1], event.target.value);
         });
+      });
+
+      elements.tagsInput.addEventListener('input', function() {
+        const entry = currentEntry();
+        if (!entry) return;
+        renderTagSuggestions(entry);
+      });
+      elements.tagsInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ',' || event.key === '，') {
+          event.preventDefault();
+          commitTagInput();
+          return;
+        }
+        if (event.key === 'Backspace' && !elements.tagsInput.value.trim()) {
+          const entry = currentEntry();
+          if (!entry) return;
+          const tags = parseEntryTags(entry.tags);
+          if (tags.length > 0) {
+            removeTag(tags[tags.length - 1]);
+          }
+        }
+      });
+      elements.tagsInput.addEventListener('blur', function() {
+        if (!elements.tagsInput.value.trim()) return;
+        commitTagInput();
+      });
+      elements.tagsInput.addEventListener('paste', function(event) {
+        const pasted = event.clipboardData ? event.clipboardData.getData('text') : '';
+        if (!pasted || !/[,，\n]/.test(pasted)) return;
+        event.preventDefault();
+        addTags(parseEntryTags(pasted.replace(/\n/g, ',')));
+      });
+      elements.tagsAdd.addEventListener('click', function() {
+        commitTagInput();
       });
 
       elements.featured.addEventListener('change', function(event) {

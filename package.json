@@ -11,9 +11,11 @@
     "navhoard-cli:build": "cd tools/navhoard-cli && npm run build",
     "entry-workflow": "cd tools/navhoard-cli && npm run entry --",
     "import:raindrop": "cd tools/navhoard-cli && npm run import:raindrop --",
-    "edit": "cd tools/navhoard-cli && npm run edit"
+    "edit": "cd tools/navhoard-cli && npm run edit --"
   },
   "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.2.7",
+    "@fontsource/fusion-pixel-12px-monospaced-sc": "^5.2.5",
     "lit": "^3.2.0",
     "minisearch": "^6.3.0"
   },

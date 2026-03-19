@@ -46,6 +46,8 @@ const FAVORITES_REMINDER_DISMISSED_KEY = 'navhoard:favorites-reminder-dismissed'
 
 @customElement('nav-hoard')
 export class NavHoard extends LitElement {
+  private noticeTimer: number | null = null;
+
   protected createRenderRoot() {
     return this;
   }
@@ -177,11 +179,27 @@ export class NavHoard extends LitElement {
   }
 
   private showNotice(message: string, tone: NoticeTone = 'info') {
+    if (this.noticeTimer !== null) {
+      window.clearTimeout(this.noticeTimer);
+      this.noticeTimer = null;
+    }
+
     this.notice = message;
     this.noticeTone = tone;
+
+    if (tone === 'info') {
+      this.noticeTimer = window.setTimeout(() => {
+        this.clearNotice();
+      }, 2200);
+    }
   }
 
   private clearNotice() {
+    if (this.noticeTimer !== null) {
+      window.clearTimeout(this.noticeTimer);
+      this.noticeTimer = null;
+    }
+
     this.notice = '';
     this.noticeTone = 'info';
   }
@@ -720,7 +738,7 @@ export class NavHoard extends LitElement {
     const payload = JSON.stringify(this.buildCopyPayload(entry), null, 2);
 
     try {
-      await navigator.clipboard.writeText(payload);
+      await this.copyText(payload);
       this.showNotice('已复制条目 JSON，可直接粘贴到你的 NavHoard 编辑器或录入流程。');
     } catch (error) {
       console.warn('Failed to copy entry', error);
@@ -730,11 +748,55 @@ export class NavHoard extends LitElement {
 
   private async copyLink(entry: NavEntry) {
     try {
-      await navigator.clipboard.writeText(entry.url);
+      await this.copyText(entry.url);
       this.showNotice('已复制链接，可直接分享给别人或保存到别处。');
     } catch (error) {
       console.warn('Failed to copy link', error);
       this.showNotice('复制失败：当前浏览器不允许访问剪贴板。', 'error');
+    }
+  }
+
+  private async copyText(value: string) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', 'true');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '0';
+    textarea.style.width = '1px';
+    textarea.style.height = '1px';
+    textarea.style.padding = '0';
+    textarea.style.border = '0';
+    textarea.style.opacity = '0';
+    textarea.style.pointerEvents = 'none';
+
+    document.body.appendChild(textarea);
+
+    const selection = document.getSelection();
+    const previousRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+
+    const copied = document.execCommand('copy');
+
+    textarea.remove();
+
+    if (selection) {
+      selection.removeAllRanges();
+      if (previousRange) {
+        selection.addRange(previousRange);
+      }
+    }
+
+    if (!copied) {
+      throw new Error('execCommand copy failed');
     }
   }
 
@@ -975,7 +1037,7 @@ export class NavHoard extends LitElement {
                       @click=${() => this.onTagToggle(tag)}
                       title="按此标签筛选"
                     >
-                      <span>#${tag}</span>
+                      <span>${tag}</span>
                       <small>${count}</small>
                     </button>
                   `)}
@@ -1084,7 +1146,7 @@ export class NavHoard extends LitElement {
                     @click=${() => this.onTagToggle(tag)}
                     title="按此标签筛选"
                   >
-                    <span>#${tag}</span>
+                    <span>${tag}</span>
                     <small>${count}</small>
                   </button>
                 `)}
@@ -1138,7 +1200,6 @@ export class NavHoard extends LitElement {
             <h3><a href="${entry.url}" target="_blank" rel="noopener noreferrer">${entry.title}</a></h3>
             <div class="meta">
               <span class="source">${entry.source}</span>
-              <span class="date">${this.formatDate(entry.updated_at)}</span>
               <button
                 class="copy-link-inline"
                 type="button"
@@ -1161,9 +1222,12 @@ export class NavHoard extends LitElement {
                   @click=${() => this.onTagToggle(tag)}
                   title="按此标签筛选"
                 >
-                  #${tag}
+                  ${tag}
                 </button>
               `)}
+            </div>
+            <div class="card-footer-meta">
+              <span class="date">${this.formatDate(entry.updated_at)}</span>
             </div>
           </footer>
         </div>
