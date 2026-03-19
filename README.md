@@ -95,6 +95,7 @@ flowchart TD
 - 前端纯静态部署，默认可部署到 GitHub Pages
 - `data/index.json` 作为唯一规范数据源
 - `public/data/` 作为前端运行时发布数据目录
+- 支持 `hide: true` 的隐藏条目，以及通过全局按键密语解锁显示
 - 支持批量抓取更新
 - 支持单条 URL 的抓取、审阅、确认写入
 - 支持本地可视化编辑器：新建、编辑、删除、保存、同步抓取、导入书签
@@ -139,6 +140,9 @@ nav-hoard/
 {
   "version": "0.2",
   "updated_at": "2026-03-11T00:00:00.000Z",
+  "config": {
+    "hidden_unlock_password": "up up down down left right left right b a b a"
+  },
   "entries": [
     {
       "id": "abc123def456",
@@ -147,6 +151,7 @@ nav-hoard/
       "summary": "Example summary",
       "tags": ["Example", "工具"],
       "source": "example.com",
+      "hide": true,
       "created_at": "2026-03-11T00:00:00.000Z",
       "updated_at": "2026-03-11T00:00:00.000Z"
     }
@@ -159,6 +164,11 @@ nav-hoard/
 - 前端默认从 `public/data/` 读取运行时数据
 - 条目较少时可直接读取 `index.json`
 - 条目较多时会读取 `manifest.json` 与分片数据
+- 顶层 `config.hidden_unlock_password` 可配置隐藏条目的解锁密语
+- 条目级 `hide: true` 表示默认不在主页面展示，用户按出正确的按键序列后才显示
+- 默认密语对应按键序列：上、上、下、下、左、右、左、右、B、A、B、A
+- 自定义密语支持直接写成按键序列字符串，例如：`"up up down down left right left right b a b a"`、`"↑ ↑ ↓ ↓ ← → ← → B A B A"`、`"上 上 下 下 左 右 左 右 B A B A"`
+- 字母按键匹配不区分大小写
 
 也就是说：
 - `data/index.json`：内容维护的真实来源
