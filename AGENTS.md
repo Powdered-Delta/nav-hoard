@@ -11,6 +11,13 @@ Before changing content or code, inspect these entry points first:
 
 Do not jump straight to patching `data/index.json` unless the tool-driven path is unavailable or clearly broken.
 
+For UI or styling tasks, inspect these first:
+
+1. `public/nav-hoard.custom.css`
+2. `src/styles-default.css`
+3. `src/nav-hoard.ts`
+4. `tools/navhoard-cli/src/editor-html.ts`
+
 ## Entry Maintenance Rules
 
 These requests all count as entry maintenance:
@@ -62,6 +69,27 @@ If the answer may be yes, inspect the workflow first.
 - `data/index.json` is the canonical source of truth.
 - `public/data/` is publish output and should normally be updated by the toolchain, not by manual editing.
 - `dist/` is never a content-maintenance target.
+- If content changes were written to `data/index.json`, do not leave `public/data/` stale on purpose.
+
+## Style Maintenance Rules
+
+- Prefer `public/nav-hoard.custom.css` for project-level visual tuning, theme alignment, and non-structural style overrides.
+- Only edit `src/styles-default.css` when the change should become part of the default shared component styling.
+- Only edit `src/styles-base.css` when adjusting global tokens, shared primitives, or app-wide layout foundations.
+- For main-site interaction or markup changes, inspect `src/nav-hoard.ts` before changing styles in isolation.
+- Keep editor styling changes scoped to `tools/navhoard-cli/src/editor-html.ts` unless a shared style dependency is truly required.
+
+## Editor Maintenance Rules
+
+- `pnpm run edit` is the primary manual maintenance tool for bulk cleanup, tag curation, preview adjustments, and review-heavy content work.
+- Editor UI, form behavior, batch actions, and in-browser workflows live in `tools/navhoard-cli/src/editor-html.ts`.
+- Editor server behavior such as host, port, API routes, and live reload lives in `tools/navhoard-cli/src/editor.ts`.
+- If improving editor UX, prefer fixing the interaction model instead of only changing helper text.
+
+## Skill Path Notes
+
+- Repository-tracked, shareable skills should be referenced from `skills/`.
+- `.codex/skills/` may exist as a local or mirrored working directory, but should not be treated as the only canonical skill location for repository guidance.
 
 ## Final Response Requirement
 
