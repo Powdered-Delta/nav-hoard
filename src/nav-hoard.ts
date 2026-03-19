@@ -25,6 +25,21 @@ export interface NavEntry {
   featured?: boolean;
   featured_rank?: number;
   preview?: NavPreview;
+  hide?: boolean;
+}
+
+interface NavConfig {
+  hidden_unlock_password?: string;
+}
+
+interface NavDataPayload {
+  entries?: unknown;
+  config?: unknown;
+}
+
+interface NavManifestPayload {
+  groups?: unknown;
+  config?: unknown;
 }
 
 interface FavoriteExportItem {
@@ -43,10 +58,27 @@ const FAVORITES_KEY = 'navhoard:favorites';
 const LAYOUT_KEY = 'navhoard:layout-mode';
 const CONTROLS_COLLAPSED_KEY = 'navhoard:controls-collapsed';
 const FAVORITES_REMINDER_DISMISSED_KEY = 'navhoard:favorites-reminder-dismissed';
+const HIDDEN_UNLOCKED_KEY = 'navhoard:hidden-unlocked';
+const DEFAULT_HIDDEN_UNLOCK_PASSWORD = 'up up down down left right left right b a b a';
+const DEFAULT_HIDDEN_UNLOCK_SEQUENCE = [
+  'arrowup',
+  'arrowup',
+  'arrowdown',
+  'arrowdown',
+  'arrowleft',
+  'arrowright',
+  'arrowleft',
+  'arrowright',
+  'b',
+  'a',
+  'b',
+  'a'
+] as const;
 
 @customElement('nav-hoard')
 export class NavHoard extends LitElement {
   private noticeTimer: number | null = null;
+  private hiddenUnlockProgress: string[] = [];
 
   protected createRenderRoot() {
     return this;
@@ -75,6 +107,8 @@ export class NavHoard extends LitElement {
   @state() private compactSearchVisible = false;
   @state() private compactFiltersExpanded = false;
   @state() private viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
+  @state() private hiddenUnlocked = false;
+  @state() private hiddenUnlockPassword = DEFAULT_HIDDEN_UNLOCK_PASSWORD;
 
   private miniSearch: MiniSearch | null = null;
 
@@ -87,6 +121,35 @@ export class NavHoard extends LitElement {
   };
   private readonly handleWindowResize = () => {
     this.viewportWidth = window.innerWidth;
+  };
+  private readonly handleWindowKeydown = (event: KeyboardEvent) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) {
+      return;
+    }
+
+    const token = this.normalizeKeyToken(event.key);
+    if (!token) {
+      return;
+    }
+
+    const sequence = this.getHiddenUnlockSequence();
+    if (sequence.length === 0 || this.hiddenUnlocked) {
+      return;
+    }
+
+    const nextIndex = this.hiddenUnlockProgress.length;
+    if (sequence[nextIndex] === token) {
+      this.hiddenUnlockProgress = [...this.hiddenUnlockProgress, token];
+    } else if (sequence[0] === token) {
+      this.hiddenUnlockProgress = [token];
+    } else {
+      this.hiddenUnlockProgress = [];
+    }
+
+    if (this.hiddenUnlockProgress.length === sequence.length) {
+      this.hiddenUnlockProgress = [];
+      this.unlockHiddenEntries();
+    }
   };
 
   async connectedCallback() {
@@ -101,6 +164,7 @@ export class NavHoard extends LitElement {
     this.loadFavorites();
     window.addEventListener('scroll', this.handleWindowScroll, { passive: true });
     window.addEventListener('resize', this.handleWindowResize, { passive: true });
+    window.addEventListener('keydown', this.handleWindowKeydown);
     this.handleWindowScroll();
     this.handleWindowResize();
     await this.loadData();
@@ -109,6 +173,7 @@ export class NavHoard extends LitElement {
   disconnectedCallback() {
     window.removeEventListener('scroll', this.handleWindowScroll);
     window.removeEventListener('resize', this.handleWindowResize);
+    window.removeEventListener('keydown', this.handleWindowKeydown);
     super.disconnectedCallback();
   }
 
@@ -140,6 +205,7 @@ export class NavHoard extends LitElement {
 
     this.controlsCollapsed = this.readStorageValue(CONTROLS_COLLAPSED_KEY) === 'true';
     this.favoriteReminderDismissed = this.readStorageValue(FAVORITES_REMINDER_DISMISSED_KEY) === 'true';
+    this.hiddenUnlocked = this.readStorageValue(HIDDEN_UNLOCKED_KEY) === 'true';
   }
 
   private loadFavorites() {
@@ -241,6 +307,82 @@ export class NavHoard extends LitElement {
     return [];
   }
 
+  private extractConfig(payload: unknown): NavConfig | undefined {
+    if (!payload || typeof payload !== 'object' || !('config' in payload)) {
+      return undefined;
+    }
+
+    const config = (payload as { config?: unknown }).config;
+    if (!config || typeof config !== 'object') {
+      return undefined;
+    }
+
+    const hiddenUnlockPassword = String((config as { hidden_unlock_password?: unknown }).hidden_unlock_password || '').trim();
+    if (!hiddenUnlockPassword) {
+      return undefined;
+    }
+
+    return {
+      hidden_unlock_password: hiddenUnlockPassword
+    };
+  }
+
+  private normalizeUnlockPhrase(value: string): string {
+    return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
+  private normalizeKeyToken(value: string): string {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (!normalized) {
+      return '';
+    }
+
+    if (normalized === 'up') return 'arrowup';
+    if (normalized === 'down') return 'arrowdown';
+    if (normalized === 'left') return 'arrowleft';
+    if (normalized === 'right') return 'arrowright';
+    if (normalized === '↑' || normalized === '上') return 'arrowup';
+    if (normalized === '↓' || normalized === '下') return 'arrowdown';
+    if (normalized === '←' || normalized === '左') return 'arrowleft';
+    if (normalized === '→' || normalized === '右') return 'arrowright';
+    return normalized;
+  }
+
+  private getHiddenUnlockSequence(): string[] {
+    const phrase = this.normalizeUnlockPhrase(this.hiddenUnlockPassword || DEFAULT_HIDDEN_UNLOCK_PASSWORD);
+    if (!phrase) {
+      return [...DEFAULT_HIDDEN_UNLOCK_SEQUENCE];
+    }
+
+    return phrase
+      .split(/[\s,，、>｜|/]+/)
+      .map(token => this.normalizeKeyToken(token))
+      .filter(Boolean);
+  }
+
+  private isEntryHidden(entry: NavEntry): boolean {
+    return entry.hide === true && !this.hiddenUnlocked;
+  }
+
+  private getAccessibleEntries(): NavEntry[] {
+    return this.entries.filter(entry => !this.isEntryHidden(entry));
+  }
+
+  private getAccessibleFavoritesCount(): number {
+    const accessibleIds = new Set(this.getAccessibleEntries().map(entry => entry.id));
+    return this.favorites.filter(id => accessibleIds.has(id)).length;
+  }
+
+  private unlockHiddenEntries() {
+    if (!this.hiddenUnlocked) {
+      this.hiddenUnlocked = true;
+      this.writeStorageValue(HIDDEN_UNLOCKED_KEY, 'true');
+      this.showNotice('已解锁隐藏内容。');
+    }
+    this.buildSearchIndex();
+    this.applyFilters();
+  }
+
   private async loadData() {
     try {
       this.loading = true;
@@ -249,13 +391,18 @@ export class NavHoard extends LitElement {
       const manifestUrl = this.resolveUrl('data/manifest.json');
       let entries: NavEntry[] = [];
       let loadedFromManifest = false;
+      let config: NavConfig | undefined;
 
-      const manifest = await this.fetchJsonSafe<{ groups?: unknown }>(manifestUrl);
+      const manifest = await this.fetchJsonSafe<NavManifestPayload>(manifestUrl);
       if (manifest && Array.isArray(manifest.groups) && manifest.groups.length > 0) {
+        config = this.extractConfig(manifest);
         const groupUrls = manifest.groups.map((group: string) => this.resolveUrl(`data/index-${group}.json`));
         const groupPayloads = await Promise.all(groupUrls.map(url => this.fetchJsonSafe<unknown>(url)));
         loadedFromManifest = groupPayloads.some(payload => payload !== null);
         entries = groupPayloads.flatMap(payload => this.normalizeEntries(payload));
+        if (!config) {
+          config = groupPayloads.map(payload => this.extractConfig(payload)).find(Boolean);
+        }
       }
 
       if (!loadedFromManifest) {
@@ -264,9 +411,11 @@ export class NavHoard extends LitElement {
           throw new Error('Failed to load data/index.json');
         }
         entries = this.normalizeEntries(data);
+        config = this.extractConfig(data);
       }
 
       this.entries = entries;
+      this.hiddenUnlockPassword = config?.hidden_unlock_password?.trim() || DEFAULT_HIDDEN_UNLOCK_PASSWORD;
       this.reconcileFavorites();
       this.buildSearchIndex();
       this.applyFilters();
@@ -288,13 +437,14 @@ export class NavHoard extends LitElement {
   }
 
   private buildSearchIndex() {
+    const accessibleEntries = this.getAccessibleEntries();
     this.miniSearch = new MiniSearch({
       fields: ['title', 'summary', 'tags'],
       storeFields: ['id', 'title', 'summary', 'tags', 'url', 'source', 'updated_at'],
       searchOptions: { prefix: true, boost: { title: 2 } }
     });
 
-    this.miniSearch.addAll(this.entries.map(entry => ({
+    this.miniSearch.addAll(accessibleEntries.map(entry => ({
       id: entry.id,
       title: entry.title,
       summary: entry.summary,
@@ -306,7 +456,7 @@ export class NavHoard extends LitElement {
   }
 
   private applyFilters() {
-    let result = this.entries;
+    let result = this.getAccessibleEntries();
 
     if (this.view === 'favorites') {
       result = result.filter(entry => this.favorites.includes(entry.id));
@@ -454,7 +604,7 @@ export class NavHoard extends LitElement {
   private getTagStats(): Array<{ tag: string; count: number }> {
     const counts = new Map<string, number>();
 
-    for (const entry of this.entries) {
+    for (const entry of this.getAccessibleEntries()) {
       for (const tag of entry.tags) {
         counts.set(tag, (counts.get(tag) || 0) + 1);
       }
@@ -475,7 +625,7 @@ export class NavHoard extends LitElement {
       return [];
     }
 
-    return this.entries
+    return this.getAccessibleEntries()
       .filter(entry => entry.featured)
       .sort((left, right) => {
         const rankDelta = (left.featured_rank ?? 100) - (right.featured_rank ?? 100);
@@ -620,7 +770,9 @@ export class NavHoard extends LitElement {
       parts.push(`搜索：${this.searchQuery}`);
     }
 
-    parts.push(this.view === 'favorites' ? `收藏 ${this.favorites.length} 条` : `全部 ${this.entries.length} 条`);
+    parts.push(this.view === 'favorites'
+      ? `收藏 ${this.getAccessibleFavoritesCount()} 条`
+      : `全部 ${this.getAccessibleEntries().length} 条`);
     parts.push(this.getLayoutLabel(this.layoutMode));
 
     return parts.join(' · ');
@@ -873,7 +1025,7 @@ export class NavHoard extends LitElement {
     if (!hasSearch && tags.length === 0) {
       return html`
         <div class="active-filters empty">
-          <span>当前未使用筛选，正在展示 ${this.view === 'favorites' ? '收藏视图' : '全部内容'}。</span>
+          <span>当前未使用筛选，正在展示 ${this.view === 'favorites' ? '收藏视图' : '全部内容'}${this.hiddenUnlocked ? '（含隐藏条目）' : ''}。</span>
         </div>
       `;
     }
@@ -894,13 +1046,15 @@ export class NavHoard extends LitElement {
 
   private renderResultMeta() {
     const featuredCount = this.getFeaturedEntries().length;
+    const accessibleEntriesCount = this.getAccessibleEntries().length;
+    const accessibleFavoritesCount = this.getAccessibleFavoritesCount();
     return html`
       <div class="result-meta">
         <div>
           <p class="result-title">${this.view === 'favorites' ? '我的收藏' : '结果列表'}</p>
           <p class="result-subtitle">
             当前共显示 ${this.filteredEntries.length} 条结果
-            ${this.view === 'favorites' ? ` / 已收藏 ${this.favorites.length} 条` : ` / 总计 ${this.entries.length} 条`}
+            ${this.view === 'favorites' ? ` / 已收藏 ${accessibleFavoritesCount} 条` : ` / 总计 ${accessibleEntriesCount} 条`}
             ${featuredCount > 0 ? ` / 含推荐 ${featuredCount} 条` : ''}
           </p>
         </div>
@@ -971,10 +1125,10 @@ export class NavHoard extends LitElement {
               <span class="toolbar-label">视图</span>
               <div class="view-switch">
                 <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
-                  全部 (${this.entries.length})
+                  全部 (${this.getAccessibleEntries().length})
                 </button>
                 <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
-                  收藏 (${this.favorites.length})
+                  收藏 (${this.getAccessibleFavoritesCount()})
                 </button>
               </div>
             </div>
@@ -1102,10 +1256,10 @@ export class NavHoard extends LitElement {
                 <span class="toolbar-label">视图</span>
                 <div class="view-switch">
                   <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
-                    全部 (${this.entries.length})
+                    全部 (${this.getAccessibleEntries().length})
                   </button>
                   <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
-                    收藏 (${this.favorites.length})
+                    收藏 (${this.getAccessibleFavoritesCount()})
                   </button>
                 </div>
               </div>

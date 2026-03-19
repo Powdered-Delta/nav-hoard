@@ -545,6 +545,13 @@
               <input id="field-confidence" class="nh-input" type="number" min="0" max="1" step="0.1" placeholder="0.7" />
             </label>
             <label>
+              默认隐藏
+              <span class="check-row">
+                <input id="field-hidden" type="checkbox" />
+                <span>启用后，主站默认不展示这条内容</span>
+              </span>
+            </label>
+            <label>
               作者推荐 / 置顶
               <span class="check-row">
                 <input id="field-featured" type="checkbox" />
@@ -611,6 +618,7 @@
         createdAt: document.getElementById('field-created-at'),
         updatedAt: document.getElementById('field-updated-at'),
         confidence: document.getElementById('field-confidence'),
+        hidden: document.getElementById('field-hidden'),
         featured: document.getElementById('field-featured'),
         featuredRank: document.getElementById('field-featured-rank')
       };
@@ -654,6 +662,7 @@
           created_at: partial.created_at || nowIso(),
           updated_at: partial.updated_at || nowIso(),
           confidence: typeof partial.confidence === 'number' ? String(partial.confidence) : '',
+          hide: partial.hide === true,
           featured: partial.featured === true,
           featured_rank: typeof partial.featured_rank === 'number' ? String(partial.featured_rank) : ''
         };
@@ -857,6 +866,7 @@
               ? '<button class="entry-select-toggle' + (selected.has(entry.localId) ? ' active' : '') + '" type="button" aria-label="' + (selected.has(entry.localId) ? '取消选择' : '选择条目') + '">' + (selected.has(entry.localId) ? '✓' : '') + '</button>'
               : '')
             + (entry.featured ? '<span class="entry-featured-badge">置顶</span>' : '')
+            + (entry.hide ? '<span class="entry-featured-badge">隐藏</span>' : '')
             + '<strong>' + escapeHtml(entry.title || '(未命名条目)') + '</strong>'
             + '</div>'
             + (entry.featured ? '<button class="entry-featured-toggle" type="button">取消置顶</button>' : '')
@@ -925,6 +935,7 @@
           elements.createdAt,
           elements.updatedAt,
           elements.confidence,
+          elements.hidden,
           elements.featured,
           elements.featuredRank,
           elements.deleteEntry,
@@ -951,6 +962,7 @@
           elements.createdAt.value = nowLocalInputValue();
           elements.updatedAt.value = nowLocalInputValue();
           elements.confidence.value = '';
+          elements.hidden.checked = false;
           elements.featured.checked = false;
           elements.featuredRank.value = '';
           return;
@@ -969,6 +981,7 @@
         elements.createdAt.value = isoToLocalInput(entry.created_at);
         elements.updatedAt.value = isoToLocalInput(entry.updated_at);
         elements.confidence.value = entry.confidence;
+        elements.hidden.checked = entry.hide === true;
         elements.featured.checked = entry.featured === true;
         elements.featuredRank.value = entry.featured_rank || '';
         renderTagEditor(entry);
@@ -1189,6 +1202,7 @@
           created_at: entry.created_at || nowIso(),
           updated_at: entry.updated_at || nowIso(),
           confidence: Number.isFinite(confidence) ? confidence : undefined,
+          hide: entry.hide === true ? true : undefined,
           featured: entry.featured === true,
           featured_rank: entry.featured === true && Number.isFinite(Number(entry.featured_rank))
             ? Number(entry.featured_rank)
@@ -1532,6 +1546,9 @@
         const entry = currentEntry();
         if (!entry) return;
         toggleFeaturedEntry(entry, event.target.checked);
+      });
+      elements.hidden.addEventListener('change', function(event) {
+        updateCurrentField('hide', event.target.checked);
       });
       elements.previewEnabled.addEventListener('change', function(event) {
         updateCurrentField('preview_enabled', event.target.checked);

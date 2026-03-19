@@ -20,6 +20,7 @@ export interface NavEntry {
   featured?: boolean;
   featured_rank?: number;
   preview?: NavPreview;
+  hide?: boolean;
 }
 
 export interface EntryDraft {
@@ -34,6 +35,7 @@ export interface EntryDraft {
   featured?: boolean;
   featured_rank?: number;
   preview?: NavPreview;
+  hide?: boolean;
 }
 
 export interface NavPreview {
@@ -43,10 +45,15 @@ export interface NavPreview {
   alt?: string;
 }
 
+export interface NavConfig {
+  hidden_unlock_password?: string;
+}
+
 export interface OutputPayload {
   version: string;
   updated_at: string;
   entries: NavEntry[];
+  config?: NavConfig;
 }
 
 export interface ManifestPayload {
@@ -54,6 +61,7 @@ export interface ManifestPayload {
   updated_at: string;
   total: number;
   groups: string[];
+  config?: NavConfig;
 }
 
 export interface ValidationResult {
@@ -215,6 +223,7 @@ const validateEntry = ajv.compile({
     confidence: { type: 'number', minimum: 0, maximum: 1, nullable: true },
     featured: { type: 'boolean', nullable: true },
     featured_rank: { type: 'integer', minimum: 1, maximum: 999, nullable: true },
+    hide: { type: 'boolean', nullable: true },
     preview: {
       type: 'object',
       nullable: true,
@@ -259,7 +268,8 @@ export function normalizeBatchEntry(entry: EntryDraft, context: BatchNormalizeCo
     confidence: normalizeConfidence(entry.confidence, 0.7),
     featured: normalizeFeatured(entry.featured),
     featured_rank: normalizeFeaturedRank(entry.featured_rank, entry.featured),
-    preview: normalizePreview(entry.preview)
+    preview: normalizePreview(entry.preview),
+    hide: normalizeOptionalBoolean(entry.hide)
   };
 }
 
@@ -532,7 +542,8 @@ function normalizeConfirmedEntry(draft: EntryDraft): ConfirmWriteResult | { ok: 
     confidence: normalizeConfidence(draft.confidence, 0.7),
     featured: normalizeFeatured(draft.featured),
     featured_rank: normalizeFeaturedRank(draft.featured_rank, draft.featured),
-    preview: normalizePreview(draft.preview)
+    preview: normalizePreview(draft.preview),
+    hide: normalizeOptionalBoolean(draft.hide)
   };
 
   const validated = validateEntries([entry]);
@@ -694,7 +705,8 @@ function normalizeTemplateDraft(entry: Partial<EntryDraft> | undefined): {
       created_at: cleanText(String(entry.created_at || '')),
       updated_at: cleanText(String(entry.updated_at || '')),
       confidence: normalizeTemplateConfidence(entry.confidence),
-      preview: normalizeTemplatePreview((entry as { preview?: unknown }).preview)
+      preview: normalizeTemplatePreview((entry as { preview?: unknown }).preview),
+      hide: normalizeOptionalBoolean((entry as { hide?: unknown }).hide)
     },
     invalidMessages
   };
@@ -929,7 +941,8 @@ export function mergeEntries(existing: NavEntry[], incoming: NavEntry[]): MergeR
         confidence: Math.max(current.confidence ?? 0, entry.confidence ?? 0),
         featured: entry.featured ?? current.featured ?? false,
         featured_rank: normalizeMergedFeaturedRank(entry, current),
-        preview: normalizePreview(entry.preview) ?? normalizePreview(current.preview)
+        preview: normalizePreview(entry.preview) ?? normalizePreview(current.preview),
+        hide: pickOptionalBoolean(entry.hide, current.hide)
       });
     } else {
       mergedMap.set(entry.id, {
@@ -938,7 +951,8 @@ export function mergeEntries(existing: NavEntry[], incoming: NavEntry[]): MergeR
         confidence: Math.max(current.confidence ?? 0, entry.confidence ?? 0),
         featured: current.featured ?? false,
         featured_rank: normalizeMergedFeaturedRank(current, entry),
-        preview: normalizePreview(current.preview) ?? normalizePreview(entry.preview)
+        preview: normalizePreview(current.preview) ?? normalizePreview(entry.preview),
+        hide: pickOptionalBoolean(current.hide, entry.hide)
       });
     }
   }
@@ -981,24 +995,36 @@ export function resolveDataPaths(outputPath: string): DataPaths {
 
 export function loadExistingEntries(dataPaths: DataPaths): NavEntry[] {
   if (fs.existsSync(dataPaths.canonicalFile)) {
-    return readEntryPayload(dataPaths.canonicalFile);
+    return readEntryPayload(dataPaths.canonicalFile).entries;
   }
   return [];
 }
 
-function readEntryPayload(filePath: string): NavEntry[] {
+export function loadExistingConfig(dataPaths: DataPaths): NavConfig | undefined {
+  if (fs.existsSync(dataPaths.canonicalFile)) {
+    return readEntryPayload(dataPaths.canonicalFile).config;
+  }
+  return undefined;
+}
+
+function readEntryPayload(filePath: string): { entries: NavEntry[]; config?: NavConfig } {
   try {
     const parsed = parseJsonFile<OutputPayload | NavEntry[]>(filePath);
     if (Array.isArray(parsed)) {
-      return parsed.map(entry => normalizePersistedEntry(entry));
+      return {
+        entries: parsed.map(entry => normalizePersistedEntry(entry))
+      };
     }
     if (Array.isArray(parsed.entries)) {
-      return parsed.entries.map(entry => normalizePersistedEntry(entry));
+      return {
+        entries: parsed.entries.map(entry => normalizePersistedEntry(entry)),
+        config: normalizeConfig((parsed as OutputPayload).config)
+      };
     }
   } catch (error) {
     console.warn(`Failed to parse ${filePath}`, error);
   }
-  return [];
+  return { entries: [] };
 }
 
 function parseJsonFile<T>(filePath: string): T {
@@ -1009,7 +1035,8 @@ function stripUtf8Bom(content: string): string {
   return content.charCodeAt(0) === 0xfeff ? content.slice(1) : content;
 }
 
-export function writeOutputs(dataPaths: DataPaths, entries: NavEntry[]): WriteSummary {
+export function writeOutputs(dataPaths: DataPaths, entries: NavEntry[], config?: NavConfig): WriteSummary {
+  const normalizedConfig = normalizeConfig(config) ?? loadExistingConfig(dataPaths);
   ensureDir(dataPaths.canonicalDir);
   ensureDir(dataPaths.publishDir);
 
@@ -1022,6 +1049,7 @@ export function writeOutputs(dataPaths: DataPaths, entries: NavEntry[]): WriteSu
   const canonicalPayload: OutputPayload = {
     version: DATA_VERSION,
     updated_at: new Date().toISOString(),
+    ...(normalizedConfig ? { config: normalizedConfig } : {}),
     entries
   };
   fs.writeFileSync(dataPaths.canonicalFile, JSON.stringify(canonicalPayload, null, 2), 'utf-8');
@@ -1037,6 +1065,7 @@ export function writeOutputs(dataPaths: DataPaths, entries: NavEntry[]): WriteSu
       const payload: OutputPayload = {
         version: DATA_VERSION,
         updated_at: updatedAt,
+        ...(normalizedConfig ? { config: normalizedConfig } : {}),
         entries: groupedEntries.get(group) || []
       };
       fs.writeFileSync(shardPath, JSON.stringify(payload, null, 2), 'utf-8');
@@ -1048,7 +1077,8 @@ export function writeOutputs(dataPaths: DataPaths, entries: NavEntry[]): WriteSu
       version: DATA_VERSION,
       updated_at: updatedAt,
       total: entries.length,
-      groups
+      groups,
+      ...(normalizedConfig ? { config: normalizedConfig } : {})
     };
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
     files.push(manifestPath);
@@ -1117,8 +1147,56 @@ function normalizePersistedEntry(entry: NavEntry): NavEntry {
     confidence: typeof entry.confidence === 'number' ? entry.confidence : 1,
     featured: normalizeFeatured(entry.featured),
     featured_rank: normalizeFeaturedRank(entry.featured_rank, entry.featured),
-    preview: normalizePreview(entry.preview)
+    preview: normalizePreview(entry.preview),
+    hide: normalizeOptionalBoolean(entry.hide)
   };
+}
+
+function normalizeConfig(value: unknown): NavConfig | undefined {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const hiddenUnlockPassword = truncate(
+    cleanText(String((value as { hidden_unlock_password?: unknown }).hidden_unlock_password || '')),
+    120
+  );
+
+  if (!hiddenUnlockPassword) {
+    return undefined;
+  }
+
+  return {
+    hidden_unlock_password: hiddenUnlockPassword
+  };
+}
+
+function normalizeOptionalBoolean(value: unknown): boolean | undefined {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  const normalized = cleanText(String(value || '')).toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+
+  if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) {
+    return true;
+  }
+  if (['false', '0', 'no', 'n', 'off'].includes(normalized)) {
+    return false;
+  }
+
+  return undefined;
+}
+
+function pickOptionalBoolean(primary: unknown, fallback: unknown): boolean | undefined {
+  const primaryValue = normalizeOptionalBoolean(primary);
+  if (primaryValue !== undefined) {
+    return primaryValue;
+  }
+  return normalizeOptionalBoolean(fallback);
 }
 
 function normalizeFeatured(value: unknown): boolean {

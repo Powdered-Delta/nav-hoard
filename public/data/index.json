@@ -1,6 +1,9 @@
 {
   "version": "0.2",
-  "updated_at": "2026-03-19T10:31:09.675Z",
+  "updated_at": "2026-03-19T11:32:27.128Z",
+  "config": {
+    "hidden_unlock_password": "up up down down left right left right b a b a"
+  },
   "entries": [
     {
       "id": "e5b962911f0e",
