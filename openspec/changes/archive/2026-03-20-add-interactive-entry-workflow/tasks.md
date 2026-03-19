@@ -1,4 +1,4 @@
-## 1. Canonical Data Path
+﻿## 1. Canonical Data Path
 
 - [x] 1.1 Decide the single canonical source of truth between `data/index.json` and `public/data/index.json`
 - [x] 1.2 Refactor shared read/write helpers so batch update and single-entry write use the same path abstraction
@@ -41,4 +41,4 @@
 - [x] 7.2 Exercise one successful and one failed URL capture flow end to end
 - [x] 7.3 Verify duplicate URLs merge as expected in the confirmed write path
 - [x] 7.4 Verify the local editor can read, save, and persist valid entries
-- [ ] 7.5 Verify bookmark HTML import produces normalized entries and merges duplicates correctly
+- [x] 7.5 Verify bookmark HTML import produces normalized entries and merges duplicates correctly

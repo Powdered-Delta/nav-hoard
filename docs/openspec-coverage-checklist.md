@@ -19,13 +19,14 @@
   - `openspec/specs/browser-bookmark-import-workflow/spec.md`
   - `openspec/specs/deployment-workflow/spec.md`
 - 活跃变更：
-  - `openspec/changes/add-interactive-entry-workflow/`
+  - 当前无活跃 change
 - 已归档变更：
   - `openspec/changes/archive/2026-03-19-refresh-collection-experience/`
   - `openspec/changes/archive/2026-03-19-refresh-interactive-entry-workflow/`
   - `openspec/changes/archive/2026-03-19-raindrop-import-workflow/`
   - `openspec/changes/archive/2026-03-19-browser-bookmark-import-workflow/`
   - `openspec/changes/archive/2026-03-19-deployment-workflow/`
+  - `openspec/changes/archive/2026-03-20-add-interactive-entry-workflow/`
 - 当前仓库实现：
   - 主站：`src/`
   - 工具链：`tools/navhoard-cli/src/`
@@ -48,9 +49,6 @@
 | 推荐条目混排、隐藏条目解锁、当前布局模式 | 主站已实现 `featured` 混排、`hide` 解锁、`waterfall + list` | `collection-experience` | 已同步到主 spec |
 | 内容刷新 pipeline | `navhoard-cli` 支持 RSS / HTML 抓取与规范化 | `content-refresh-pipeline` | 已记录，基本对齐 |
 | URL 规范化、去重、校验、写出 | `tools/navhoard-cli/src/pipeline.ts` | `content-refresh-pipeline` | 已记录，基本对齐 |
-| Manifest / 分片发布 | 条目较多时输出 `manifest.json` 与 shard | `content-refresh-pipeline` | 已记录，基本对齐 |
-| Dry-run 能力 | CLI 支持 `--dry-run` | `content-refresh-pipeline` | 已记录，基本对齐 |
-| 预览图元数据归一化 | `preview` 字段由 pipeline 统一处理 | `content-refresh-pipeline` | 已记录，基本对齐 |
 | 单条链接 capture / parse / confirm | `entry-workflow` 已具备完整链路 | `interactive-entry-workflow` | 已同步到主 spec |
 | 本地编辑器启动与保存链路 | `pnpm run edit` + 保存接口 | `interactive-entry-workflow` | 已同步到主 spec |
 | 浏览器书签 HTML 导入（编辑器入口） | 编辑器支持导入书签 HTML 并进入保存链路 | `interactive-entry-workflow` | 已同步到主 spec |
@@ -63,7 +61,7 @@
 
 ## B. 已实现，但 OpenSpec 仍未完整覆盖
 
-这些能力现在仓库里已经存在，但主规格或活动 change 中还没有完整表达。
+这些能力现在仓库里已经存在，但主规格或归档 change 中还没有完整表达。
 
 | 能力 | 代码 / 配置证据 | 当前 OpenSpec 状态 | 建议 |
 |---|---|---|---|
@@ -87,26 +85,23 @@
 
 ## D. 已记录，但仍处于未完全收口状态
 
-这些内容已经进入 OpenSpec，但并非所有 change 都已经完全收尾。
+目前主 specs 已经覆盖当前主要能力面，但仍有少量遗留 follow-up 需要你决定是否继续追踪。
 
-| 变更 | 当前状态 | 说明 |
+| 项目 | 当前状态 | 说明 |
 |---|---|---|
-| `add-interactive-entry-workflow` | 仍为活跃 change | 主 spec 已同步，但旧 change 中仍保留未完成的 follow-up 任务 |
-| `refresh-collection-experience` | 已归档 | 主 spec 已同步，change 已移入 archive |
-| `refresh-interactive-entry-workflow` | 已归档 | 主 spec 已同步，change 已移入 archive |
-| `raindrop-import-workflow` | 已归档 | 主 spec 已同步，change 已移入 archive |
-| `browser-bookmark-import-workflow` | 已归档 | 主 spec 已同步，change 已移入 archive |
-| `deployment-workflow` | 已归档 | 主 spec 已同步，change 已移入 archive |
+| `add-interactive-entry-workflow` 的 Phase 6 follow-up | 已归档，但未全部实现 | 归档前已确认核心能力完成；仓库提交检查与通用 LLM 配置检查仍属于后续增强项 |
+| 样式策略正式化 | 尚未建独立 capability | 当前保留在文档与约定层 |
+| 配置 / schema 语义补强 | 尚未单独建模 | 主要集中在隐藏内容配置字段语义 |
 
 说明：
-- 这里的“未完全收口”是指 OpenSpec 工作流层面，不等同于“代码不可用”
-- 当前唯一仍保留在活跃区的旧 change 是 `add-interactive-entry-workflow`
+- 当前已无活跃 change
+- 后续如果要继续推进，可以直接新开更小、更聚焦的 change
 
 ---
 
 ## E. 当前最适合继续补录到 OpenSpec 的方向
 
-建议优先补齐仍然明显缺失的部分，而不是继续新开过多 capability。
+建议优先补齐仍然明显缺失的部分，而不是继续把新需求塞回旧归档 change。
 
 ### 1. 如需长期保留，再考虑 `theme-customization`
 
@@ -116,19 +111,20 @@
 - 默认样式与自定义覆盖的分层策略
 - 主站与编辑器的样式边界
 
-### 2. 如需进一步收口，优先处理剩余活跃 change
-
-当前最明显的收尾对象是：
-
-- `add-interactive-entry-workflow`（历史 follow-up 任务仍未处理）
-
-### 3. 如需继续精修数据语义，可补配置 / schema 说明
+### 2. 如需继续精修数据语义，可补配置 / schema 说明
 
 优先候选：
 
 - `config.hidden_unlock_password` 的语义与命名
 - 预览图字段的更细粒度策略
 - 主题覆盖入口的长期边界
+
+### 3. 如需承接旧 follow-up，可新开更小的 change
+
+例如：
+
+- 仓库提交检查与 git 前置条件引导
+- 通用 LLM 配置检查与 fallback 提示
 
 ---
 
@@ -149,12 +145,12 @@
 
 - 样式覆盖机制与主题策略
 - 隐藏内容配置字段的更完整语义
-- `add-interactive-entry-workflow` 中遗留的 follow-up 任务
+- 少量旧 follow-up 的后续增强项
 
 ### 最准确的判断
 
 当前仓库的“主站主链路、编辑器维护链路、导入链路、部署链路”已经基本进入主 OpenSpec，
-接下来最明显的缺口主要集中在“样式策略正式化”、“少量配置语义补强”，以及旧 change 的收尾策略。
+现在已经从“规格缺口很多”进入“剩余的是治理型补充项”的阶段。
 
 ---
 
@@ -162,9 +158,9 @@
 
 1. 视需要补 `theme-customization`
 2. 补配置 / schema 语义说明
-3. 决定是否继续收尾 `add-interactive-entry-workflow`，或将剩余任务另行建模
+3. 如果要继续做增强，再为旧 follow-up 新开更小的 change
 
-这样可以先把仍未正式化的长期维护约定收进去，再做 OpenSpec 流程收尾。
+这样可以保持 OpenSpec 继续清晰，而不是把新的小需求重新压回旧归档变更里。
 
 ---
 
