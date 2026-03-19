@@ -20,11 +20,12 @@
   - `openspec/specs/deployment-workflow/spec.md`
 - 活跃变更：
   - `openspec/changes/add-interactive-entry-workflow/`
-  - `openspec/changes/refresh-collection-experience/`
-  - `openspec/changes/refresh-interactive-entry-workflow/`
-  - `openspec/changes/raindrop-import-workflow/`
-  - `openspec/changes/browser-bookmark-import-workflow/`
-  - `openspec/changes/deployment-workflow/`
+- 已归档变更：
+  - `openspec/changes/archive/2026-03-19-refresh-collection-experience/`
+  - `openspec/changes/archive/2026-03-19-refresh-interactive-entry-workflow/`
+  - `openspec/changes/archive/2026-03-19-raindrop-import-workflow/`
+  - `openspec/changes/archive/2026-03-19-browser-bookmark-import-workflow/`
+  - `openspec/changes/archive/2026-03-19-deployment-workflow/`
 - 当前仓库实现：
   - 主站：`src/`
   - 工具链：`tools/navhoard-cli/src/`
@@ -36,7 +37,7 @@
 
 ## A. 已记录且基本对齐
 
-这些能力在仓库里已经实现，并且在主 OpenSpec 或活跃变更中能找到明确记录。
+这些能力在仓库里已经实现，并且在主 OpenSpec 或归档变更中能找到明确记录。
 
 | 能力 | 当前实现 | OpenSpec 记录 | 结论 |
 |---|---|---|---|
@@ -62,7 +63,7 @@
 
 ## B. 已实现，但 OpenSpec 仍未完整覆盖
 
-这些能力现在仓库里已经存在，但主规格或活跃变更中还没有完整表达。
+这些能力现在仓库里已经存在，但主规格或活动 change 中还没有完整表达。
 
 | 能力 | 代码 / 配置证据 | 当前 OpenSpec 状态 | 建议 |
 |---|---|---|---|
@@ -86,20 +87,20 @@
 
 ## D. 已记录，但仍处于未完全收口状态
 
-这些内容已经进入 OpenSpec，但从变更任务上看，还没有全部正式归档或标记完成。
+这些内容已经进入 OpenSpec，但并非所有 change 都已经完全收尾。
 
 | 变更 | 当前状态 | 说明 |
 |---|---|---|
-| `add-interactive-entry-workflow` | 仍有历史任务未全部勾完 | 主 spec 已同步，但旧 change 任务文档仍落后于现实 |
-| `refresh-collection-experience` | artifacts 已完整，主 spec 已同步 | 可后续视实现与文档核对结果归档 |
-| `refresh-interactive-entry-workflow` | artifacts 已完整，主 spec 已同步 | 可后续视实现与文档核对结果归档 |
-| `raindrop-import-workflow` | artifacts 已完整，主 spec 已同步 | 可后续视实现进度归档 |
-| `browser-bookmark-import-workflow` | artifacts 已完整，主 spec 已同步 | 可后续视实现进度归档 |
-| `deployment-workflow` | artifacts 已完整，主 spec 已同步 | 可后续视实现进度归档 |
+| `add-interactive-entry-workflow` | 仍为活跃 change | 主 spec 已同步，但旧 change 中仍保留未完成的 follow-up 任务 |
+| `refresh-collection-experience` | 已归档 | 主 spec 已同步，change 已移入 archive |
+| `refresh-interactive-entry-workflow` | 已归档 | 主 spec 已同步，change 已移入 archive |
+| `raindrop-import-workflow` | 已归档 | 主 spec 已同步，change 已移入 archive |
+| `browser-bookmark-import-workflow` | 已归档 | 主 spec 已同步，change 已移入 archive |
+| `deployment-workflow` | 已归档 | 主 spec 已同步，change 已移入 archive |
 
 说明：
 - 这里的“未完全收口”是指 OpenSpec 工作流层面，不等同于“代码不可用”
-- 有些能力已经能正常使用，但 change 任务仍未被显式标记完成或归档
+- 当前唯一仍保留在活跃区的旧 change 是 `add-interactive-entry-workflow`
 
 ---
 
@@ -115,15 +116,11 @@
 - 默认样式与自定义覆盖的分层策略
 - 主站与编辑器的样式边界
 
-### 2. 如需进一步收口，再考虑归档已完成 change
+### 2. 如需进一步收口，优先处理剩余活跃 change
 
-建议后续在实现和验证都稳定后，再逐步处理：
+当前最明显的收尾对象是：
 
-- `refresh-collection-experience`
-- `refresh-interactive-entry-workflow`
-- `raindrop-import-workflow`
-- `browser-bookmark-import-workflow`
-- `deployment-workflow`
+- `add-interactive-entry-workflow`（历史 follow-up 任务仍未处理）
 
 ### 3. 如需继续精修数据语义，可补配置 / schema 说明
 
@@ -152,11 +149,12 @@
 
 - 样式覆盖机制与主题策略
 - 隐藏内容配置字段的更完整语义
+- `add-interactive-entry-workflow` 中遗留的 follow-up 任务
 
 ### 最准确的判断
 
 当前仓库的“主站主链路、编辑器维护链路、导入链路、部署链路”已经基本进入主 OpenSpec，
-接下来最明显的缺口主要集中在“样式策略正式化”和“少量配置语义补强”。
+接下来最明显的缺口主要集中在“样式策略正式化”、“少量配置语义补强”，以及旧 change 的收尾策略。
 
 ---
 
@@ -164,7 +162,7 @@
 
 1. 视需要补 `theme-customization`
 2. 补配置 / schema 语义说明
-3. 逐步归档已经完成的 changes
+3. 决定是否继续收尾 `add-interactive-entry-workflow`，或将剩余任务另行建模
 
 这样可以先把仍未正式化的长期维护约定收进去，再做 OpenSpec 流程收尾。
 
