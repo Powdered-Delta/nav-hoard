@@ -2,6 +2,17 @@
 import { customElement, property, state } from 'lit/decorators.js';
 import MiniSearch from 'minisearch';
 
+import {
+  DEFAULT_LOCALE,
+  LOCALE_LABELS,
+  SUPPORTED_LOCALES,
+  detectPreferredLocale,
+  formatDate as formatLocalizedDate,
+  formatNumber,
+  translate,
+  writeStoredLocale,
+  type SupportedLocale
+} from './nav-hoard-i18n';
 type NoticeTone = 'info' | 'error';
 type LayoutMode = 'waterfall' | 'list';
 type PreviewMode = 'auto' | 'external' | 'local';
@@ -109,6 +120,7 @@ export class NavHoard extends LitElement {
   @state() private viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
   @state() private hiddenUnlocked = false;
   @state() private hiddenUnlockPassword = DEFAULT_HIDDEN_UNLOCK_PASSWORD;
+  @state() private locale: SupportedLocale = DEFAULT_LOCALE;
 
   private miniSearch: MiniSearch | null = null;
 
@@ -196,6 +208,7 @@ export class NavHoard extends LitElement {
   }
 
   private loadUiPreferences() {
+    this.locale = detectPreferredLocale();
     const layout = this.readStorageValue(LAYOUT_KEY);
     if (layout === 'waterfall' || layout === 'list') {
       this.layoutMode = layout;
@@ -206,6 +219,26 @@ export class NavHoard extends LitElement {
     this.controlsCollapsed = this.readStorageValue(CONTROLS_COLLAPSED_KEY) === 'true';
     this.favoriteReminderDismissed = this.readStorageValue(FAVORITES_REMINDER_DISMISSED_KEY) === 'true';
     this.hiddenUnlocked = this.readStorageValue(HIDDEN_UNLOCKED_KEY) === 'true';
+  }
+
+  private t(key: string, vars?: Record<string, string | number | boolean | null | undefined>): string {
+    return translate(this.locale, key, vars);
+  }
+
+  private formatCount(value: number): string {
+    return formatNumber(this.locale, value);
+  }
+
+  private formatVisibleCount(value: number): string {
+    return this.t('home.results.visible_count', { count: this.formatCount(value) });
+  }
+
+  private changeLocale(nextLocale: string) {
+    const normalized = SUPPORTED_LOCALES.includes(nextLocale as SupportedLocale)
+      ? (nextLocale as SupportedLocale)
+      : DEFAULT_LOCALE;
+    this.locale = normalized;
+    writeStoredLocale(normalized);
   }
 
   private loadFavorites() {
@@ -221,7 +254,7 @@ export class NavHoard extends LitElement {
         : [];
     } catch (error) {
       console.warn('Failed to parse favorites', error);
-      this.showNotice('本地收藏读取失败，已忽略损坏数据。', 'error');
+      this.showNotice(this.t('home.notice.favorite_parse_failed'), 'error');
     }
   }
 
@@ -231,8 +264,8 @@ export class NavHoard extends LitElement {
       return true;
     } catch (error) {
       const message = this.isQuotaExceededError(error)
-        ? '收藏保存失败：本地存储空间已满，请清理后重试。'
-        : '收藏保存失败，请稍后重试。';
+        ? this.t('home.notice.favorite_save_quota')
+        : this.t('home.notice.favorite_save_failed');
       this.showNotice(message, 'error');
       console.warn('Failed to persist favorites', error);
       return false;
@@ -377,7 +410,7 @@ export class NavHoard extends LitElement {
     if (!this.hiddenUnlocked) {
       this.hiddenUnlocked = true;
       this.writeStorageValue(HIDDEN_UNLOCKED_KEY, 'true');
-      this.showNotice('已解锁隐藏内容。');
+      this.showNotice(this.t('home.notice.hidden_unlocked'));
     }
     this.buildSearchIndex();
     this.applyFilters();
@@ -421,7 +454,7 @@ export class NavHoard extends LitElement {
       this.applyFilters();
     } catch (error: unknown) {
       console.error('Data load failed', error);
-      this.error = error instanceof Error ? error.message : '数据加载失败，请稍后重试。';
+      this.error = error instanceof Error ? error.message : this.t('home.notice.data_load_failed');
     } finally {
       this.loading = false;
     }
@@ -555,7 +588,7 @@ export class NavHoard extends LitElement {
     this.favoriteReminderDismissed = true;
     this.writeStorageValue(FAVORITES_REMINDER_DISMISSED_KEY, 'true');
     this.favoriteReminderOpen = false;
-    this.showNotice('后续收藏时将不再弹出本地保存提醒。');
+    this.showNotice(this.t('home.notice.favorite_reminder_dismissed'));
   }
 
   private toggleFavorite(id: string) {
@@ -574,8 +607,8 @@ export class NavHoard extends LitElement {
 
     this.showNotice(
       isFirstFavorite
-        ? '已加入第一次收藏。收藏数据只保存在当前浏览器本地，建议及时导出备份。'
-        : (this.favorites.includes(id) ? '已加入收藏。' : '已取消收藏。')
+        ? this.t('home.notice.favorite_added_first')
+        : (this.favorites.includes(id) ? this.t('home.notice.favorite_added') : this.t('home.notice.favorite_removed'))
     );
 
     if (!hadFavorite) {
@@ -587,9 +620,9 @@ export class NavHoard extends LitElement {
 
   private getLayoutLabel(mode: LayoutMode): string {
     if (mode === 'list') {
-      return '列表';
+      return this.t('home.layout.list');
     }
-    return '瀑布流';
+    return this.t('home.layout.waterfall');
   }
 
   private hasActiveFilters(): boolean {
@@ -597,8 +630,7 @@ export class NavHoard extends LitElement {
   }
 
   private formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
+    return formatLocalizedDate(this.locale, dateStr, { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   private getTagStats(): Array<{ tag: string; count: number }> {
@@ -612,7 +644,7 @@ export class NavHoard extends LitElement {
 
     return Array.from(counts.entries())
       .map(([tag, count]) => ({ tag, count }))
-      .sort((left, right) => right.count - left.count || left.tag.localeCompare(right.tag, 'zh-CN'));
+      .sort((left, right) => right.count - left.count || left.tag.localeCompare(right.tag, this.locale));
   }
 
   private getVisibleTags(): Array<{ tag: string; count: number }> {
@@ -716,7 +748,7 @@ export class NavHoard extends LitElement {
     return {
       mode: preview?.mode || 'external',
       src,
-      alt: String(preview?.alt || '').trim() || `${entry.title} 的预览图`
+      alt: String(preview?.alt || '').trim() || this.t('home.card.preview_alt', { title: entry.title })
     };
   }
 
@@ -767,12 +799,12 @@ export class NavHoard extends LitElement {
     const parts: string[] = [];
 
     if (this.searchQuery.trim()) {
-      parts.push(`搜索：${this.searchQuery}`);
+      parts.push(this.t('home.controls.summary.search', { query: this.searchQuery }));
     }
 
     parts.push(this.view === 'favorites'
-      ? `收藏 ${this.getAccessibleFavoritesCount()} 条`
-      : `全部 ${this.getAccessibleEntries().length} 条`);
+      ? this.t('home.controls.summary.favorites', { count: this.formatCount(this.getAccessibleFavoritesCount()) })
+      : this.t('home.controls.summary.all', { count: this.formatCount(this.getAccessibleEntries().length) }));
     parts.push(this.getLayoutLabel(this.layoutMode));
 
     return parts.join(' · ');
@@ -839,7 +871,7 @@ export class NavHoard extends LitElement {
       }
 
       if (importedCount === 0) {
-        this.showNotice('导入完成，但没有匹配到当前站点中的条目。', 'error');
+        this.showNotice(this.t('home.notice.import_no_match'), 'error');
         return;
       }
 
@@ -849,16 +881,16 @@ export class NavHoard extends LitElement {
       }
 
       this.applyFilters();
-      this.showNotice(`已导入 ${importedCount} 条收藏。收藏数据仍只保存在当前浏览器本地。`);
+      this.showNotice(this.t('home.notice.import_success', { count: this.formatCount(importedCount) }));
     } catch (error) {
       console.warn('Failed to import favorites', error);
-      this.showNotice('导入失败：文件格式不正确。', 'error');
+      this.showNotice(this.t('home.notice.import_failed'), 'error');
     }
   }
 
   private exportFavorites() {
     if (this.favorites.length === 0) {
-      this.showNotice('当前还没有收藏内容可导出。', 'error');
+      this.showNotice(this.t('home.notice.export_empty'), 'error');
       return;
     }
 
@@ -883,7 +915,7 @@ export class NavHoard extends LitElement {
     link.remove();
     URL.revokeObjectURL(url);
 
-    this.showNotice('已导出收藏备份文件。你可以稍后在任意浏览器中导入它。');
+    this.showNotice(this.t('home.notice.export_success'));
   }
 
   private async copyEntry(entry: NavEntry) {
@@ -891,20 +923,20 @@ export class NavHoard extends LitElement {
 
     try {
       await this.copyText(payload);
-      this.showNotice('已复制条目 JSON，可直接粘贴到你的 NavHoard 编辑器或录入流程。');
+      this.showNotice(this.t('home.notice.copy_entry_success'));
     } catch (error) {
       console.warn('Failed to copy entry', error);
-      this.showNotice('复制失败：当前浏览器不允许访问剪贴板。', 'error');
+      this.showNotice(this.t('home.notice.copy_failed'), 'error');
     }
   }
 
   private async copyLink(entry: NavEntry) {
     try {
       await this.copyText(entry.url);
-      this.showNotice('已复制链接，可直接分享给别人或保存到别处。');
+      this.showNotice(this.t('home.notice.copy_link_success'));
     } catch (error) {
       console.warn('Failed to copy link', error);
-      this.showNotice('复制失败：当前浏览器不允许访问剪贴板。', 'error');
+      this.showNotice(this.t('home.notice.copy_failed'), 'error');
     }
   }
 
@@ -959,15 +991,15 @@ export class NavHoard extends LitElement {
     return html`
       <div class="empty-state">
         ${isFavoritesEmpty ? html`
-          <p>你还没有收藏内容。</p>
-          <p class="empty-hint">收藏只保存在当前浏览器本地，建议定期导出一份备份文件。</p>
-          <button @click=${() => this.onViewChange('all')}>先去看看全部内容</button>
+          <p>${this.t('home.empty.favorites.title')}</p>
+          <p class="empty-hint">${this.t('home.empty.favorites.hint')}</p>
+          <button @click=${() => this.onViewChange('all')}>${this.t('home.empty.favorites.cta')}</button>
         ` : hasFilters ? html`
-          <p>没有找到符合当前条件的内容。</p>
-          <p class="empty-hint">可以清空筛选，或者试试更宽松的关键词。</p>
-          <button @click=${() => this.clearFilters()}>清空筛选</button>
+          <p>${this.t('home.empty.filtered.title')}</p>
+          <p class="empty-hint">${this.t('home.empty.filtered.hint')}</p>
+          <button @click=${() => this.clearFilters()}>${this.t('home.empty.filtered.cta')}</button>
         ` : html`
-          <p>暂时还没有可展示的内容。</p>
+          <p>${this.t('home.empty.default.title')}</p>
         `}
       </div>
     `;
@@ -979,10 +1011,10 @@ export class NavHoard extends LitElement {
     }
 
     return html`
-      <section class="about-panel ${variant === 'popover' ? 'about-panel-popover' : ''}" aria-label="关于 NavHoard">
-        <p>这里收录的是公开链接卡片，方便你通过搜索、标签和收藏重新发现内容。</p>
-        <p>收藏状态只保存在当前浏览器本地，不会自动同步；如果准备长期使用，建议定期导出收藏。</p>
-        <p>如果你想把某条内容带到自己的 NavHoard，可以点击卡片复制图标，把条目 JSON 粘贴到编辑器或录入流程里。</p>
+      <section class="about-panel ${variant === 'popover' ? 'about-panel-popover' : ''}" aria-label=${this.t('home.about.aria')}>
+        <p>${this.t('home.about.p1')}</p>
+        <p>${this.t('home.about.p2')}</p>
+        <p>${this.t('home.about.p3')}</p>
       </section>
     `;
   }
@@ -997,21 +1029,17 @@ export class NavHoard extends LitElement {
         class="favorite-reminder-toast"
         role="status"
         aria-live="polite"
-        aria-label="收藏提醒"
+        aria-label=${this.t('home.favorite_reminder.aria')}
         @animationend=${() => this.closeFavoriteReminder()}
       >
         <div class="favorite-reminder-copy">
-          <p class="favorite-reminder-kicker">收藏提醒</p>
-          <p class="favorite-reminder-text">
-            收藏仅保存在当前浏览器本地，可用“导出收藏 / 导入收藏”备份或迁移。
-          </p>
+          <p class="favorite-reminder-kicker">${this.t('home.favorite_reminder.kicker')}</p>
+          <p class="favorite-reminder-text">${this.t('home.favorite_reminder.text')}</p>
         </div>
         <div class="favorite-reminder-actions">
-          <button class="ghost-btn" type="button" @click=${() => this.closeFavoriteReminder()}>
-            关闭
-          </button>
+          <button class="ghost-btn" type="button" @click=${() => this.closeFavoriteReminder()}>${this.t('common.close')}</button>
           <button class="primary-btn" type="button" @click=${() => this.dismissFavoriteReminderForever()}>
-            不再提醒
+            ${this.t('home.favorite_reminder.dismiss_forever')}
           </button>
         </div>
       </section>
@@ -1023,23 +1051,26 @@ export class NavHoard extends LitElement {
     const tags = Array.from(this.selectedTags);
 
     if (!hasSearch && tags.length === 0) {
+      const hiddenSuffix = this.hiddenUnlocked ? this.t('home.filters.hidden_suffix') : '';
       return html`
         <div class="active-filters empty">
-          <span>当前未使用筛选，正在展示 ${this.view === 'favorites' ? '收藏视图' : '全部内容'}${this.hiddenUnlocked ? '（含隐藏条目）' : ''}。</span>
+          <span>${this.view === 'favorites'
+            ? this.t('home.filters.none_favorites', { hiddenSuffix })
+            : this.t('home.filters.none_all', { hiddenSuffix })}</span>
         </div>
       `;
     }
 
     return html`
       <div class="active-filters">
-        <span class="active-filters-label">当前筛选</span>
-        ${hasSearch ? html`<span class="active-filter-pill">搜索：${this.searchQuery}</span>` : ''}
+        <span class="active-filters-label">${this.t('home.filters.current')}</span>
+        ${hasSearch ? html`<span class="active-filter-pill">${this.t('home.filters.search_pill', { query: this.searchQuery })}</span>` : ''}
         ${tags.map(tag => html`
-          <button class="active-filter-pill removable" @click=${() => this.clearTag(tag)} title="移除该标签">
+          <button class="active-filter-pill removable" @click=${() => this.clearTag(tag)} title=${this.t('home.filters.remove_tag')}>
             #${tag}
           </button>
         `)}
-        <button class="clear-link" @click=${() => this.clearFilters()}>清空筛选</button>
+        <button class="clear-link" @click=${() => this.clearFilters()}>${this.t('home.filters.clear')}</button>
       </div>
     `;
   }
@@ -1048,20 +1079,26 @@ export class NavHoard extends LitElement {
     const featuredCount = this.getFeaturedEntries().length;
     const accessibleEntriesCount = this.getAccessibleEntries().length;
     const accessibleFavoritesCount = this.getAccessibleFavoritesCount();
+    const baseLabel = this.view === 'favorites'
+      ? this.t('home.results.base_favorites', { count: this.formatCount(accessibleFavoritesCount) })
+      : this.t('home.results.base_all', { count: this.formatCount(accessibleEntriesCount) });
+    const featuredSuffix = featuredCount > 0
+      ? this.t('home.results.featured_suffix', { count: this.formatCount(featuredCount) })
+      : '';
     return html`
       <div class="result-meta">
         <div>
-          <p class="result-title">${this.view === 'favorites' ? '我的收藏' : '结果列表'}</p>
+          <p class="result-title">${this.view === 'favorites' ? this.t('home.results.title_favorites') : this.t('home.results.title_all')}</p>
           <p class="result-subtitle">
-            当前共显示 ${this.filteredEntries.length} 条结果
-            ${this.view === 'favorites' ? ` / 已收藏 ${accessibleFavoritesCount} 条` : ` / 总计 ${accessibleEntriesCount} 条`}
-            ${featuredCount > 0 ? ` / 含推荐 ${featuredCount} 条` : ''}
+            ${this.t('home.results.subtitle', {
+              visible: this.formatCount(this.filteredEntries.length),
+              baseLabel,
+              featuredSuffix
+            })}
           </p>
         </div>
         ${this.hasActiveFilters() ? html`
-          <button class="ghost-btn" @click=${() => this.clearFilters()}>
-            清空筛选
-          </button>
+          <button class="ghost-btn" @click=${() => this.clearFilters()}>${this.t('home.filters.clear')}</button>
         ` : ''}
       </div>
     `;
@@ -1069,12 +1106,12 @@ export class NavHoard extends LitElement {
 
   private renderLayoutSwitch() {
     const options: Array<{ value: LayoutMode; label: string }> = [
-      { value: 'waterfall', label: '瀑布' },
-      { value: 'list', label: '列表' }
+      { value: 'waterfall', label: this.t('home.layout.waterfall') },
+      { value: 'list', label: this.t('home.layout.list') }
     ];
 
     return html`
-      <div class="layout-switch" role="tablist" aria-label="切换布局">
+      <div class="layout-switch" role="tablist" aria-label=${this.t('home.layout.aria')}>
         ${options.map(option => html`
           <button
             type="button"
@@ -1088,21 +1125,32 @@ export class NavHoard extends LitElement {
     `;
   }
 
+  private renderLocaleSwitch() {
+    return html`
+      <label class="locale-switch">
+        <span class="toolbar-label">${this.t('locale.label')}</span>
+        <select .value=${this.locale} @change=${(event: Event) => this.changeLocale((event.target as HTMLSelectElement).value)}>
+          ${SUPPORTED_LOCALES.map((locale) => html`<option value=${locale}>${LOCALE_LABELS[locale]}</option>`)}
+        </select>
+      </label>
+    `;
+  }
+
   private renderSearchDock(tagStats: Array<{ tag: string; count: number }>, visibleTags: Array<{ tag: string; count: number }>, hasMoreTags: boolean) {
     return html`
       <section class="search-dock-shell">
         <div class="search-dock">
           <div class="search-dock-main">
             <div class="search-dock-copy">
-              <p class="search-dock-kicker">NavHoard</p>
-              <h2>先搜索，再决定要不要筛选</h2>
+              <p class="search-dock-kicker">${this.t('common.brand')}</p>
+              <h2>${this.t('home.search.heading')}</h2>
               <p class="search-dock-summary" title=${this.getControlsSummaryText()}>${this.getControlsSummaryText()}</p>
             </div>
 
             <div class="search-bar search-bar-dock">
               <input
                 type="search"
-                placeholder="搜索标题、摘要或标签，例如 React、浏览器、编译器..."
+                placeholder=${this.t('home.search.placeholder')}
                 .value=${this.searchQuery}
                 @input=${this.onSearch}
               />
@@ -1110,51 +1158,50 @@ export class NavHoard extends LitElement {
 
             <div class="search-dock-actions">
               ${this.hasActiveFilters() ? html`
-                <button class="ghost-btn" type="button" @click=${() => this.clearFilters()}>
-                  清空筛选
-                </button>
+                <button class="ghost-btn" type="button" @click=${() => this.clearFilters()}>${this.t('home.filters.clear')}</button>
               ` : ''}
               <button class="ghost-btn" type="button" @click=${() => this.toggleControlsCollapsed()}>
-                ${this.controlsCollapsed ? '展开筛选面板' : '收起筛选面板'}
+                ${this.controlsCollapsed ? this.t('home.search.expand_filters') : this.t('home.search.collapse_filters')}
               </button>
+              ${this.renderLocaleSwitch()}
             </div>
           </div>
 
           <div class="search-dock-toolbar">
             <div class="toolbar-group">
-              <span class="toolbar-label">视图</span>
+              <span class="toolbar-label">${this.t('home.toolbar.view')}</span>
               <div class="view-switch">
                 <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
-                  全部 (${this.getAccessibleEntries().length})
+                  ${this.t('home.toolbar.all', { count: this.formatCount(this.getAccessibleEntries().length) })}
                 </button>
                 <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
-                  收藏 (${this.getAccessibleFavoritesCount()})
+                  ${this.t('home.toolbar.favorites_count', { count: this.formatCount(this.getAccessibleFavoritesCount()) })}
                 </button>
               </div>
             </div>
 
             <div class="toolbar-group">
-              <span class="toolbar-label">布局</span>
+              <span class="toolbar-label">${this.t('home.toolbar.layout')}</span>
               ${this.renderLayoutSwitch()}
             </div>
 
             <div class="toolbar-group toolbar-group-sort">
-              <span class="toolbar-label">排序</span>
+              <span class="toolbar-label">${this.t('home.toolbar.sort')}</span>
               <div class="sort-control">
                 <select .value=${this.sortBy} @change=${this.onSortChange}>
-                  <option value="relevance">相关度优先</option>
-                  <option value="newest">最新优先</option>
+                  <option value="relevance">${this.t('home.toolbar.sort_relevance')}</option>
+                  <option value="newest">${this.t('home.toolbar.sort_newest')}</option>
                 </select>
               </div>
             </div>
 
             <div class="toolbar-group toolbar-group-favorites">
-              <span class="toolbar-label">收藏</span>
+              <span class="toolbar-label">${this.t('home.toolbar.favorites')}</span>
               <button class="ghost-btn" @click=${() => this.exportFavorites()} ?disabled=${this.favorites.length === 0}>
-                导出收藏
+                ${this.t('home.toolbar.export_favorites')}
               </button>
               <button class="ghost-btn" @click=${() => this.openFavoritesImport()}>
-                导入收藏
+                ${this.t('home.toolbar.import_favorites')}
               </button>
               <input
                 id="favorites-import-input"
@@ -1170,14 +1217,16 @@ export class NavHoard extends LitElement {
             <div class="search-dock-panel">
               <div class="search-dock-panel-head">
                 <div>
-                  <p class="tag-section-title">热门标签</p>
-                  <p class="tag-section-subtitle">先搜索，再用标签快速缩小范围。</p>
+                  <p class="tag-section-title">${this.t('home.tags.title')}</p>
+                  <p class="tag-section-subtitle">${this.t('home.tags.subtitle')}</p>
                 </div>
                 <div class="search-dock-panel-actions">
-                  <span class="toolbar-tip">收藏只保存在本地浏览器，可随时导入 / 导出。</span>
+                  <span class="toolbar-tip">${this.t('home.toolbar.tip_local_only')}</span>
                   ${tagStats.length > 12 ? html`
                     <button class="ghost-btn" @click=${() => this.toggleTagsExpanded()}>
-                      ${this.tagsExpanded ? '收起标签' : `展开全部 ${tagStats.length} 个标签`}
+                      ${this.tagsExpanded
+                        ? this.t('home.tags.collapse')
+                        : this.t('home.tags.expand_all', { count: this.formatCount(tagStats.length) })}
                     </button>
                   ` : ''}
                 </div>
@@ -1189,15 +1238,15 @@ export class NavHoard extends LitElement {
                     <button
                       class="tag-chip ${this.selectedTags.has(tag) ? 'active' : ''}"
                       @click=${() => this.onTagToggle(tag)}
-                      title="按此标签筛选"
+                      title=${this.t('home.tags.filter_title')}
                     >
                       <span>${tag}</span>
-                      <small>${count}</small>
+                      <small>${this.formatCount(count)}</small>
                     </button>
                   `)}
                 </div>
                 ${hasMoreTags && !this.tagsExpanded ? html`
-                  <p class="tag-collapse-hint">还有 ${tagStats.length - visibleTags.length} 个标签未展开。</p>
+                  <p class="tag-collapse-hint">${this.t('home.tags.more_hint', { count: this.formatCount(tagStats.length - visibleTags.length) })}</p>
                 ` : ''}
               </div>
             </div>
@@ -1217,21 +1266,26 @@ export class NavHoard extends LitElement {
     }
 
     return html`
-      <section class="compact-search-shell" aria-label="快速搜索">
+      <section class="compact-search-shell" aria-label=${this.t('home.search.quick')}>
         <div class="compact-search-bar">
           <div class="compact-search-meta">
-            <span class="compact-search-title">${this.view === 'favorites' ? '收藏' : '全部'} · ${this.filteredEntries.length} 条</span>
+            <span class="compact-search-title">
+              ${this.t('home.search.compact_meta', {
+                title: this.view === 'favorites' ? this.t('home.results.title_favorites') : this.t('home.results.title_all'),
+                count: this.formatVisibleCount(this.filteredEntries.length)
+              })}
+            </span>
             ${this.hasActiveFilters() ? html`
-              <span class="compact-search-hint">已启用筛选</span>
+              <span class="compact-search-hint">${this.t('home.search.filters_enabled')}</span>
             ` : html`
-              <span class="compact-search-hint">快速搜索</span>
+              <span class="compact-search-hint">${this.t('home.search.quick')}</span>
             `}
           </div>
 
           <div class="search-bar compact-search-input">
             <input
               type="search"
-              placeholder="快速搜索标题、摘要或标签..."
+              placeholder=${this.t('home.search.quick_placeholder')}
               .value=${this.searchQuery}
               @input=${this.onSearch}
             />
@@ -1239,12 +1293,10 @@ export class NavHoard extends LitElement {
 
           <div class="compact-search-actions">
             ${this.hasActiveFilters() ? html`
-              <button class="ghost-btn" type="button" @click=${() => this.clearFilters()}>
-                清空
-              </button>
+              <button class="ghost-btn" type="button" @click=${() => this.clearFilters()}>${this.t('common.clear')}</button>
             ` : ''}
             <button class="ghost-btn" type="button" @click=${() => this.toggleCompactFiltersExpanded()}>
-              ${this.compactFiltersExpanded ? '收起筛选' : '展开筛选'}
+              ${this.compactFiltersExpanded ? this.t('home.search.collapse_filters_short') : this.t('home.search.expand_filters_short')}
             </button>
           </div>
         </div>
@@ -1253,28 +1305,28 @@ export class NavHoard extends LitElement {
           <div class="compact-search-panel">
             <div class="compact-search-panel-toolbar">
               <div class="toolbar-group">
-                <span class="toolbar-label">视图</span>
+                <span class="toolbar-label">${this.t('home.toolbar.view')}</span>
                 <div class="view-switch">
                   <button type="button" class="${this.view === 'all' ? 'active' : ''}" @click=${() => this.onViewChange('all')}>
-                    全部 (${this.getAccessibleEntries().length})
+                    ${this.t('home.toolbar.all', { count: this.formatCount(this.getAccessibleEntries().length) })}
                   </button>
                   <button type="button" class="${this.view === 'favorites' ? 'active' : ''}" @click=${() => this.onViewChange('favorites')}>
-                    收藏 (${this.getAccessibleFavoritesCount()})
+                    ${this.t('home.toolbar.favorites_count', { count: this.formatCount(this.getAccessibleFavoritesCount()) })}
                   </button>
                 </div>
               </div>
 
               <div class="toolbar-group">
-                <span class="toolbar-label">布局</span>
+                <span class="toolbar-label">${this.t('home.toolbar.layout')}</span>
                 ${this.renderLayoutSwitch()}
               </div>
 
               <div class="toolbar-group toolbar-group-sort">
-                <span class="toolbar-label">排序</span>
+                <span class="toolbar-label">${this.t('home.toolbar.sort')}</span>
                 <div class="sort-control">
                   <select .value=${this.sortBy} @change=${this.onSortChange}>
-                    <option value="relevance">相关度优先</option>
-                    <option value="newest">最新优先</option>
+                    <option value="relevance">${this.t('home.toolbar.sort_relevance')}</option>
+                    <option value="newest">${this.t('home.toolbar.sort_newest')}</option>
                   </select>
                 </div>
               </div>
@@ -1282,12 +1334,14 @@ export class NavHoard extends LitElement {
 
             <div class="compact-search-panel-head">
               <div>
-                <p class="tag-section-title">热门标签</p>
-                <p class="tag-section-subtitle">滚动时也能继续细化筛选条件。</p>
+                <p class="tag-section-title">${this.t('home.tags.title')}</p>
+                <p class="tag-section-subtitle">${this.t('home.tags.subtitle_compact')}</p>
               </div>
               ${tagStats.length > 12 ? html`
                 <button class="ghost-btn" @click=${() => this.toggleTagsExpanded()}>
-                  ${this.tagsExpanded ? '收起标签' : `展开全部 ${tagStats.length} 个标签`}
+                  ${this.tagsExpanded
+                    ? this.t('home.tags.collapse')
+                    : this.t('home.tags.expand_all', { count: this.formatCount(tagStats.length) })}
                 </button>
               ` : ''}
             </div>
@@ -1298,15 +1352,15 @@ export class NavHoard extends LitElement {
                   <button
                     class="tag-chip ${this.selectedTags.has(tag) ? 'active' : ''}"
                     @click=${() => this.onTagToggle(tag)}
-                    title="按此标签筛选"
+                    title=${this.t('home.tags.filter_title')}
                   >
                     <span>${tag}</span>
-                    <small>${count}</small>
+                    <small>${this.formatCount(count)}</small>
                   </button>
                 `)}
               </div>
               ${hasMoreTags && !this.tagsExpanded ? html`
-                <p class="tag-collapse-hint">还有 ${tagStats.length - visibleTags.length} 个标签未展开。</p>
+                <p class="tag-collapse-hint">${this.t('home.tags.more_hint', { count: this.formatCount(tagStats.length - visibleTags.length) })}</p>
               ` : ''}
             </div>
           </div>
@@ -1319,8 +1373,8 @@ export class NavHoard extends LitElement {
     const favorite = this.isFavorite(entry.id);
     const preview = this.getResolvedPreview(entry);
     const showMediaRail = Boolean(preview) || this.layoutMode === 'list';
-    const copyTooltip = '复制条目 JSON，可粘贴到你的 NavHoard 编辑器或录入流程';
-    const linkTooltip = '复制当前卡片链接，适合直接分享';
+    const copyTooltip = this.t('home.card.copy_entry');
+    const linkTooltip = this.t('home.card.copy_link');
 
     return html`
       <article class="card ${featured ? 'featured-card' : ''} ${showMediaRail ? 'has-preview' : 'no-preview'}">
@@ -1328,8 +1382,8 @@ export class NavHoard extends LitElement {
           <button
             class="fav-btn ${favorite ? 'is-active' : ''}"
             type="button"
-            title="${favorite ? '取消收藏' : '加入收藏'}"
-            aria-label="${favorite ? '取消收藏' : '加入收藏'}"
+            title="${favorite ? this.t('home.card.favorite_remove') : this.t('home.card.favorite_add')}"
+            aria-label="${favorite ? this.t('home.card.favorite_remove') : this.t('home.card.favorite_add')}"
             aria-pressed="${favorite}"
             @click=${() => this.toggleFavorite(entry.id)}
           >
@@ -1350,7 +1404,7 @@ export class NavHoard extends LitElement {
 
         <div class="card-body">
           <header>
-            ${featured ? html`<span class="featured-badge">作者推荐</span>` : ''}
+            ${featured ? html`<span class="featured-badge">${this.t('home.card.featured')}</span>` : ''}
             <h3><a href="${entry.url}" target="_blank" rel="noopener noreferrer">${entry.title}</a></h3>
             <div class="meta">
               <span class="source">${entry.source}</span>
@@ -1361,7 +1415,7 @@ export class NavHoard extends LitElement {
                 aria-label="${linkTooltip}"
                 data-tooltip="${linkTooltip}"
               >
-                复制链接
+                ${this.t('home.card.copy_link_button')}
               </button>
             </div>
           </header>
@@ -1374,7 +1428,7 @@ export class NavHoard extends LitElement {
                 <button
                   class="tag ${this.selectedTags.has(tag) ? 'active' : ''}"
                   @click=${() => this.onTagToggle(tag)}
-                  title="按此标签筛选"
+                  title=${this.t('home.tags.filter_title')}
                 >
                   ${tag}
                 </button>
@@ -1424,14 +1478,14 @@ export class NavHoard extends LitElement {
 
   render() {
     if (this.loading) {
-      return html`<div class="loading">加载中...</div>`;
+      return html`<div class="loading">${this.t('common.loading')}</div>`;
     }
 
     if (this.error) {
       return html`
         <div class="error">
           <p>${this.error}</p>
-          <button @click=${() => this.loadData()}>重试</button>
+          <button @click=${() => this.loadData()}>${this.t('common.retry')}</button>
         </div>
       `;
     }
@@ -1447,20 +1501,20 @@ export class NavHoard extends LitElement {
           <div class="nh-topbar-main">
             <p class="eyebrow">NavHoard</p>
             <div class="topbar-title-row">
-              <h1>公开链接收藏站</h1>
+              <h1>${this.t('home.topbar.title')}</h1>
               <button type="button" class="about-toggle about-toggle-topbar" @click=${() => this.toggleAbout()} aria-expanded=${this.aboutOpen ? 'true' : 'false'}>
-                ${this.aboutOpen ? '收起说明' : '了解站点'}
+                ${this.aboutOpen ? this.t('home.topbar.about_open') : this.t('home.topbar.about_closed')}
               </button>
             </div>
             ${this.renderAboutPanel('popover')}
           </div>
-          <p class="topbar-summary">优先搜索，必要时再筛选；主列表默认直接展示推荐与最新内容。</p>
+          <p class="topbar-summary">${this.t('home.search.summary')}</p>
         </header>
 
         ${this.notice ? html`
           <div class="notice" data-tone=${this.noticeTone} role="status">
             <span>${this.notice}</span>
-            <button type="button" @click=${() => this.clearNotice()}>知道了</button>
+            <button type="button" @click=${() => this.clearNotice()}>${this.t('home.notice.dismiss')}</button>
           </div>
         ` : ''}
 
@@ -1477,12 +1531,12 @@ export class NavHoard extends LitElement {
         </main>
 
         <footer class="nh-footer">
-          <p>公开链接卡片 · 手动维护 · 收藏只保存在当前浏览器</p>
+          <p>${this.t('home.footer.summary')}</p>
         </footer>
 
         ${this.showBackToTop ? html`
           <button class="back-to-top" type="button" @click=${() => this.scrollToTop()}>
-            回到顶部
+            ${this.t('home.back_to_top')}
           </button>
         ` : ''}
       </div>

@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { inspect } from 'node:util';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import ts from 'typescript';
 import {
   DEFAULT_CANONICAL_DATA_FILE,
   PROJECT_ROOT,
@@ -34,6 +35,8 @@ const host = cliOptions.host || process.env.NAVHOARD_EDIT_HOST || '127.0.0.1';
 const outputPath = DEFAULT_CANONICAL_DATA_FILE;
 const serverInstanceId = `${process.pid}-${Date.now()}`;
 const liveReloadClients = new Set<ServerResponse>();
+const editorSourceDir = path.join(PROJECT_ROOT, 'tools', 'navhoard-cli', 'src');
+const nodeModulesRoot = path.join(PROJECT_ROOT, 'node_modules');
 
 setupLiveReloadWatchers();
 
@@ -75,6 +78,21 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
 
   if (method === 'GET' && url.pathname === '/nav-hoard.custom.css') {
     sendCustomCss(response, outputPath);
+    return;
+  }
+
+  if (method === 'GET' && url.pathname === '/editor-app.js') {
+    sendEditorModule(response, 'editor-app.ts');
+    return;
+  }
+
+  if (method === 'GET' && url.pathname === '/__shared/nav-hoard-i18n.js') {
+    sendSharedModule(response, path.join(PROJECT_ROOT, 'src', 'nav-hoard-i18n.ts'));
+    return;
+  }
+
+  if (method === 'GET' && url.pathname.startsWith('/__modules/')) {
+    sendNodeModuleFile(response, url.pathname);
     return;
   }
 
@@ -216,6 +234,65 @@ function sendBaseCss(response: ServerResponse): void {
   response.end(fs.readFileSync(filePath, 'utf8'));
 }
 
+function sendEditorModule(response: ServerResponse, filename: string): void {
+  const filePath = path.join(editorSourceDir, filename);
+
+  sendSharedModule(response, filePath);
+}
+
+function sendSharedModule(response: ServerResponse, filePath: string): void {
+
+  if (!fs.existsSync(filePath)) {
+    sendJson(response, 404, {
+      error: 'not_found',
+      path: filePath
+    });
+    return;
+  }
+
+  const source = fs.readFileSync(filePath, 'utf8');
+  const result = ts.transpileModule(source, {
+    compilerOptions: {
+      target: ts.ScriptTarget.ES2020,
+      module: ts.ModuleKind.ES2020
+    },
+    fileName: filePath
+  });
+
+  response.writeHead(200, {
+    'Content-Type': 'text/javascript; charset=utf-8',
+    'Cache-Control': 'no-store'
+  });
+  response.end(result.outputText);
+}
+
+function sendNodeModuleFile(response: ServerResponse, requestPath: string): void {
+  const relativePath = decodeURIComponent(requestPath.replace(/^\/__modules\//, ''));
+  const filePath = path.resolve(nodeModulesRoot, relativePath);
+
+  if (!filePath.startsWith(nodeModulesRoot + path.sep) && filePath !== nodeModulesRoot) {
+    sendJson(response, 403, {
+      error: 'forbidden',
+      path: requestPath
+    });
+    return;
+  }
+
+  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+    sendJson(response, 404, {
+      error: 'not_found',
+      path: requestPath
+    });
+    return;
+  }
+
+  response.writeHead(200, {
+    'Content-Type': contentTypeFor(filePath),
+    'Cache-Control': 'no-store'
+  });
+  response.end(fs.readFileSync(filePath));
+}
+
 function openLiveReloadStream(request: IncomingMessage, response: ServerResponse): void {
   response.writeHead(200, {
     'Content-Type': 'text/event-stream; charset=utf-8',
@@ -244,8 +321,11 @@ function setupLiveReloadWatchers(): void {
   const dataPaths = resolveDataPaths(outputPath);
   const watchedFiles = [
     path.join(PROJECT_ROOT, 'src', 'styles-base.css'),
+    path.join(PROJECT_ROOT, 'src', 'nav-hoard-i18n.ts'),
     path.join(path.dirname(dataPaths.publishDir), 'nav-hoard.custom.css'),
-    dataPaths.canonicalFile
+    dataPaths.canonicalFile,
+    path.join(editorSourceDir, 'editor-app.ts'),
+    path.join(editorSourceDir, 'editor-html.ts')
   ];
 
   watchedFiles.forEach((filePath) => {
@@ -382,4 +462,13 @@ function extensionFromMime(mimeType: string): string {
 function extensionFromFilename(filename: string): string {
   const match = filename.toLowerCase().match(/\.([a-z0-9]+)$/);
   return match ? match[1] : '';
+}
+
+function contentTypeFor(filePath: string): string {
+  const extension = path.extname(filePath).toLowerCase();
+  if (extension === '.js' || extension === '.mjs') return 'text/javascript; charset=utf-8';
+  if (extension === '.json' || extension === '.map') return 'application/json; charset=utf-8';
+  if (extension === '.css') return 'text/css; charset=utf-8';
+  if (extension === '.svg') return 'image/svg+xml';
+  return 'application/octet-stream';
 }
