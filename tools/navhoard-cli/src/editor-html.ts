@@ -1,4 +1,4 @@
-export const EDITOR_HTML = String.raw`<!doctype html>
+﻿export const EDITOR_HTML = String.raw`<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -98,6 +98,7 @@ export const EDITOR_HTML = String.raw`<!doctype html>
       .toolbar,
       .list-toolbar,
       .row,
+      .toolbar-actions,
       .list-actions,
       .status-row,
       .section-header {
@@ -111,15 +112,62 @@ export const EDITOR_HTML = String.raw`<!doctype html>
       .section-header {
         justify-content: space-between;
       }
+      .section-header-main {
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .section-header-copy {
+        min-width: 0;
+        flex: 1 1 100%;
+      }
+      .section-actions {
+        width: 100%;
+        justify-content: flex-end;
+        align-items: center;
+      }
+      .status-row {
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .toolbar-actions {
+        justify-content: flex-end;
+        margin-left: auto;
+      }
+      .status-copy {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
       h1,
       h2 {
         margin: 0;
+      }
+      h2 {
+        font-size: 20px;
+        line-height: 1.25;
       }
       .muted,
       .selection-summary,
       .hint {
         color: var(--editor-text-soft);
         font-size: 13px;
+      }
+      .section-header-copy .muted {
+        line-height: 1.55;
+      }
+      .file-meta {
+        display: block;
+        margin-top: 4px;
+        max-width: min(100%, 420px);
+      }
+      .file-meta-text {
+        display: block;
+        overflow: hidden;
+        color: var(--editor-text-soft);
+        font-size: 12px;
+        line-height: 1.35;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .entry-count {
         font-size: 13px;
@@ -270,7 +318,8 @@ export const EDITOR_HTML = String.raw`<!doctype html>
         display: flex;
         flex-direction: column;
         gap: 8px;
-        font-size: 14px;
+        font-size: 15px;
+        font-weight: 600;
         color: var(--editor-text);
       }
       .checkbox-field {
@@ -290,6 +339,8 @@ export const EDITOR_HTML = String.raw`<!doctype html>
         border-radius: 14px;
         background: rgba(8, 12, 24, 0.56);
         color: var(--editor-text);
+        font-size: 14px;
+        font-weight: 400;
         outline: none;
       }
       .nh-textarea {
@@ -319,6 +370,100 @@ export const EDITOR_HTML = String.raw`<!doctype html>
         cursor: not-allowed;
         opacity: 0.5;
       }
+      .editor-locale-switch-menu {
+        position: relative;
+      }
+      .editor-locale-switch {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 36px;
+        min-width: 108px;
+        padding: 0 32px 0 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--editor-text);
+        transition: 180ms ease;
+        cursor: pointer;
+      }
+      .editor-locale-switch:hover,
+      .editor-locale-switch:focus-within {
+        border-color: rgba(124, 156, 255, 0.3);
+        background: rgba(124, 156, 255, 0.1);
+      }
+      .editor-locale-switch::after {
+        content: '\25BE';
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-52%);
+        color: var(--editor-text-soft);
+        font-size: 11px;
+        pointer-events: none;
+      }
+      .editor-locale-switch-prefix {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 34px;
+        height: 18px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: rgba(124, 156, 255, 0.14);
+        color: #dce7ff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        flex: 0 0 auto;
+      }
+      .editor-locale-switch-value {
+        color: var(--editor-text);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .editor-locale-switch-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        z-index: 8;
+        min-width: 164px;
+        padding: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background: rgba(12, 19, 38, 0.98);
+        box-shadow: var(--editor-shadow-soft);
+      }
+      .editor-locale-switch-option {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 38px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--editor-text);
+        cursor: pointer;
+        text-align: left;
+      }
+      .editor-locale-switch-option:hover,
+      .editor-locale-switch-option:focus-visible,
+      .editor-locale-switch-option.active {
+        background: rgba(124, 156, 255, 0.12);
+      }
+      .editor-locale-switch-option span {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .editor-locale-switch-option small {
+        color: var(--editor-text-soft);
+        font-size: 12px;
+      }
       .nh-button--primary {
         border-color: rgba(124, 156, 255, 0.3);
         background: linear-gradient(180deg, rgba(124, 156, 255, 0.22), rgba(90, 120, 255, 0.18));
@@ -334,6 +479,33 @@ export const EDITOR_HTML = String.raw`<!doctype html>
         display: flex;
         flex-direction: column;
         gap: 10px;
+      }
+      .tag-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .tag-group-head {
+        display: flex;
+        align-items: center;
+      }
+      .tag-group-label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .tag-group-label-selected {
+        background: rgba(124, 156, 255, 0.18);
+        color: #dce7ff;
+      }
+      .tag-group-label-suggested {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--editor-text-soft);
       }
       .tag-input-row {
         display: grid;
@@ -355,23 +527,55 @@ export const EDITOR_HTML = String.raw`<!doctype html>
         min-height: 32px;
         padding: 0 10px;
         border-radius: 999px;
-        background: rgba(124, 156, 255, 0.12);
         color: var(--editor-text);
       }
+      .tag-token {
+        border: 1px solid rgba(124, 156, 255, 0.3);
+        background: linear-gradient(180deg, rgba(124, 156, 255, 0.22), rgba(90, 120, 255, 0.12));
+        box-shadow: inset 0 0 0 1px rgba(124, 156, 255, 0.08);
+      }
+      .tag-token > span:first-child {
+        font-weight: 700;
+      }
       .tag-empty {
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
         color: var(--editor-text-soft);
       }
       .tag-token-remove {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
         border: 0;
-        background: transparent;
-        color: inherit;
+        border-radius: 999px;
+        background: rgba(8, 12, 24, 0.3);
+        color: #dce7ff;
         cursor: pointer;
       }
       .tag-suggestion {
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--editor-text-soft);
         cursor: pointer;
+        transition: 180ms ease;
+      }
+      .tag-suggestion:hover,
+      .tag-suggestion:focus-visible {
+        border-color: rgba(124, 156, 255, 0.28);
+        background: rgba(124, 156, 255, 0.08);
+        color: var(--editor-text);
       }
       .tag-suggestion small {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
         color: var(--editor-text-soft);
       }
       .preview-card {
@@ -401,12 +605,22 @@ export const EDITOR_HTML = String.raw`<!doctype html>
           padding: 12px;
           gap: 12px;
         }
+        .toolbar-actions {
+          width: auto;
+          justify-content: flex-end;
+        }
+        .status-row {
+          align-items: stretch;
+        }
         .sidebar,
         .panel {
           padding: 16px;
         }
         .tag-input-row {
           grid-template-columns: 1fr;
+        }
+        .editor-locale-switch {
+          padding-right: 32px;
         }
       }
     </style>
@@ -430,3 +644,4 @@ export const EDITOR_HTML = String.raw`<!doctype html>
     <script type="module" src="/editor-app.js"></script>
   </body>
 </html>`;
+

@@ -121,6 +121,7 @@ export class NavHoard extends LitElement {
   @state() private hiddenUnlocked = false;
   @state() private hiddenUnlockPassword = DEFAULT_HIDDEN_UNLOCK_PASSWORD;
   @state() private locale: SupportedLocale = DEFAULT_LOCALE;
+  @state() private localeMenuOpen = false;
 
   private miniSearch: MiniSearch | null = null;
 
@@ -134,7 +135,23 @@ export class NavHoard extends LitElement {
   private readonly handleWindowResize = () => {
     this.viewportWidth = window.innerWidth;
   };
+  private readonly handleWindowPointerDown = (event: PointerEvent) => {
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      return;
+    }
+    const path = event.composedPath();
+    const insideLocaleMenu = path.some(
+      (node) => node instanceof HTMLElement && node.classList.contains('locale-switch-menu')
+    );
+    if (!insideLocaleMenu) {
+      this.localeMenuOpen = false;
+    }
+  };
   private readonly handleWindowKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      this.localeMenuOpen = false;
+    }
     if (event.metaKey || event.ctrlKey || event.altKey) {
       return;
     }
@@ -174,6 +191,7 @@ export class NavHoard extends LitElement {
 
     this.loadUiPreferences();
     this.loadFavorites();
+    window.addEventListener('pointerdown', this.handleWindowPointerDown);
     window.addEventListener('scroll', this.handleWindowScroll, { passive: true });
     window.addEventListener('resize', this.handleWindowResize, { passive: true });
     window.addEventListener('keydown', this.handleWindowKeydown);
@@ -183,6 +201,7 @@ export class NavHoard extends LitElement {
   }
 
   disconnectedCallback() {
+    window.removeEventListener('pointerdown', this.handleWindowPointerDown);
     window.removeEventListener('scroll', this.handleWindowScroll);
     window.removeEventListener('resize', this.handleWindowResize);
     window.removeEventListener('keydown', this.handleWindowKeydown);
@@ -239,6 +258,12 @@ export class NavHoard extends LitElement {
       : DEFAULT_LOCALE;
     this.locale = normalized;
     writeStoredLocale(normalized);
+    this.localeMenuOpen = false;
+  }
+
+  private toggleLocaleMenu(event: Event) {
+    event.stopPropagation();
+    this.localeMenuOpen = !this.localeMenuOpen;
   }
 
   private loadFavorites() {
@@ -1126,13 +1151,37 @@ export class NavHoard extends LitElement {
   }
 
   private renderLocaleSwitch() {
+    const localeLabel = this.locale === 'zh-CN' ? 'ZH' : 'EN';
     return html`
-      <label class="locale-switch">
-        <span class="toolbar-label">${this.t('locale.label')}</span>
-        <select .value=${this.locale} @change=${(event: Event) => this.changeLocale((event.target as HTMLSelectElement).value)}>
-          ${SUPPORTED_LOCALES.map((locale) => html`<option value=${locale}>${LOCALE_LABELS[locale]}</option>`)}
-        </select>
-      </label>
+      <div class="locale-switch-menu">
+        <button
+          type="button"
+          class="locale-switch"
+          aria-label=${this.t('locale.label')}
+          aria-haspopup="menu"
+          aria-expanded=${this.localeMenuOpen ? 'true' : 'false'}
+          @click=${(event: Event) => this.toggleLocaleMenu(event)}
+        >
+          <span class="locale-switch-prefix" aria-hidden="true">Lang</span>
+          <span class="locale-switch-value">${localeLabel}</span>
+        </button>
+        ${this.localeMenuOpen ? html`
+          <div class="locale-switch-dropdown" role="menu" aria-label=${this.t('locale.label')}>
+            ${SUPPORTED_LOCALES.map((locale) => html`
+              <button
+                type="button"
+                class="locale-switch-option ${this.locale === locale ? 'active' : ''}"
+                role="menuitemradio"
+                aria-checked=${this.locale === locale ? 'true' : 'false'}
+                @click=${() => this.changeLocale(locale)}
+              >
+                <span>${locale === 'zh-CN' ? 'ZH' : 'EN'}</span>
+                <small>${LOCALE_LABELS[locale]}</small>
+              </button>
+            `)}
+          </div>
+        ` : ''}
+      </div>
     `;
   }
 
@@ -1163,7 +1212,6 @@ export class NavHoard extends LitElement {
               <button class="ghost-btn" type="button" @click=${() => this.toggleControlsCollapsed()}>
                 ${this.controlsCollapsed ? this.t('home.search.expand_filters') : this.t('home.search.collapse_filters')}
               </button>
-              ${this.renderLocaleSwitch()}
             </div>
           </div>
 
@@ -1502,13 +1550,18 @@ export class NavHoard extends LitElement {
             <p class="eyebrow">NavHoard</p>
             <div class="topbar-title-row">
               <h1>${this.t('home.topbar.title')}</h1>
-              <button type="button" class="about-toggle about-toggle-topbar" @click=${() => this.toggleAbout()} aria-expanded=${this.aboutOpen ? 'true' : 'false'}>
-                ${this.aboutOpen ? this.t('home.topbar.about_open') : this.t('home.topbar.about_closed')}
-              </button>
+              <div class="topbar-actions">
+                <button type="button" class="about-toggle about-toggle-topbar" @click=${() => this.toggleAbout()} aria-expanded=${this.aboutOpen ? 'true' : 'false'}>
+                  ${this.aboutOpen ? this.t('home.topbar.about_open') : this.t('home.topbar.about_closed')}
+                </button>
+              </div>
             </div>
             ${this.renderAboutPanel('popover')}
           </div>
-          <p class="topbar-summary">${this.t('home.search.summary')}</p>
+          <div class="topbar-summary-row">
+            <p class="topbar-summary">${this.t('home.search.summary')}</p>
+            ${this.renderLocaleSwitch()}
+          </div>
         </header>
 
         ${this.notice ? html`

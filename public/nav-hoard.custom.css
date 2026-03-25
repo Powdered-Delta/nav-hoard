@@ -34,7 +34,7 @@ body:has(> nav-hoard) nav-hoard {
   --primary-soft: rgba(170, 217, 76, 0.12);
   --border-color: rgba(191, 189, 182, 0.16);
   --font-sans: "Fusion Pixel 12px Monospaced SC", "JetBrains Mono", "Cascadia Code", "SFMono-Regular", ui-monospace, monospace;
-  --max-width: 1040px;
+  --max-width: 1120px;
   --nh-shadow: 0 0 0 1px rgba(170, 217, 76, 0.06);
   --nh-shadow-soft: 0 0 0 1px rgba(170, 217, 76, 0.04);
   --nh-radius-xl: 24px;
@@ -107,6 +107,8 @@ body:has(> nav-hoard) .active-filters.empty {
 body:has(> nav-hoard) .about-toggle-topbar,
 body:has(> nav-hoard) .ghost-btn,
 body:has(> nav-hoard) .search-dock-actions .ghost-btn,
+body:has(> nav-hoard) .locale-switch,
+body:has(> nav-hoard) .locale-switch-option,
 body:has(> nav-hoard) .notice button,
 body:has(> nav-hoard) .sort-control select,
 body:has(> nav-hoard) .view-switch button,
@@ -134,6 +136,11 @@ body:has(> nav-hoard) .empty-state button {
 
 body:has(> nav-hoard) .ghost-btn:hover,
 body:has(> nav-hoard) .ghost-btn:focus-visible,
+body:has(> nav-hoard) .locale-switch:hover,
+body:has(> nav-hoard) .locale-switch:focus-within,
+body:has(> nav-hoard) .locale-switch-option:hover,
+body:has(> nav-hoard) .locale-switch-option:focus-visible,
+body:has(> nav-hoard) .locale-switch-option.active,
 body:has(> nav-hoard) .clear-link:hover,
 body:has(> nav-hoard) .clear-link:focus-visible,
 body:has(> nav-hoard) .view-switch button.active,
@@ -179,6 +186,32 @@ body:has(> nav-hoard) .fav-btn.is-active:focus-visible {
   text-shadow:
     0 0 12px rgba(170, 217, 76, 0.34),
     0 0 20px rgba(170, 217, 76, 0.18);
+}
+
+body:has(> nav-hoard) .locale-switch {
+  color: var(--primary);
+}
+
+body:has(> nav-hoard) .locale-switch-prefix {
+  background: rgba(170, 217, 76, 0.14);
+  color: var(--primary);
+}
+
+body:has(> nav-hoard) .locale-switch::after {
+  color: rgba(191, 189, 182, 0.72);
+}
+
+body:has(> nav-hoard) .locale-switch-value {
+  color: var(--text-strong);
+}
+
+body:has(> nav-hoard) .locale-switch-dropdown {
+  background: rgba(11, 14, 20, 0.96);
+  border-color: rgba(170, 217, 76, 0.18);
+}
+
+body:has(> nav-hoard) .locale-switch-option small {
+  color: rgba(191, 189, 182, 0.72);
 }
 
 body:has(> nav-hoard) .card-top-actions {

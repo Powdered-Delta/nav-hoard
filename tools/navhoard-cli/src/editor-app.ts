@@ -107,7 +107,9 @@ class NavHoardEditorApp extends LitElement {
   private featuredOnly = false;
   private bulkMode = false;
   private bulkSelectedIds: string[] = [];
-  private statusMessage = '正在初始化编辑器…';
+  private statusKey: string | null = 'editor.status.initializing';
+  private statusVars: TranslationVars | undefined;
+  private statusMessageFallback = '';
   private statusKind: StatusKind = 'info';
   private tagDraft = '';
   private canonicalFile = 'data/index.json';
@@ -118,6 +120,7 @@ class NavHoardEditorApp extends LitElement {
   private pendingScrollToSelected = false;
   private localeReady = false;
   private locale = FALLBACK_DEFAULT_LOCALE;
+  private localeMenuOpen = false;
   private supportedLocales = FALLBACK_SUPPORTED_LOCALES.slice();
   private localeLabels = { ...FALLBACK_LOCALE_LABELS };
   private i18n: SharedI18nModule = {
@@ -134,12 +137,16 @@ class NavHoardEditorApp extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback();
     window.addEventListener('beforeunload', this.handleBeforeUnload);
+    window.addEventListener('pointerdown', this.handleWindowPointerDown);
+    window.addEventListener('keydown', this.handleWindowKeydown);
     this.startLiveReload();
     void this.initializeApp();
   }
 
   override disconnectedCallback(): void {
     window.removeEventListener('beforeunload', this.handleBeforeUnload);
+    window.removeEventListener('pointerdown', this.handleWindowPointerDown);
+    window.removeEventListener('keydown', this.handleWindowKeydown);
     this.stopLiveReload();
     super.disconnectedCallback();
   }
@@ -167,6 +174,22 @@ class NavHoardEditorApp extends LitElement {
     }
     event.preventDefault();
     event.returnValue = '';
+  };
+  private handleWindowPointerDown = (event: PointerEvent): void => {
+    const path = event.composedPath();
+    const insideLocaleMenu = path.some(
+      (node) => node instanceof HTMLElement && node.classList.contains('editor-locale-switch-menu')
+    );
+    if (!insideLocaleMenu) {
+      this.localeMenuOpen = false;
+      this.touch();
+    }
+  };
+  private handleWindowKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape' && this.localeMenuOpen) {
+      this.localeMenuOpen = false;
+      this.touch();
+    }
   };
 
   private async initializeApp(): Promise<void> {
@@ -209,14 +232,27 @@ class NavHoardEditorApp extends LitElement {
     document.title = this.dirty ? this.t('editor.title.dirty') : this.t('editor.title.clean');
   }
 
+  private getStatusMessage(): string {
+    if (this.statusKey) {
+      return this.t(this.statusKey, this.statusVars);
+    }
+    return this.statusMessageFallback;
+  }
+
   private setStatus(message: string, kind: StatusKind = 'info'): void {
-    this.statusMessage = message;
+    this.statusKey = null;
+    this.statusVars = undefined;
+    this.statusMessageFallback = message;
     this.statusKind = kind;
     this.touch();
   }
 
   private setStatusKey(key: string, kind: StatusKind = 'info', vars?: TranslationVars): void {
-    this.setStatus(this.t(key, vars), kind);
+    this.statusKey = key;
+    this.statusVars = vars;
+    this.statusMessageFallback = '';
+    this.statusKind = kind;
+    this.touch();
   }
 
   private changeLocale(nextLocale: string): void {
@@ -225,7 +261,14 @@ class NavHoardEditorApp extends LitElement {
     }
     this.locale = nextLocale;
     this.i18n.writeStoredLocale(nextLocale);
+    this.localeMenuOpen = false;
     this.updateDocumentTitle();
+    this.touch();
+  }
+
+  private toggleLocaleMenu(event: Event): void {
+    event.stopPropagation();
+    this.localeMenuOpen = !this.localeMenuOpen;
     this.touch();
   }
 
@@ -279,6 +322,20 @@ class NavHoardEditorApp extends LitElement {
 
   private currentEntry(): EditorEntry | null {
     return this.entries.find((entry) => entry.localId === this.selectedId) || null;
+  }
+
+  private getCanonicalFileLabel(): string {
+    const normalized = this.canonicalFile.replace(/\\/g, '/');
+    if (normalized.endsWith('/data/index.json') || normalized === 'data/index.json') {
+      return 'data/index.json';
+    }
+
+    const segments = normalized.split('/').filter(Boolean);
+    if (segments.length <= 3) {
+      return normalized;
+    }
+
+    return `…/${segments.slice(-3).join('/')}`;
   }
 
   private parseEntryTags(value: string): string[] {
@@ -980,15 +1037,37 @@ class NavHoardEditorApp extends LitElement {
   }
 
   private renderLocaleSwitch() {
+    const localeLabel = this.locale === 'zh-CN' ? 'ZH' : 'EN';
     return html`
-      <label class="row" style="align-items:center; gap:8px;">
-        <span class="muted">${this.t('locale.label')}</span>
-        <select class="nh-select" .value=${this.locale} @change=${(event: Event) => this.changeLocale((event.currentTarget as HTMLSelectElement).value)}>
-          ${this.supportedLocales.map((locale) => html`
-            <option value=${locale}>${this.localeLabels[locale] || locale}</option>
-          `)}
-        </select>
-      </label>
+      <div class="editor-locale-switch-menu">
+        <button
+          type="button"
+          class="editor-locale-switch"
+          aria-label=${this.t('locale.label')}
+          aria-haspopup="menu"
+          aria-expanded=${this.localeMenuOpen ? 'true' : 'false'}
+          @click=${(event: Event) => this.toggleLocaleMenu(event)}
+        >
+          <span class="editor-locale-switch-prefix" aria-hidden="true">Lang</span>
+          <span class="editor-locale-switch-value">${localeLabel}</span>
+        </button>
+        ${this.localeMenuOpen ? html`
+          <div class="editor-locale-switch-dropdown" role="menu" aria-label=${this.t('locale.label')}>
+            ${this.supportedLocales.map((locale) => html`
+              <button
+                type="button"
+                class="editor-locale-switch-option ${this.locale === locale ? 'active' : ''}"
+                role="menuitemradio"
+                aria-checked=${this.locale === locale ? 'true' : 'false'}
+                @click=${() => this.changeLocale(locale)}
+              >
+                <span>${locale === 'zh-CN' ? 'ZH' : 'EN'}</span>
+                <small>${this.localeLabels[locale] || locale}</small>
+              </button>
+            `)}
+          </div>
+        ` : ''}
+      </div>
     `;
   }
 
@@ -1130,7 +1209,9 @@ class NavHoardEditorApp extends LitElement {
           <main class="editor">
             <section class="panel panel-muted">
               <div class="status-row">
-                <div class=${classMap({ status: true, [this.statusKind]: true })}>${this.statusMessage}</div>
+                <div class="status-copy">
+                  <div class=${classMap({ status: true, [this.statusKind]: true })}>${this.getStatusMessage()}</div>
+                </div>
               </div>
             </section>
           </main>
@@ -1151,10 +1232,11 @@ class NavHoardEditorApp extends LitElement {
           <div class="toolbar">
             <div>
               <h1>${this.t('editor.title.clean')}</h1>
-              <div class="muted">${this.t('editor.summary.local_editing', { file: this.canonicalFile })}</div>
+              <div class="file-meta" title=${this.t('editor.summary.local_editing', { file: this.canonicalFile })}>
+                <span class="file-meta-text">${this.t('editor.summary.local_editing', { file: this.getCanonicalFileLabel() })}</span>
+              </div>
             </div>
-            <div class="row">
-              ${this.renderLocaleSwitch()}
+            <div class="toolbar-actions">
               <button class="nh-button" type="button" @click=${this.createEmptyEntry}>${this.t('editor.button.new')}</button>
             </div>
           </div>
@@ -1218,17 +1300,20 @@ class NavHoardEditorApp extends LitElement {
         <main class="editor">
           <section class="panel panel-muted">
             <div class="status-row">
-              <div class=${classMap({ status: true, [this.statusKind]: true })}>${this.statusMessage}</div>
+              <div class="status-copy">
+                <div class=${classMap({ status: true, [this.statusKind]: true })}>${this.getStatusMessage()}</div>
+              </div>
+              ${this.renderLocaleSwitch()}
             </div>
           </section>
 
           <section class="panel">
-            <div class="section-header">
-              <div>
+            <div class="section-header section-header-main">
+              <div class="section-header-copy">
                 <h2>${this.t('editor.heading.main')}</h2>
                 <div class="muted">${this.t('editor.summary.form_hint')}</div>
               </div>
-              <div class="row">
+              <div class="row section-actions">
                 <button class="nh-button" type="button" ?disabled=${!entry || this.isSyncing} @click=${() => void this.syncCurrentEntry()}>
                   ${this.isSyncing ? this.t('editor.button.syncing') : this.t('editor.button.sync')}
                 </button>
@@ -1288,22 +1373,34 @@ class NavHoardEditorApp extends LitElement {
                     </button>
                   </div>
                   <div class="tag-token-list">
-                    ${entry
-                      ? entryTags.length > 0
-                        ? repeat(
-                            entryTags,
-                            (tag) => tag,
-                            (tag) => html`
-                              <span class="tag-token">
-                                <span>${tag}</span>
-                                <button class="tag-token-remove" type="button" @click=${() => this.removeTag(tag)}>×</button>
-                              </span>
-                            `
-                          )
-                        : html`<span class="tag-empty">${this.t('editor.empty.no_tags')}</span>`
-                      : html`<span class="tag-empty">${this.t('editor.empty.select_entry')}</span>`}
+                    <div class="tag-group full">
+                      <div class="tag-group-head">
+                        <span class="tag-group-label tag-group-label-selected">${this.t('editor.tags.selected')}</span>
+                      </div>
+                      <div class="tag-token-list">
+                        ${entry
+                          ? entryTags.length > 0
+                            ? repeat(
+                                entryTags,
+                                (tag) => tag,
+                                (tag) => html`
+                                  <span class="tag-token">
+                                    <span>${tag}</span>
+                                    <button class="tag-token-remove" type="button" @click=${() => this.removeTag(tag)}>×</button>
+                                  </span>
+                                `
+                              )
+                            : html`<span class="tag-empty">${this.t('editor.empty.no_tags')}</span>`
+                          : html`<span class="tag-empty">${this.t('editor.empty.select_entry')}</span>`}
+                      </div>
+                    </div>
                   </div>
-                  <div class="tag-suggestions">${entry ? this.renderTagSuggestions(entry) : null}</div>
+                  <div class="tag-group full">
+                    <div class="tag-group-head">
+                      <span class="tag-group-label tag-group-label-suggested">${this.t('editor.tags.suggested')}</span>
+                    </div>
+                    <div class="tag-suggestions">${entry ? this.renderTagSuggestions(entry) : null}</div>
+                  </div>
                 </div>
               </div>
 
