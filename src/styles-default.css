@@ -1590,7 +1590,7 @@ nav-hoard select {
 
 .waterfall-columns {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--waterfall-column-count, 3), minmax(0, 1fr));
   gap: 18px;
   align-items: start;
 }
@@ -1690,6 +1690,17 @@ nav-hoard select {
     display: flex;
   }
 
+  .topbar-summary-row {
+    flex: none;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .topbar-summary {
+    text-align: left;
+  }
+
   .search-dock-main {
     grid-template-columns: 1fr;
   }
@@ -1749,12 +1760,6 @@ nav-hoard select {
     display: block;
   }
 
-  .waterfall-columns {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
   .nh-container {
     padding: 20px 14px 40px;
   }
@@ -1774,16 +1779,6 @@ nav-hoard select {
 
   .topbar-actions {
     justify-content: flex-start;
-  }
-
-  .topbar-summary-row {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .topbar-summary {
-    text-align: left;
   }
 
   .nh-header {
@@ -1886,10 +1881,6 @@ nav-hoard select {
   .entries-grid.layout-waterfall,
   .featured-grid.layout-waterfall {
     display: block;
-  }
-
-  .waterfall-columns {
-    grid-template-columns: 1fr;
   }
 
   .card footer {

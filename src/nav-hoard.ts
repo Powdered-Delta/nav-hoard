@@ -17,6 +17,11 @@ type NoticeTone = 'info' | 'error';
 type LayoutMode = 'waterfall' | 'list';
 type PreviewMode = 'auto' | 'external' | 'local';
 
+const WATERFALL_BREAKPOINTS = {
+  singleColumnMax: 900,
+  doubleColumnMax: 1120
+} as const;
+
 export interface NavPreview {
   enabled?: boolean;
   mode?: PreviewMode;
@@ -705,10 +710,10 @@ export class NavHoard extends LitElement {
   }
 
   private getWaterfallColumnCount(): number {
-    if (this.viewportWidth <= 768) {
+    if (this.viewportWidth <= WATERFALL_BREAKPOINTS.singleColumnMax) {
       return 1;
     }
-    if (this.viewportWidth <= 1120) {
+    if (this.viewportWidth <= WATERFALL_BREAKPOINTS.doubleColumnMax) {
       return 2;
     }
     return 3;
@@ -1514,7 +1519,7 @@ export class NavHoard extends LitElement {
 
     const columns = this.buildWaterfallColumns(entries);
     return html`
-      <div class="waterfall-columns">
+      <div class="waterfall-columns" style=${`--waterfall-column-count: ${columns.length};`}>
         ${columns.map(column => html`
           <div class="waterfall-column">
             ${column.map(entry => this.renderCard(entry))}
