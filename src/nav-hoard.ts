@@ -18,11 +18,25 @@ import {
 export type { NavEntry, NavPreview, PreviewMode } from '@nav-hoard/types';
 type NoticeTone = 'info' | 'error';
 type LayoutMode = 'waterfall' | 'list';
+type SortMode = 'newest' | 'relevance' | 'site';
 
 const WATERFALL_BREAKPOINTS = {
   singleColumnMax: 900,
   doubleColumnMax: 1120
 } as const;
+
+/** 子域独立站点、但「按站点」视图下希望归为一组时使用的公共后缀（非完整 PSL）。 */
+const SHARED_SITE_HOST_SUFFIXES: readonly string[] = [
+  'github.io',
+  'gitlab.io',
+  'netlify.app',
+  'vercel.app',
+  'pages.dev',
+  'firebaseapp.com',
+  'web.app'
+];
+
+const UNKNOWN_SITE_GROUP_KEY = '__unknown__';
 
 interface NavDataPayload {
   entries?: unknown;
@@ -82,7 +96,7 @@ export class NavHoard extends LitElement {
   @state() private filteredEntries: NavEntry[] = [];
   @state() private searchQuery = '';
   @state() private selectedTags: Set<string> = new Set();
-  @state() private sortBy: 'newest' | 'relevance' = 'relevance';
+  @state() private sortBy: SortMode = 'relevance';
   @state() private favorites: string[] = [];
   @state() private view: 'all' | 'favorites' = 'all';
   @state() private layoutMode: LayoutMode = 'waterfall';
@@ -532,6 +546,16 @@ export class NavHoard extends LitElement {
         .map(entry => ({ entry, score: hitMap.get(entry.id)?.score ?? 0 }))
         .sort((left, right) => right.score - left.score)
         .map(item => item.entry);
+    } else if (this.sortBy === 'site') {
+      result = [...result].sort((left, right) => {
+        const siteDelta = this.getEntrySiteGroupKey(left).localeCompare(this.getEntrySiteGroupKey(right), this.locale, {
+          sensitivity: 'base'
+        });
+        if (siteDelta !== 0) {
+          return siteDelta;
+        }
+        return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime();
+      });
     }
 
     this.filteredEntries = result;
@@ -571,7 +595,7 @@ export class NavHoard extends LitElement {
   }
 
   private onSortChange(event: Event) {
-    this.sortBy = (event.target as HTMLSelectElement).value as 'newest' | 'relevance';
+    this.sortBy = (event.target as HTMLSelectElement).value as SortMode;
     this.applyFilters();
   }
 
@@ -659,7 +683,7 @@ export class NavHoard extends LitElement {
   }
 
   private getFeaturedEntries(): NavEntry[] {
-    if (this.view !== 'all' || this.hasActiveFilters()) {
+    if (this.view !== 'all' || this.hasActiveFilters() || this.sortBy === 'site') {
       return [];
     }
 
@@ -812,6 +836,7 @@ export class NavHoard extends LitElement {
       ? this.t('home.controls.summary.favorites', { count: this.formatCount(this.getAccessibleFavoritesCount()) })
       : this.t('home.controls.summary.all', { count: this.formatCount(this.getAccessibleEntries().length) }));
     parts.push(this.getLayoutLabel(this.layoutMode));
+    parts.push(this.getSortLabel());
 
     return parts.join(' · ');
   }
@@ -826,6 +851,89 @@ export class NavHoard extends LitElement {
       .split('.')
       .find(part => /^[a-z0-9]/i.test(part)) || 'NH';
     return primary.slice(0, 2).toUpperCase();
+  }
+
+  /**
+   * 分组键：优先 `source`；否则用 URL 主机名，并对常见托管域（如 *.github.io）折叠为同一键。
+   * 路径不同、主机相同（如 /test1 与 /test2）自然同一组；`aaa.github.io` 与 `bbb.github.io` 会并入 `github.io` 键。
+   */
+  private getEntrySiteGroupKey(entry: NavEntry): string {
+    const source = entry.source?.trim();
+    if (source) {
+      return source;
+    }
+    try {
+      const rawHost = new URL(entry.url).hostname.trim().toLowerCase();
+      if (!rawHost) {
+        return UNKNOWN_SITE_GROUP_KEY;
+      }
+      return this.normalizeHostnameForSharedHosting(rawHost);
+    } catch {
+      return UNKNOWN_SITE_GROUP_KEY;
+    }
+  }
+
+  private normalizeHostnameForSharedHosting(hostname: string): string {
+    const lower = hostname.toLowerCase();
+    for (const suffix of SHARED_SITE_HOST_SUFFIXES) {
+      if (lower === suffix || lower.endsWith(`.${suffix}`)) {
+        return suffix;
+      }
+    }
+    return lower;
+  }
+
+  private getSiteGroupHeadingLabel(groupKey: string): string {
+    if (groupKey === UNKNOWN_SITE_GROUP_KEY) {
+      return this.t('home.site.unknown');
+    }
+    switch (groupKey) {
+      case 'github.io':
+        return this.t('home.site.group_github_io');
+      case 'gitlab.io':
+        return this.t('home.site.group_gitlab_io');
+      case 'netlify.app':
+        return this.t('home.site.group_netlify_app');
+      case 'vercel.app':
+        return this.t('home.site.group_vercel_app');
+      case 'pages.dev':
+        return this.t('home.site.group_pages_dev');
+      case 'firebaseapp.com':
+        return this.t('home.site.group_firebaseapp');
+      case 'web.app':
+        return this.t('home.site.group_web_app');
+      default:
+        return groupKey;
+    }
+  }
+
+  private groupEntriesBySite(entries: NavEntry[]): Array<{ heading: string; entries: NavEntry[] }> {
+    const map = new Map<string, NavEntry[]>();
+    for (const entry of entries) {
+      const key = this.getEntrySiteGroupKey(entry);
+      const bucket = map.get(key);
+      if (bucket) {
+        bucket.push(entry);
+      } else {
+        map.set(key, [entry]);
+      }
+    }
+    return Array.from(map.entries())
+      .sort(([left], [right]) => left.localeCompare(right, this.locale, { sensitivity: 'base' }))
+      .map(([key, grouped]) => ({
+        heading: this.getSiteGroupHeadingLabel(key),
+        entries: grouped
+      }));
+  }
+
+  private getSortLabel(): string {
+    if (this.sortBy === 'newest') {
+      return this.t('home.toolbar.sort_newest');
+    }
+    if (this.sortBy === 'site') {
+      return this.t('home.toolbar.sort_site');
+    }
+    return this.t('home.toolbar.sort_relevance');
   }
 
   private findFavoriteEntry(item: FavoriteExportItem): NavEntry | null {
@@ -1101,6 +1209,9 @@ export class NavHoard extends LitElement {
               baseLabel,
               featuredSuffix
             })}
+            ${this.sortBy === 'site'
+              ? html`<span class="result-subtitle-note">${this.t('home.results.grouped_by_site')}</span>`
+              : ''}
           </p>
         </div>
         ${this.hasActiveFilters() ? html`
@@ -1220,6 +1331,7 @@ export class NavHoard extends LitElement {
                 <select .value=${this.sortBy} @change=${this.onSortChange}>
                   <option value="relevance">${this.t('home.toolbar.sort_relevance')}</option>
                   <option value="newest">${this.t('home.toolbar.sort_newest')}</option>
+                  <option value="site">${this.t('home.toolbar.sort_site')}</option>
                 </select>
               </div>
             </div>
@@ -1356,6 +1468,7 @@ export class NavHoard extends LitElement {
                   <select .value=${this.sortBy} @change=${this.onSortChange}>
                     <option value="relevance">${this.t('home.toolbar.sort_relevance')}</option>
                     <option value="newest">${this.t('home.toolbar.sort_newest')}</option>
+                    <option value="site">${this.t('home.toolbar.sort_site')}</option>
                   </select>
                 </div>
               </div>
@@ -1484,15 +1597,7 @@ export class NavHoard extends LitElement {
     `;
   }
 
-  private renderEntries(entries: NavEntry[]) {
-    if (entries.length === 0) {
-      return this.renderEmptyState();
-    }
-
-    if (this.layoutMode !== 'waterfall') {
-      return entries.map(entry => this.renderCard(entry));
-    }
-
+  private renderWaterfallColumns(entries: NavEntry[]) {
     const columns = this.buildWaterfallColumns(entries);
     return html`
       <div class="waterfall-columns" style=${`--waterfall-column-count: ${columns.length};`}>
@@ -1503,6 +1608,35 @@ export class NavHoard extends LitElement {
         `)}
       </div>
     `;
+  }
+
+  private renderEntries(entries: NavEntry[]) {
+    if (entries.length === 0) {
+      return this.renderEmptyState();
+    }
+
+    if (this.sortBy === 'site') {
+      const groups = this.groupEntriesBySite(entries);
+      return groups.map((group, index) => html`
+        <section class="site-group" aria-labelledby=${`site-heading-${index}`}>
+          <h2 class="site-group-heading" id=${`site-heading-${index}`}>
+            <span class="site-group-title">${group.heading}</span>
+            <span class="site-group-count">${this.t('home.site.entry_count', { count: this.formatCount(group.entries.length) })}</span>
+          </h2>
+          <div class="site-group-body entries-grid layout-${this.layoutMode}">
+            ${this.layoutMode !== 'waterfall'
+              ? group.entries.map(entry => this.renderCard(entry))
+              : this.renderWaterfallColumns(group.entries)}
+          </div>
+        </section>
+      `);
+    }
+
+    if (this.layoutMode !== 'waterfall') {
+      return entries.map(entry => this.renderCard(entry));
+    }
+
+    return this.renderWaterfallColumns(entries);
   }
 
   render() {
@@ -1559,7 +1693,7 @@ export class NavHoard extends LitElement {
         <main class="content-stack content-stack-full">
           ${this.renderActiveFilters()}
           ${this.renderResultMeta()}
-          <section class="entries-grid layout-${this.layoutMode}">
+          <section class="entries-grid layout-${this.layoutMode} ${this.sortBy === 'site' ? 'entries-by-site' : ''}">
             ${this.renderEntries(visibleEntries)}
           </section>
         </main>

@@ -77,7 +77,18 @@ const catalogs: Record<SupportedLocale, Record<string, string>> = {
     'home.results.base_all': '总计 {count} 条',
     'home.results.base_favorites': '已收藏 {count} 条',
     'home.results.featured_suffix': '，含推荐 {count} 条',
+    'home.results.grouped_by_site': '（按站点分组展示）',
     'home.results.visible_count': '{count} 条',
+
+    'home.site.unknown': '未分类站点',
+    'home.site.entry_count': '{count} 条',
+    'home.site.group_github_io': 'GitHub Pages（*.github.io）',
+    'home.site.group_gitlab_io': 'GitLab Pages（*.gitlab.io）',
+    'home.site.group_netlify_app': 'Netlify（*.netlify.app）',
+    'home.site.group_vercel_app': 'Vercel（*.vercel.app）',
+    'home.site.group_pages_dev': 'Cloudflare Pages（*.pages.dev）',
+    'home.site.group_firebaseapp': 'Firebase Hosting（*.firebaseapp.com）',
+    'home.site.group_web_app': 'Firebase（*.web.app）',
 
     'home.layout.aria': '切换布局',
     'home.search.heading': '先搜，再筛',
@@ -102,6 +113,7 @@ const catalogs: Record<SupportedLocale, Record<string, string>> = {
     'home.toolbar.import_favorites': '导入收藏',
     'home.toolbar.sort_relevance': '相关度优先',
     'home.toolbar.sort_newest': '最新优先',
+    'home.toolbar.sort_site': '按站点分组',
     'home.toolbar.tip_local_only': '收藏仅保存于当前浏览器，可随时导入或导出。',
 
     'home.tags.title': '热门标签',
@@ -304,7 +316,18 @@ const catalogs: Record<SupportedLocale, Record<string, string>> = {
     'home.results.base_all': '{count} total',
     'home.results.base_favorites': '{count} favorited',
     'home.results.featured_suffix': ', including {count} featured',
+    'home.results.grouped_by_site': '(grouped by site)',
     'home.results.visible_count': '{count} results',
+
+    'home.site.unknown': 'Uncategorized site',
+    'home.site.entry_count': '{count} entries',
+    'home.site.group_github_io': 'GitHub Pages (*.github.io)',
+    'home.site.group_gitlab_io': 'GitLab Pages (*.gitlab.io)',
+    'home.site.group_netlify_app': 'Netlify (*.netlify.app)',
+    'home.site.group_vercel_app': 'Vercel (*.vercel.app)',
+    'home.site.group_pages_dev': 'Cloudflare Pages (*.pages.dev)',
+    'home.site.group_firebaseapp': 'Firebase Hosting (*.firebaseapp.com)',
+    'home.site.group_web_app': 'Firebase (*.web.app)',
 
     'home.layout.aria': 'Switch layout',
     'home.search.heading': 'Search first, then filter',
@@ -329,6 +352,7 @@ const catalogs: Record<SupportedLocale, Record<string, string>> = {
     'home.toolbar.import_favorites': 'Import favorites',
     'home.toolbar.sort_relevance': 'Relevance first',
     'home.toolbar.sort_newest': 'Newest first',
+    'home.toolbar.sort_site': 'Group by site',
     'home.toolbar.tip_local_only': 'Favorites are only saved in this browser. Import or export anytime.',
 
     'home.tags.title': 'Popular tags',
