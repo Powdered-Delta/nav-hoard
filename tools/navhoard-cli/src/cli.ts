@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { load } from 'cheerio';
 import fetch from 'node-fetch';
 import Ajv from 'ajv';
+import type { ManifestPayload, NavEntry, OutputPayload } from '@nav-hoard/types';
 import {
   loadExistingEntries as loadSharedExistingEntries,
   mergeEntries as mergeSharedEntries,
@@ -45,31 +46,6 @@ interface Config {
     timeout?: number;
     retries?: number;
   };
-}
-
-interface NavEntry {
-  id: string;
-  url: string;
-  title: string;
-  summary: string;
-  tags: string[];
-  source: string;
-  created_at: string;
-  updated_at: string;
-  confidence?: number;
-}
-
-interface OutputPayload {
-  version: string;
-  updated_at: string;
-  entries: NavEntry[];
-}
-
-interface ManifestPayload {
-  version: string;
-  updated_at: string;
-  total: number;
-  groups: string[];
 }
 
 interface CliOptions {

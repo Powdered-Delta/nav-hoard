@@ -2,6 +2,7 @@
 import { customElement, property, state } from 'lit/decorators.js';
 import MiniSearch from 'minisearch';
 
+import type { NavConfig, NavEntry, NavPreview, PreviewMode } from '@nav-hoard/types';
 import {
   DEFAULT_LOCALE,
   LOCALE_LABELS,
@@ -13,40 +14,15 @@ import {
   writeStoredLocale,
   type SupportedLocale
 } from './nav-hoard-i18n';
+
+export type { NavEntry, NavPreview, PreviewMode } from '@nav-hoard/types';
 type NoticeTone = 'info' | 'error';
 type LayoutMode = 'waterfall' | 'list';
-type PreviewMode = 'auto' | 'external' | 'local';
 
 const WATERFALL_BREAKPOINTS = {
   singleColumnMax: 900,
   doubleColumnMax: 1120
 } as const;
-
-export interface NavPreview {
-  enabled?: boolean;
-  mode?: PreviewMode;
-  src?: string;
-  alt?: string;
-}
-
-export interface NavEntry {
-  id: string;
-  url: string;
-  title: string;
-  summary: string;
-  tags: string[];
-  source: string;
-  created_at: string;
-  updated_at: string;
-  featured?: boolean;
-  featured_rank?: number;
-  preview?: NavPreview;
-  hide?: boolean;
-}
-
-interface NavConfig {
-  hidden_unlock_password?: string;
-}
 
 interface NavDataPayload {
   entries?: unknown;

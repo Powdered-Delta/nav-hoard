@@ -21,6 +21,7 @@
     "edit:dev": "tsx watch src/editor.ts"
   },
   "dependencies": {
+    "@nav-hoard/types": "workspace:*",
     "commander": "^12.1.0",
     "yaml": "^2.4.0",
     "rss-parser": "^3.13.0",

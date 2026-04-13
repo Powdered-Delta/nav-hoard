@@ -16,7 +16,7 @@ description: 为 NavHoard 通过单条 URL 交互式添加新条目。适用于�
 ## 工作流
 
 1. 如果用户还没提供 URL，先引导用户输入 URL。
-2. 先构建工具：`pnpm run navhoard-cli:build`
+2. 确保仓库根目录已 `pnpm install`，且 CLI 已编译（`pnpm run build:cli`，或与站点一起做 `pnpm run build`）。
 3. 生成审阅模板：
    - `pnpm run entry-workflow -- capture --url "<URL>" --write .tmp/navhoard-entry-review.yaml`
 4. 把模板返回给用户审阅和修改。
@@ -38,7 +38,7 @@ description: 为 NavHoard 通过单条 URL 交互式添加新条目。适用于�
 ## 常用命令
 
 ```bash
-pnpm run navhoard-cli:build
+pnpm run build:cli
 pnpm run entry-workflow -- capture --url "https://example.com" --write .tmp/navhoard-entry-review.yaml
 pnpm run entry-workflow -- parse --template .tmp/navhoard-entry-review.yaml
 pnpm run entry-workflow -- confirm --template .tmp/navhoard-entry-review.yaml --output data/index.json

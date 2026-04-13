@@ -155,7 +155,7 @@ pnpm run edit
 
 ```bash
 pnpm run build
-pnpm run navhoard-cli:build
+pnpm run build:cli
 ```
 
 ## 决策表

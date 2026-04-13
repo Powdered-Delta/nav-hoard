@@ -7,21 +7,22 @@ import fetch from 'node-fetch';
 import Ajv from 'ajv';
 import * as yaml from 'yaml';
 
-export interface NavEntry {
-  id: string;
-  url: string;
-  title: string;
-  summary: string;
-  tags: string[];
-  source: string;
-  created_at: string;
-  updated_at: string;
-  confidence?: number;
-  featured?: boolean;
-  featured_rank?: number;
-  preview?: NavPreview;
-  hide?: boolean;
-}
+import type {
+  ManifestPayload,
+  NavConfig,
+  NavEntry,
+  NavPreview,
+  OutputPayload
+} from '@nav-hoard/types';
+
+export type {
+  ManifestPayload,
+  NavConfig,
+  NavEntry,
+  NavPreview,
+  OutputPayload,
+  PreviewMode
+} from '@nav-hoard/types';
 
 export interface EntryDraft {
   url: string;
@@ -36,32 +37,6 @@ export interface EntryDraft {
   featured_rank?: number;
   preview?: NavPreview;
   hide?: boolean;
-}
-
-export interface NavPreview {
-  enabled?: boolean;
-  mode?: 'auto' | 'external' | 'local';
-  src?: string;
-  alt?: string;
-}
-
-export interface NavConfig {
-  hidden_unlock_password?: string;
-}
-
-export interface OutputPayload {
-  version: string;
-  updated_at: string;
-  entries: NavEntry[];
-  config?: NavConfig;
-}
-
-export interface ManifestPayload {
-  version: string;
-  updated_at: string;
-  total: number;
-  groups: string[];
-  config?: NavConfig;
 }
 
 export interface ValidationResult {

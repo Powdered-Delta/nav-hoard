@@ -14,9 +14,10 @@
 
 ```bash
 pnpm install
-pnpm run navhoard-cli:build
 pnpm run build
 ```
+
+`pnpm run build` 会依次编译共享类型包（`packages/types`）、前端（`tsc` + `vite build`）以及 `tools/navhoard-cli`。若只想编译 CLI，可用 `pnpm run build:cli`。
 
 常用命令：
 - 启动前端开发：`pnpm run dev`
@@ -211,10 +212,10 @@ pnpm run preview
 
 ### 先构建 `navhoard-cli`
 
-首次使用前建议先构建工具：
+首次使用命令行工具前需要生成 `tools/navhoard-cli/dist/`（根目录执行 `pnpm run build` 时已包含）。若只改 CLI、想少跑前端构建，可单独执行：
 
 ```bash
-pnpm run navhoard-cli:build
+pnpm run build:cli
 ```
 
 ## 批量更新数据
@@ -501,7 +502,7 @@ pnpm run dev
 pnpm run build
 pnpm run preview
 
-pnpm run navhoard-cli:build
+pnpm run build:cli
 pnpm run navhoard-cli -- --sources data/sources.yaml --config data/config.yaml --output data/index.json
 pnpm run import:raindrop -- --input export --output data/index.json --config data/config.yaml
 pnpm run import:raindrop -- --input .tmp/raindrop-sample.csv --output data/index.json --config data/config.yaml --llm-enhance

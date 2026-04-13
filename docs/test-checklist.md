@@ -12,7 +12,7 @@
 - [ ] 确认当前分支正确：`git branch --show-current`
 - [ ] 拉取远程最新代码：`git pull`
 - [ ] 安装依赖：`pnpm install`
-- [x] 构建 CLI：`pnpm run navhoard-cli:build`
+- [x] 构建 CLI：`pnpm run build:cli`
 
 ## 2. 主站验收
 
@@ -55,7 +55,7 @@
 ## 5. 构建验收
 
 - [x] 主站构建通过：`pnpm run build`
-- [x] CLI 构建通过：`pnpm run navhoard-cli:build`
+- [x] CLI 构建通过：`pnpm run build:cli`
 
 ## 6. 文档验收
 
@@ -65,13 +65,13 @@
 
 ## 7. 自动化结果
 
-- [x] 运行 `pnpm run navhoard-cli:build`
+- [x] 运行 `pnpm run build:cli`
 - [x] 运行 `pnpm run build`
 - [x] Smoke check：启动已构建 editor 服务并检查 `/api/health`
 - [x] Smoke check：检查前端构建产物存在
 
 自动化结果补充说明：
-- `pnpm run navhoard-cli:build` 通过
+- `pnpm run build:cli` 通过
 - `pnpm run build` 通过
 - 已启动构建后的 editor 服务并确认：
   - `GET /api/health` 返回 `200`

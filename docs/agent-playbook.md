@@ -100,7 +100,7 @@ Agent 不应：
 
 ```bash
 pnpm install
-pnpm run navhoard-cli:build
+pnpm run build:cli
 
 pnpm run edit
 pnpm run dev

@@ -1,19 +1,23 @@
 {
   "name": "nav-hoard",
   "version": "0.1.0",
+  "private": true,
   "description": "积径 - 个人网址导航页",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc && vite build",
+    "build": "pnpm run build:types && tsc && vite build && pnpm run build:cli",
+    "build:types": "pnpm --filter @nav-hoard/types run build",
+    "build:cli": "pnpm --filter navhoard-cli run build",
     "preview": "vite preview",
-    "navhoard-cli": "cd tools/navhoard-cli && npm run cli",
-    "navhoard-cli:build": "cd tools/navhoard-cli && npm run build",
-    "entry-workflow": "cd tools/navhoard-cli && npm run entry --",
-    "import:raindrop": "cd tools/navhoard-cli && npm run import:raindrop --",
-    "edit": "cd tools/navhoard-cli && npm run edit --"
+    "navhoard-cli": "pnpm --filter navhoard-cli run cli",
+    "navhoard-cli:build": "pnpm --filter navhoard-cli run build",
+    "entry-workflow": "pnpm --filter navhoard-cli run entry --",
+    "import:raindrop": "pnpm --filter navhoard-cli run import:raindrop --",
+    "edit": "pnpm --filter navhoard-cli run edit --"
   },
   "dependencies": {
+    "@nav-hoard/types": "workspace:*",
     "@fontsource-variable/jetbrains-mono": "^5.2.7",
     "@fontsource/fusion-pixel-12px-monospaced-sc": "^5.2.5",
     "lit": "^3.2.0",
