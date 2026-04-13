@@ -1,18 +1,38 @@
 {
   "version": "0.2",
-  "updated_at": "2026-03-19T11:32:27.128Z",
+  "updated_at": "2026-04-13T09:45:33.785Z",
   "config": {
     "hidden_unlock_password": "up up down down left right left right b a b a"
   },
   "entries": [
     {
+      "id": "c06b1fa1e324",
+      "url": "https://match.yuanrenxue.cn/",
+      "title": "猿人学爬虫逆向练习平台",
+      "summary": "逆向反混淆练习平台",
+      "tags": [
+        "爬虫",
+        "逆向",
+        "刷题",
+        "中文站"
+      ],
+      "source": "match.yuanrenxue.cn",
+      "created_at": "2026-04-13T09:41:02.268Z",
+      "updated_at": "2026-04-13T09:41:02.268Z",
+      "confidence": 0.8,
+      "featured": false
+    },
+    {
       "id": "e5b962911f0e",
       "url": "https://www.aewz.com/",
-      "title": "??? - ?????????????",
-      "summary": "??????????????????????????????????????????????????????????",
+      "title": "简视频-致力打造好用的视频创作导航",
+      "summary": "简视频精选及整理最优秀的视频自媒体、动效设计等网站,收录网站包括视频素材、图片素材、制作工具、字幕配音、音乐素材、文案脚本、教程文章、实时热榜、数据分析等等。拥有智能推荐、强大的站内搜索、账号收藏云同步、自定义站点、只为创意而生。视频创作就上简视频！",
       "tags": [
-        "??",
-        "AI"
+        "视频导航",
+        "素材",
+        "剪辑",
+        "自媒体",
+        "中文站"
       ],
       "source": "www.aewz.com",
       "created_at": "2025-04-28T12:05:20.635Z",
@@ -23,7 +43,7 @@
         "enabled": true,
         "mode": "external",
         "src": "https://rdl.ink/render/https%3A%2F%2Fwww.aewz.com%2F",
-        "alt": "??? - ?????????????"
+        "alt": "简视频-致力打造好用的视频创作导航"
       }
     },
     {
@@ -32,11 +52,11 @@
       "title": "FLiNG Trainer（风灵月影）",
       "summary": "PC Game Cheats and Mods",
       "tags": [
-        "Trainer",
-        "游戏修改器",
+        "游戏修改",
         "PC游戏",
-        "Cheats",
-        "Mods"
+        "Trainer",
+        "单机",
+        "工具"
       ],
       "source": "flingtrainer.com",
       "created_at": "2025-04-25T13:57:56.001Z",
@@ -56,11 +76,10 @@
       "title": "GunWorld 枪炮世界",
       "summary": "GunWorld枪炮世界",
       "tags": [
-        "资料",
-        "武器",
-        "枪炮世界",
-        "枪械资料",
-        "武器百科"
+        "军事",
+        "枪械",
+        "百科",
+        "资料"
       ],
       "source": "pewpewpew.work",
       "created_at": "2025-04-21T04:41:39.060Z",
@@ -80,9 +99,8 @@
       "title": "吾爱破解 - 52pojie.cn",
       "summary": "吾爱破解论坛致力于软件逆向工程与反病毒技术的研究，汇聚众多技术爱好者的智慧与经验，共同探索与分享前沿安全技术、破解分析方案，服务于软件安全、移动应用和数字取证等领域的学习与交流。",
       "tags": [
-        "编程",
-        "安全",
         "逆向",
+        "安全",
         "论坛",
         "软件"
       ],
@@ -104,10 +122,10 @@
       "title": "做了一个简易的scrcpy启动器，可以实时检测手机连接并自动启动scrcpy - 大侠阿木博客",
       "summary": "原版scrcpy用的不爽 原版的scrcpy以及一众的第三方GUI修改版，在打开scrcpy窗口之前，是不知道能不能正常…",
       "tags": [
-        "安卓",
-        "折腾",
-        "博客",
-        "scrcpy"
+        "Android",
+        "scrcpy",
+        "投屏",
+        "博客"
       ],
       "source": "daxiaamu.com",
       "created_at": "2025-04-16T05:07:28.721Z",
@@ -127,11 +145,10 @@
       "title": "大侠阿木博客 - 杂七杂八技术博客",
       "summary": "杂七杂八技术博客",
       "tags": [
-        "安卓",
-        "折腾",
-        "学习",
-        "大侠阿木",
-        "博客"
+        "Android",
+        "博客",
+        "技术",
+        "折腾"
       ],
       "source": "daxiaamu.com",
       "created_at": "2025-04-16T05:08:09.531Z",
@@ -146,182 +163,15 @@
       }
     },
     {
-      "id": "7d7674a509cf",
-      "url": "https://barretlee.github.io/blog/2024/03/06/open-source-notes.html",
-      "title": "开源维护者的写作与归档",
-      "summary": "偏向方法论的博客文章，作为第四张推荐卡片，用来演示推荐顺序和多来源推荐位的实际效果。",
-      "tags": [
-        "开源",
-        "博客",
-        "GitHub Pages",
-        "协作"
-      ],
-      "source": "barretlee.github.io",
-      "created_at": "2026-03-12T12:06:00.000Z",
-      "updated_at": "2026-03-12T12:06:00.000Z",
-      "confidence": 0.91,
-      "featured": true,
-      "featured_rank": 4,
-      "preview": {
-        "enabled": true,
-        "mode": "local",
-        "src": "images/previews/featured-open-source.svg",
-        "alt": "开源维护者的写作与归档"
-      }
-    },
-    {
-      "id": "69173008f509",
-      "url": "https://gaohaoyang.github.io/2024/03/01/write-on-github-pages",
-      "title": "在 GitHub Pages 上持续写作",
-      "summary": "从内容整理、标签分类到发布节奏，适合作为普通条目展示 GitHub Pages 博客类内容的另一种风格。",
-      "tags": [
-        "GitHub Pages",
-        "写作",
-        "静态站点",
-        "博客",
-        "GitHub"
-      ],
-      "source": "gaohaoyang.github.io",
-      "created_at": "2026-03-12T12:05:00.000Z",
-      "updated_at": "2026-03-12T12:05:00.000Z",
-      "confidence": 0.88,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "external",
-        "src": "https://picsum.photos/seed/navhoard-ef72c915ab30/960/720",
-        "alt": "Preview image for writing on GitHub Pages"
-      }
-    },
-    {
-      "id": "13f68d3e754d",
-      "url": "https://mqyqingfeng.github.io/blog/2024/02/18/javascript-cache-strategy.html",
-      "title": "前端缓存策略实践",
-      "summary": "结合静态资源缓存与内容更新策略，适合放在作者推荐区，帮助访客快速理解这个导航站偏好的技术内容。",
-      "tags": [
-        "JavaScript",
-        "性能",
-        "博客",
-        "GitHub Pages",
-        "前端"
-      ],
-      "source": "mqyqingfeng.github.io",
-      "created_at": "2026-03-12T12:04:00.000Z",
-      "updated_at": "2026-03-12T12:04:00.000Z",
-      "confidence": 0.92,
-      "featured": true,
-      "featured_rank": 3,
-      "preview": {
-        "enabled": true,
-        "mode": "local",
-        "src": "images/previews/featured-cache.svg",
-        "alt": "前端缓存策略实践封面"
-      }
-    },
-    {
-      "id": "a81c02deb9f2",
-      "url": "https://huxpro.github.io/post/2024/01/clean-blog-with-pages",
-      "title": "用 GitHub Pages 维护轻量博客",
-      "summary": "介绍如何用 GitHub Pages 托管个人写作站点，并保持内容组织和视觉风格的长期可维护性。",
-      "tags": [
-        "GitHub Pages",
-        "博客",
-        "静态站点",
-        "前端",
-        "GitHub"
-      ],
-      "source": "huxpro.github.io",
-      "created_at": "2026-03-12T12:03:00.000Z",
-      "updated_at": "2026-03-12T12:03:00.000Z",
-      "confidence": 0.9,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "external",
-        "src": "https://picsum.photos/seed/navhoard-c4b2087ad613/960/720",
-        "alt": "Preview image for blog on GitHub Pages"
-      }
-    },
-    {
-      "id": "c4f76916fe98",
-      "url": "https://ruanyf.github.io/es6tutorial",
-      "title": "ES6 入门教程",
-      "summary": "经典的 ES6 教程站点，适合用来演示同一作者体系下既有推荐层也有普通层的数据组织方式。",
-      "tags": [
-        "JavaScript",
-        "ES6",
-        "教程",
-        "GitHub Pages"
-      ],
-      "source": "ruanyf.github.io",
-      "created_at": "2026-03-12T12:02:00.000Z",
-      "updated_at": "2026-03-12T12:02:00.000Z",
-      "confidence": 0.96,
-      "featured": true,
-      "featured_rank": 2,
-      "preview": {
-        "enabled": true,
-        "mode": "local",
-        "src": "images/previews/featured-es6.svg",
-        "alt": "ES6 入门教程封面"
-      }
-    },
-    {
-      "id": "c4c097677f34",
-      "url": "https://www.ruanyifeng.com/blog/2024/04/javascript-tooling.html",
-      "title": "前端工具链更新摘要",
-      "summary": "从包管理、构建工具到浏览器兼容策略，梳理常见前端工程化问题，适合放在普通卡片区做延伸阅读。",
-      "tags": [
-        "JavaScript",
-        "前端",
-        "工程化",
-        "博客",
-        "工具"
-      ],
-      "source": "www.ruanyifeng.com",
-      "created_at": "2026-03-12T12:01:00.000Z",
-      "updated_at": "2026-03-12T12:01:00.000Z",
-      "confidence": 0.93,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "external",
-        "src": "https://picsum.photos/seed/navhoard-71ac29b3e4f8/960/720",
-        "alt": "Preview image for JavaScript tooling"
-      }
-    },
-    {
-      "id": "001e8e5e2c90",
-      "url": "https://www.ruanyifeng.com/blog/2024/06/github-pages-notes.html",
-      "title": "GitHub Pages 使用笔记",
-      "summary": "围绕仓库托管、静态资源路径和自动发布流程整理的搭建经验，适合作为个人导航站和博客的入门参考。",
-      "tags": [
-        "博客",
-        "GitHub Pages",
-        "部署",
-        "前端",
-        "GitHub"
-      ],
-      "source": "www.ruanyifeng.com",
-      "created_at": "2026-03-12T12:00:00.000Z",
-      "updated_at": "2026-03-12T12:00:00.000Z",
-      "confidence": 0.95,
-      "featured": true,
-      "featured_rank": 1,
-      "preview": {
-        "enabled": true,
-        "mode": "local",
-        "src": "images/previews/featured-ruanyifeng.svg",
-        "alt": "阮一峰博客 GitHub Pages 使用笔记"
-      }
-    },
-    {
       "id": "57cdac2f6711",
       "url": "https://hackaday.io/project/203369-any-uart-sensor-in-browser-easy",
       "title": "Any UART Sensor in Browser. Easy",
       "summary": "Integrate any UART sensor with polluSensWeb. Everything runs locally in the browser — no drivers, no cloud. Easy.",
       "tags": [
-        "收藏"
+        "嵌入式",
+        "传感器",
+        "Web",
+        "创客"
       ],
       "source": "hackaday.io",
       "created_at": "2026-03-12T07:51:47.620Z",
@@ -341,6 +191,10 @@
       "title": "MpyTool - Fast File Manager for MicroPython Device",
       "summary": "A fast, feature-rich alternative to mpremote for managing MicroPython devices via serial or network.",
       "tags": [
+        "MicroPython",
+        "嵌入式",
+        "串口",
+        "文件管理",
         "工具"
       ],
       "source": "hackaday.io",
@@ -361,7 +215,10 @@
       "title": "X printer V2",
       "summary": "Portable CoreXY 3D printer - lighter, more compact than V1",
       "tags": [
-        "收藏"
+        "3D打印",
+        "CoreXY",
+        "便携",
+        "硬件"
       ],
       "source": "hackaday.io",
       "created_at": "2026-03-12T07:48:37.509Z",
@@ -381,9 +238,9 @@
       "title": "固件羊",
       "summary": "entry-1",
       "tags": [
-        "收藏",
+        "固件",
         "硬件",
-        "固件"
+        "博客"
       ],
       "source": "easyhey.com",
       "created_at": "2026-03-11T10:15:00.000Z",
@@ -403,9 +260,10 @@
       "title": "Hacker News 首页 - 科技与创业话题",
       "summary": "Hacker News 是 Y Combinator 运营的新闻聚合社区，聚焦计算机科学、创业和技术创新，是极客必备的信息源。",
       "tags": [
-        "资讯",
+        "科技资讯",
+        "创业",
         "社区",
-        "极客"
+        "英文"
       ],
       "source": "news.ycombinator.com",
       "created_at": "2026-03-09T08:00:00.000Z",
@@ -427,7 +285,8 @@
       "tags": [
         "React",
         "前端",
-        "Hooks"
+        "Hooks",
+        "教程"
       ],
       "source": "example.com",
       "created_at": "2026-03-08T10:30:00.000Z",
@@ -442,112 +301,19 @@
       }
     },
     {
-      "id": "24df590208c6",
-      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining",
-      "title": "Optional chaining (?.) - JavaScript | MDN",
-      "summary": "可选链操作符允许读取位于连接对象链深处的属性的值，而不必显式验证链中的每个引用是否有效。大幅提升代码简洁性。",
-      "tags": [
-        "JavaScript",
-        "ES2020",
-        "语法",
-        "AI"
-      ],
-      "source": "developer.mozilla.org",
-      "created_at": "2026-03-07T14:20:00.000Z",
-      "updated_at": "2026-03-07T14:20:00.000Z",
-      "confidence": 1,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "external",
-        "src": "https://picsum.photos/seed/navhoard-24df590208c6/960/720",
-        "alt": "Preview image for MDN optional chaining"
-      }
-    },
-    {
-      "id": "078a8db5bf30",
-      "url": "https://www.solidot.org/story?sid=78421",
-      "title": "Solidot: 量子计算新进展：IBM 推出 1000+ 量子比特处理器",
-      "summary": "IBM 在量子计算领域取得重大突破，发布了超过 1000 量子比特的新一代处理器，并展示了错误缓解技术的实际应用。",
-      "tags": [
-        "量子计算",
-        "IBM",
-        "硬件"
-      ],
-      "source": "solidot.org",
-      "created_at": "2026-03-05T16:45:00.000Z",
-      "updated_at": "2026-03-05T16:45:00.000Z",
-      "confidence": 1,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "external",
-        "src": "https://picsum.photos/seed/navhoard-078a8db5bf30/960/720",
-        "alt": "Preview image for quantum computing news"
-      }
-    },
-    {
-      "id": "b259eafa4c11",
-      "url": "https://www.theverge.com/23769314/solar-powered-plane-circumnavigation",
-      "title": "Solar-powered plane completes round-the-world flight",
-      "summary": "一架完全由太阳能驱动的飞机成功完成环球飞行，这标志着可再生能源在航空领域的重大里程碑，展示了清洁能源的潜力。",
-      "tags": [
-        "能源",
-        "航空",
-        "环保"
-      ],
-      "source": "theverge.com",
-      "created_at": "2026-03-03T13:10:00.000Z",
-      "updated_at": "2026-03-03T13:10:00.000Z",
-      "confidence": 1,
-      "featured": false
-    },
-    {
-      "id": "38c592ac7e09",
-      "url": "https://lwn.net/Articles/927645",
-      "title": "LWN: Kernel development process changes proposed",
-      "summary": "Linus Torvalds 提出 Linux 内核开发流程的若干改进建议，包括代码审查流程和合并窗口期的调整，旨在提高内核质量与稳定性。",
-      "tags": [
-        "Linux",
-        "内核",
-        "开源"
-      ],
-      "source": "lwn.net",
-      "created_at": "2026-03-02T17:30:00.000Z",
-      "updated_at": "2026-03-02T17:30:00.000Z",
-      "confidence": 1,
-      "featured": false
-    },
-    {
       "id": "0424974c6853",
       "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       "title": "Rick Astley - Never Gonna Give You Up (Official Music Video)",
       "summary": "经典的 Rickroll 音乐视频，互联网文化的一部分， NEVER GONNA GIVE YOU UP, NEVER GONNA LET YOU DOWN.",
       "tags": [
         "音乐",
-        "文化",
-        "经典"
+        "迷因",
+        "YouTube",
+        "视频"
       ],
       "source": "youtube.com",
       "created_at": "2009-10-25T14:00:00.000Z",
       "updated_at": "2026-03-01T10:00:00.000Z",
-      "confidence": 1,
-      "featured": false
-    },
-    {
-      "id": "843a793e92e9",
-      "url": "https://vercel.com/",
-      "title": "Vercel: Develop. Preview. Ship.",
-      "summary": "Vercel 是前端开发云平台，提供零配置的部署、边缘网络、Serverless Functions 等， Next.js 背后的公司。",
-      "tags": [
-        "Vercel",
-        "前端",
-        "云平台",
-        "JavaScript"
-      ],
-      "source": "vercel.com",
-      "created_at": "2026-02-14T10:20:00.000Z",
-      "updated_at": "2026-02-14T10:20:00.000Z",
       "confidence": 1,
       "featured": false
     },
@@ -559,28 +325,12 @@
       "tags": [
         "Netlify",
         "部署",
+        "静态托管",
         "云平台"
       ],
       "source": "netlify.com",
       "created_at": "2026-02-13T08:40:00.000Z",
       "updated_at": "2026-02-13T08:40:00.000Z",
-      "confidence": 1,
-      "featured": false
-    },
-    {
-      "id": "75f127357839",
-      "url": "https://pages.github.com/",
-      "title": "GitHub Pages | Websites for you and your projects",
-      "summary": "GitHub Pages 允许用户直接从 GitHub 仓库托管静态网站，支持自定义域名，是开源项目展示的理想选择。",
-      "tags": [
-        "GitHub",
-        "Pages",
-        "托管",
-        "TypeScript"
-      ],
-      "source": "pages.github.com",
-      "created_at": "2026-02-12T15:00:00.000Z",
-      "updated_at": "2026-02-12T15:00:00.000Z",
       "confidence": 1,
       "featured": false
     },
@@ -591,46 +341,13 @@
       "summary": "Godot 是完全免费开源的轻量级游戏引擎，支持 2D 和 3D 开发，以其简洁的节点架构和 MIT 许可证受到 indie 开发者喜爱。",
       "tags": [
         "Godot",
-        "游戏开发",
-        "开源"
+        "游戏引擎",
+        "开源",
+        "独立游戏"
       ],
       "source": "godotengine.org",
       "created_at": "2026-01-27T13:10:00.000Z",
       "updated_at": "2026-01-27T13:10:00.000Z",
-      "confidence": 1,
-      "featured": false
-    },
-    {
-      "id": "3d99440d3db4",
-      "url": "https://web.dev/",
-      "title": "web.dev - Resources for developers, by developers",
-      "summary": "web.dev 是 Google 出品的 Web 开发最佳实践指南，涵盖性能、安全性、可访问性、PWA 等关键主题。",
-      "tags": [
-        "Web",
-        "Google",
-        "最佳实践",
-        "性能"
-      ],
-      "source": "web.dev",
-      "created_at": "2026-01-26T08:00:00.000Z",
-      "updated_at": "2026-01-26T08:00:00.000Z",
-      "confidence": 1,
-      "featured": false
-    },
-    {
-      "id": "681bedb55d97",
-      "url": "https://flutter.dev/",
-      "title": "Flutter - Build Native Platform Apps with Google's UI Toolkit",
-      "summary": "Flutter 是 Google 推出的跨平台 UI 框架，让一套代码可编译成 iOS、Android、Web 甚至桌面应用。",
-      "tags": [
-        "Flutter",
-        "跨平台",
-        "UI",
-        "工具"
-      ],
-      "source": "flutter.dev",
-      "created_at": "2026-01-23T15:40:00.000Z",
-      "updated_at": "2026-01-23T15:40:00.000Z",
       "confidence": 1,
       "featured": false
     },
@@ -640,10 +357,10 @@
       "title": "爬虫工具库",
       "summary": "爬虫工具库-spidertools.cn 是专为爬虫工程师打造的在线工具库，集合了爬虫工程师常用的工具，如json格式化、header格式化、cookie格式化、curl转python等，致力于提高爬虫开发效率",
       "tags": [
-        "python",
         "爬虫",
-        "学习",
-        "编程",
+        "在线工具",
+        "Python",
+        "工程师",
         "工具"
       ],
       "source": "spidertools.cn",
@@ -664,11 +381,10 @@
       "title": "码上爬 - 全网一站式爬虫刷题平台",
       "summary": "全网一站式爬虫刷题平台",
       "tags": [
-        "python",
         "爬虫",
-        "编程",
+        "刷题",
         "学习",
-        "码上爬"
+        "Python"
       ],
       "source": "mashangpa.com",
       "created_at": "2025-09-17T12:28:42.883Z",
@@ -688,10 +404,10 @@
       "title": "🕹️Emulator Arcade PC download TeknoParrot ShadPS4 rom sinden Lightgun Jailbreak hack Xenia CEMU iso retrogaming téléch…",
       "summary": "Arcade zone tous les derniers jeux d'Arcade disponible sur PC",
       "tags": [
+        "街机",
         "模拟器",
+        "ROM",
         "论坛",
-        "游戏",
-        "英文",
         "AI"
       ],
       "source": "emuline.org",
@@ -712,11 +428,10 @@
       "title": "Pixilart - Share & Create Art Online",
       "summary": "Pixilart, free online drawing editor and social platform for everyone. Create game sprites, make pixel art, animated GIFs, share artwork and socialize online.",
       "tags": [
-        "像素",
-        "艺术",
-        "像素艺术",
+        "像素画",
         "在线绘图",
-        "动画GIF"
+        "GIF",
+        "美术"
       ],
       "source": "pixilart.com",
       "created_at": "2025-08-07T04:29:44.787Z",
@@ -736,11 +451,10 @@
       "title": "RaGEZONE - MMO Development Forums",
       "summary": "RaGEZONE is a website dedicated to the development of massively multiplayer online role-playing games (MMORPGs).",
       "tags": [
+        "MMO",
         "私服",
         "论坛",
-        "游戏",
-        "MMORPG开发",
-        "游戏社区"
+        "开发"
       ],
       "source": "forum.ragezone.com",
       "created_at": "2025-05-01T07:40:19.665Z",
@@ -761,10 +475,9 @@
       "summary": "集石是桌面游戏玩家首选的社交平台，为您提供最新的桌游资讯，专业的桌游数据，帮助您挑选和购买合适的游戏，全方位解决桌游玩家的所有问题",
       "tags": [
         "桌游",
-        "资料",
-        "规则书",
-        "集石",
-        "桌游网站"
+        "社区",
+        "评测",
+        "中文"
       ],
       "source": "gstonegames.com",
       "created_at": "2025-04-30T17:25:17.312Z",
@@ -784,11 +497,10 @@
       "title": "awesome-selfhosted",
       "summary": "A list of Free Software network services and web applications which can be hosted on your own servers",
       "tags": [
-        "项目",
-        "搭建",
-        "推荐",
-        "收藏",
-        "自托管"
+        "自托管",
+        "开源清单",
+        "运维",
+        "Web服务"
       ],
       "source": "awesome-selfhosted.net",
       "created_at": "2025-04-28T10:31:07.671Z",
@@ -809,10 +521,9 @@
       "summary": "这里是由机动战士高达爱好者自发组建的高达WIKI，收录了全机体数据库、动漫作品资料，希望更多的铁粉能加入。",
       "tags": [
         "高达",
-        "wiki",
-        "高达机体_高达动漫_高达年表_高达模型",
-        "高达WIKI",
-        "机体数据库"
+        "Wiki",
+        "机体",
+        "ACG"
       ],
       "source": "wiki.biligame.com",
       "created_at": "2025-04-23T04:08:38.887Z",
@@ -832,11 +543,11 @@
       "title": "利用 Draco 几何图形压缩功能优化 3D 数据 | Google Codelabs",
       "summary": "3D 图形是许多应用（包括游戏、设计和数据可视化）的基本组成部分。随着图形处理器和制作工具的不断改进，更大、更复杂的 3D 模型将会普及，并且有助于为沉浸式虚拟现实 (VR) 和增强现实 (AR) 中的新应用提供支持。由于模型复杂性的增加，存储和带宽需求被迫与 3D 数据激增的需求同步。",
       "tags": [
-        "编程",
-        "WEB",
-        "3D",
-        "工具",
-        "Draco"
+        "3D图形",
+        "Draco",
+        "Web",
+        "教程",
+        "工具"
       ],
       "source": "codelabs.developers.google.com",
       "created_at": "2025-04-22T13:15:00.673Z",
@@ -857,10 +568,8 @@
       "summary": "這個腳印是屬於誰的呢？趕快點擊來撥雲見日吧！",
       "tags": [
         "宝可梦",
-        "wiki",
-        "收藏",
-        "百科全书",
-        "神奇宝贝百科"
+        "Wiki",
+        "游戏百科"
       ],
       "source": "wiki.52poke.com",
       "created_at": "2025-04-21T11:44:23.848Z",
@@ -881,10 +590,9 @@
       "summary": "switch游戏下载-PC游戏下载-switch破解游戏下载-PC破解游戏下载-Switch520-gamer520",
       "tags": [
         "Switch",
-        "游戏",
-        "破解",
-        "下载",
-        "NS"
+        "游戏资源",
+        "PC",
+        "下载"
       ],
       "source": "gamer520.com",
       "created_at": "2025-04-21T05:09:21.868Z",
@@ -904,11 +612,10 @@
       "title": "文集详情-哔哩哔哩专栏",
       "summary": "哔哩哔哩专栏是为全体UP主开放的个人空间、自媒体平台，UP主可通过专栏平台分享自己的经验、攻略、心得等文章信息，欢迎您加入B站专栏",
       "tags": [
-        "年表",
+        "哔哩哔哩",
+        "专栏",
         "高达",
-        "B站专栏",
-        "B站个人空间",
-        "UP主专栏"
+        "文集"
       ],
       "source": "bilibili.com",
       "created_at": "2025-04-21T05:08:54.395Z",
@@ -928,11 +635,10 @@
       "title": "Tenor GIF 键盘 - 给您的对话增添个性",
       "summary": "借助 Tenor 让表达更丰富。查找合适的 GIF 动画和视频，在每次对话中准确传达您的意思。",
       "tags": [
-        "动图",
+        "GIF",
         "表情包",
-        "GIF搜索",
-        "聊天表达",
-        "动画表情"
+        "动图",
+        "搜索"
       ],
       "source": "tenor.com",
       "created_at": "2025-04-21T05:07:11.886Z",
@@ -952,11 +658,10 @@
       "title": "Alpha Disaster Contingencies",
       "summary": "Alpha Rubicon - An Online Community for over 21 years, providing advanced knowledge about disaster preparedness issues. We give you the knowledge you NEED to help you prepare for disasters!",
       "tags": [
-        "生存",
-        "技术",
         "应急",
-        "灾害准备",
-        "应急知识"
+        "生存",
+        "灾害",
+        "英文站"
       ],
       "source": "alpharubicon.com",
       "created_at": "2025-04-21T05:00:31.406Z",
@@ -978,9 +683,8 @@
       "tags": [
         "明日方舟",
         "抽卡",
-        "工具",
-        "收藏",
-        "抽卡分析"
+        "统计",
+        "工具"
       ],
       "source": "arkgacha.kwer.top",
       "created_at": "2025-04-20T17:04:31.646Z",
@@ -1001,10 +705,9 @@
       "summary": "明日方舟一图流 - 提供明日方舟关卡推荐、商店性价比、礼包性价比、物品价值表、攒抽计算器等工具，帮助博士高效规划资源",
       "tags": [
         "明日方舟",
-        "工具",
-        "抽卡",
-        "素材获取",
-        "一图流"
+        "攻略",
+        "计算器",
+        "工具"
       ],
       "source": "ark.yituliu.cn",
       "created_at": "2025-04-20T17:04:06.039Z",
@@ -1024,11 +727,11 @@
       "title": "安鹿小栈-安鹿轩备用-个人技术资源分享小站",
       "summary": "安鹿小栈(www.anlu1314.com)整合无捆绑安全软件、高质量苹果工具、优质开源源码、干货满满逆向教程，打造资源+教程一体化平台，每日上新优质内容，免费来拿不等待！",
       "tags": [
-        "资源",
-        "软件",
+        "软件资源",
+        "逆向",
         "教程",
-        "安卓",
-        "PC"
+        "博客",
+        "工具"
       ],
       "source": "anlu1314.com",
       "created_at": "2025-04-19T11:51:55.690Z",
@@ -1048,11 +751,11 @@
       "title": "吾爱破解安卓逆向入门教程《安卓逆向这档事》一、模拟器环境搭建_哔哩哔哩_bilibili",
       "summary": "由吾爱破解论坛移动安全区版主 正己 @正己2595 录制的吾爱破解安卓逆向 0基础 小白入门教程《安卓逆向这档事》正式上线啦，如果你想学习安卓逆向，这是一个不错的机会呦，详细文字介绍、视频原件下载、视频所用到的程序下载、课后作业和学习交流参看文章：https://www.52pojie.cn/thread-1695141-1-1.html, 视频播放量 562336、弹幕量 304、点赞数 12399、投硬币枚数 6898、收藏人数 23546、转发人数 1813, 视频作者 吾爱破解论坛, 作者简介 深耕软件逆向工程与反病毒技术领域，汇聚众多技术爱好者的智慧与经验，共同探索与分享前沿安全技…",
       "tags": [
-        "B站",
-        "学习",
-        "编程",
-        "安卓",
-        "逆向"
+        "安卓逆向",
+        "安全",
+        "教程",
+        "哔哩哔哩",
+        "HTML"
       ],
       "source": "bilibili.com",
       "created_at": "2025-04-19T11:39:02.649Z",
@@ -1061,8 +764,8 @@
       "featured": false,
       "preview": {
         "enabled": true,
-        "mode": "auto",
-        "src": "https://i1.hdslb.com/bfs/archive/5cc1ad6dae736cb8bd86ce479c7c7d53643b1510.jpg@100w_100h_1c.png",
+        "mode": "external",
+        "src": "https://rdl.ink/render/https%3A%2F%2Fwww.bilibili.com%2Fvideo%2FBV1wT411N7sV",
         "alt": "吾爱破解安卓逆向入门教程《安卓逆向这档事》一、模拟器环境搭建_哔哩哔哩_bilibili"
       }
     },
@@ -1072,11 +775,11 @@
       "title": "果核剥壳 - 还原软件的本质",
       "summary": "果核剥壳是一个长期更新的综合科技网站，内容涵盖绿色软件、系统工具、效率应用与科技资讯，坚持分享真正有用、有价值的资源与观点。",
       "tags": [
-        "软件",
-        "资源",
-        "工具",
+        "Windows",
         "绿色软件",
-        "系统工具"
+        "资源",
+        "博客",
+        "工具"
       ],
       "source": "ghxi.com",
       "created_at": "2025-04-19T06:42:32.182Z",
@@ -1096,11 +799,10 @@
       "title": "MAMEdev.org | Home of The MAME Project",
       "summary": "MAME is a multi-purpose emulation framework.",
       "tags": [
-        "模拟器",
-        "游戏",
-        "收藏",
         "MAME",
-        "街机"
+        "街机",
+        "模拟器",
+        "开源"
       ],
       "source": "mamedev.org",
       "created_at": "2025-04-18T16:57:15.957Z",
@@ -1120,11 +822,10 @@
       "title": "其乐 Keylol",
       "summary": "其乐Keylol 游戏社区，游戏资讯、促销折扣、福利放送、免费游戏、汉化补丁、吹水剁手、攻略评测等应有尽有，Steam/Origin/Epic/Uplay/XGP for PC 等正版玩家的大本营!",
       "tags": [
-        "游戏",
-        "steam",
-        "Keylol",
-        "其乐",
-        "其乐Keylol"
+        "Steam",
+        "游戏社区",
+        "中文",
+        "折扣"
       ],
       "source": "keylol.com",
       "created_at": "2025-04-18T12:13:27.837Z",
@@ -1144,11 +845,10 @@
       "title": "From the boundary community on Reddit: short showcase of dslz's mod",
       "summary": "Explore this post and more from the boundary community",
       "tags": [
-        "reddit",
-        "边境",
-        "服务器",
+        "游戏模组",
         "Reddit",
-        "模组展示"
+        "Boundary",
+        "展示"
       ],
       "source": "reddit.com",
       "created_at": "2025-04-18T11:53:04.670Z",
@@ -1168,11 +868,10 @@
       "title": "DMVR - Login",
       "summary": "DMVR",
       "tags": [
-        "游戏",
-        "游戏王",
         "VR",
-        "dmvr",
-        "duel"
+        "游戏王",
+        "在线对战",
+        "卡牌"
       ],
       "source": "dmvr.xyz",
       "created_at": "2025-04-18T10:41:43.761Z",
@@ -1192,11 +891,10 @@
       "title": "Pinterest",
       "summary": "Discover recipes, home ideas, style inspiration and other ideas to try.",
       "tags": [
-        "灵感",
-        "学习",
-        "收藏",
-        "图片灵感",
-        "家居创意"
+        "Pinterest",
+        "图片",
+        "设计",
+        "灵感"
       ],
       "source": "pintrest.com",
       "created_at": "2025-04-16T05:06:54.531Z",
@@ -1217,10 +915,9 @@
       "summary": "行业领先的 3D 打印模型社区，为 3D 打印爱好者和设计师提供服务。免费提供海量 3D 模型和 STL 模型下载，是您寻找彩色 3D 模型的首选平台",
       "tags": [
         "3D打印",
-        "科技",
-        "灵感",
-        "3D模型下载",
-        "STL模型"
+        "模型",
+        "拓竹",
+        "社区"
       ],
       "source": "makerworld.com.cn",
       "created_at": "2025-04-16T05:05:53.115Z",
@@ -1241,10 +938,9 @@
       "summary": "Community site for 3D printer users. Discover thousands of great printable 3D models, download them for free and read interesting articles about 3D printing.",
       "tags": [
         "3D打印",
-        "科技",
-        "灵感",
-        "3D模型下载",
-        "社区平台"
+        "模型",
+        "Printables",
+        "社区"
       ],
       "source": "printables.com",
       "created_at": "2025-04-15T16:49:31.347Z",
@@ -1254,7 +950,7 @@
       "preview": {
         "enabled": true,
         "mode": "external",
-        "src": "https://media.printables.com/og-printables.jpg",
+        "src": "https://rdl.ink/render/https%3A%2F%2Fwww.printables.com%2F",
         "alt": "3D models database | Printables.com"
       }
     },
@@ -1265,10 +961,10 @@
       "summary": "Download millions of 3D models and files for your 3D printer, laser cutter, or CNC. From custom parts to unique designs, you can find them on Thingiverse.",
       "tags": [
         "3D打印",
-        "TypeScript",
-        "things",
-        "digital design",
-        "physical objects"
+        "模型",
+        "Thingiverse",
+        "英文",
+        "TypeScript"
       ],
       "source": "thingiverse.com",
       "created_at": "2025-04-15T16:49:02.821Z",
@@ -1277,8 +973,8 @@
       "featured": false,
       "preview": {
         "enabled": true,
-        "mode": "auto",
-        "src": "https://cdn.thingiverse.com/site/img/ThingiverseOpenGraph.webp",
+        "mode": "external",
+        "src": "https://rdl.ink/render/https%3A%2F%2Fthingiverse.com%2F",
         "alt": "Thingiverse - Digital Designs for Physical Objects"
       }
     },
@@ -1288,11 +984,11 @@
       "title": "GitHub - kanriapp/kanri: 🪐 Modern offline Kanban board app for Windows, MacOS and Linux made with Tauri and Nuxt. Buil…",
       "summary": "🪐 Modern offline Kanban board app for Windows, MacOS and Linux made with Tauri and Nuxt. Built with simplicity and user experience in mind. - kanriapp/kanri",
       "tags": [
-        "github",
-        "开发",
-        "GitHub",
-        "看板应用",
-        "离线优先"
+        "Tauri",
+        "看板",
+        "开源",
+        "效率",
+        "桌面"
       ],
       "source": "github.com",
       "created_at": "2025-04-15T16:47:36.107Z",
@@ -1312,11 +1008,11 @@
       "title": "Discover | Hackaday.io",
       "summary": "Projects, pages, and more that are popular on Hackaday.io",
       "tags": [
-        "科技",
-        "学习",
-        "灵感",
-        "TypeScript",
-        "创客项目"
+        "Hackaday",
+        "硬件",
+        "创客",
+        "项目",
+        "TypeScript"
       ],
       "source": "hackaday.io",
       "created_at": "2025-04-15T16:46:37.104Z",

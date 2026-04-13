@@ -1086,7 +1086,7 @@ function cleanupGeneratedFiles(outputDir: string) {
   }
 }
 
-function sortEntries(entries: NavEntry[]): NavEntry[] {
+export function sortEntries(entries: NavEntry[]): NavEntry[] {
   return [...entries].sort(
     (left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
   );
@@ -1263,7 +1263,7 @@ function isWithinDirectory(targetPath: string, directoryPath: string): boolean {
   return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
 }
 
-function normalizeUrl(rawUrl: string): string {
+export function normalizeUrl(rawUrl: string): string {
   try {
     const url = new URL(rawUrl.trim());
     if (url.protocol === 'http:') {

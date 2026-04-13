@@ -10,6 +10,7 @@ import {
   formatReviewTemplate,
   parseReviewTemplate
 } from './pipeline.js';
+import { stripPnpmArgvSeparators } from './strip-pnpm-argv.js';
 
 const program = new Command();
 
@@ -103,4 +104,4 @@ program
     console.log('- If everything looks good, commit and push to trigger deployment');
   });
 
-program.parseAsync(process.argv);
+void program.parseAsync(stripPnpmArgvSeparators(process.argv));

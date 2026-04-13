@@ -19,6 +19,7 @@ import {
   validateEntries as validateSharedEntries,
   writeOutputs as writeSharedOutputs
 } from './pipeline.js';
+import { stripPnpmArgvSeparators } from './strip-pnpm-argv.js';
 
 interface Source {
   id: string;
@@ -268,7 +269,7 @@ program
     }
   });
 
-program.parse();
+program.parse(stripPnpmArgvSeparators(process.argv));
 
 function loadConfig(configPath: string): Config {
   return yaml.parse(fs.readFileSync(configPath, 'utf-8')) as Config;

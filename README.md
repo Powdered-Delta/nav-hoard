@@ -439,8 +439,10 @@ public/nav-hoard.custom.css
 ```
 
 这个文件同时作用于：
-- 主站前端
-- 本地编辑器
+- 主站前端（由 `src/main.ts` 在 `styles-default.css` 之后同步 `import`，打进主样式包，避免运行时 `<link>` 异步加载造成主题闪烁）
+- 本地编辑器（`editor-html` 里仍以 `<link href="/nav-hoard.custom.css">` 引用 `public` 同源文件）
+
+**注意**：主站主题已随前端构建打进 `dist/assets/*.css`。若只改 `public/nav-hoard.custom.css` 就部署，需要再执行一次 `pnpm run build`（或交给 CI 构建），线上样式才会更新；本地 `pnpm run dev` 一般会随文件保存热更新。
 
 推荐优先在 `:root` 上覆盖通用变量，这样主站和 editor 都能复用，例如：
 

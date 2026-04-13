@@ -34,6 +34,15 @@ For entry maintenance, use this priority order:
 3. Prefer `pnpm run edit` for manual review, bulk cleanup, or when a human-in-the-loop editor is the better fit.
 4. Only edit `data/index.json` directly as a last resort, and explain why the CLI or editor path was not used.
 
+### Pre-write confirmation
+
+Before running `entry-workflow confirm`, setting `confirm: true` on a review template, or otherwise persisting an entry to `data/index.json` (including `pnpm run edit` saves that write entries):
+
+1. Show the user the proposed **`summary`** and the full proposed **`tags`** list, and obtain **explicit user confirmation** that those fields may be written.
+2. If any proposed tag is **new to the corpus** (the string does not appear on any other entry’s `tags` in canonical `data/index.json`), **call out each such new tag by name** and confirm with the user before writing, so one-off vocabulary does not land without notice.
+
+Unless the user clearly waives this step (for example, they state that captured summary and tags should be written as-is with no further questions), do not complete a write after capture or refresh without the confirmations above.
+
 When updating an existing entry, do not write immediately if the refreshed result would materially change the current content.
 
 Treat these cases as requiring user confirmation before write:

@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import fetch from 'node-fetch';
 import * as yaml from 'yaml';
 import { CaptureDraftResult, DEFAULT_CANONICAL_DATA_FILE, EntryDraft, PROJECT_ROOT, captureDraft, mergeDraftEntries } from './pipeline.js';
+import { stripPnpmArgvSeparators } from './strip-pnpm-argv.js';
 
 interface RaindropRow {
   id?: string;
@@ -47,7 +48,7 @@ async function main(): Promise<void> {
     .option('--no-fetch', 'skip URL capture and import from CSV fields only')
     .option('--llm-enhance', 'use configured LLM to enhance tags after capture')
     .option('--featured-from-favorite', 'map Raindrop favorite=true to featured=true', false)
-    .parse(process.argv);
+    .parse(stripPnpmArgvSeparators(process.argv));
 
   const options = program.opts<{
     input: string;

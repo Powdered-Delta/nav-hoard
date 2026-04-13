@@ -1,8 +1,8 @@
 /*
   NavHoard custom styles
   ----------------------
-  这个文件会在默认样式之后加载。
-  建议优先覆盖主题变量；如果需要，也可以继续补充具体选择器。
+  由 src/main.ts 在 styles-default 之后同步 import（见该文件顶部 import），保证层叠顺序且无首屏闪烁。
+  建议优先覆盖主题变量；需要时再补充具体选择器。
 */
 
 body:has(> nav-hoard) {
@@ -279,12 +279,25 @@ body:has(> nav-hoard) .card {
   backdrop-filter: blur(10px);
 }
 
-body:has(> nav-hoard) .notice {
-  bottom: 72px;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  z-index: 22;
+/* 错误提示：保留语义，避免被上方统一面板背景盖成「普通通知」 */
+body:has(> nav-hoard) .notice[data-tone='error'] {
+  border-color: rgba(248, 113, 113, 0.42);
+  background: rgba(42, 14, 14, 0.94);
+  color: #fecaca;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.12), var(--nh-shadow-soft);
+}
+
+body:has(> nav-hoard) .notice[data-tone='error'] button {
+  border: 1px solid rgba(254, 202, 202, 0.35);
+  background: rgba(254, 202, 202, 0.1);
+  color: #fecaca;
+}
+
+body:has(> nav-hoard) .notice[data-tone='error'] button:hover,
+body:has(> nav-hoard) .notice[data-tone='error'] button:focus-visible {
+  border-color: rgba(254, 202, 202, 0.55);
+  background: rgba(254, 202, 202, 0.16);
+  color: #fff;
 }
 
 body:has(> nav-hoard) .featured-card {

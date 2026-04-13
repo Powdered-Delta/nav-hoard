@@ -6,11 +6,13 @@
   "bin": {
     "navhoard-cli": "./dist/cli.js",
     "nav-hoard-entry-workflow": "./dist/entry-workflow.js",
+    "navhoard-entries-remove": "./dist/entries-remove.js",
     "navhoard-editor": "./dist/editor.js",
     "navhoard-import-raindrop": "./dist/import-raindrop.js"
   },
   "scripts": {
     "build": "tsc",
+    "entries-remove": "node dist/entries-remove.js",
     "cli": "node dist/cli.js",
     "cli:dev": "tsx src/cli.ts",
     "entry": "node dist/entry-workflow.js",

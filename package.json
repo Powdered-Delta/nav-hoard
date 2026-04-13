@@ -12,9 +12,10 @@
     "preview": "vite preview",
     "navhoard-cli": "pnpm --filter navhoard-cli run cli",
     "navhoard-cli:build": "pnpm --filter navhoard-cli run build",
-    "entry-workflow": "pnpm --filter navhoard-cli run entry --",
-    "import:raindrop": "pnpm --filter navhoard-cli run import:raindrop --",
-    "edit": "pnpm --filter navhoard-cli run edit --"
+    "entry-workflow": "pnpm --filter navhoard-cli run entry",
+    "entries-remove": "node tools/navhoard-cli/dist/entries-remove.js",
+    "import:raindrop": "pnpm --filter navhoard-cli run import:raindrop",
+    "edit": "pnpm --filter navhoard-cli run edit"
   },
   "dependencies": {
     "@nav-hoard/types": "workspace:*",

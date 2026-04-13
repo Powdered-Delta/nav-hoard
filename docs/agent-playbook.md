@@ -32,7 +32,11 @@ Agent 应优先判断用户更适合哪种入口：
    - 在线抓取失败时，继续编辑 review template，再执行 `parse` / `confirm`
    - 如果任务是更新已有条目，且新结果相对现有数据出现大幅描述变更，或存在明显的 tag 增删，先向用户确认，再执行写入
 
-3. **会话式 Agent / skill 录入**
+3. **命令行按 URL 批量删除**
+   - 使用：`pnpm run entries-remove -- --urls-from path/to/urls.txt`（默认 dry-run，确认后加 `--write`）
+   - 也可重复 `--url <url>`，或与 `--stdin` 管道组合；未匹配到的 URL 会列出并以退出码 `2` 提示
+
+4. **会话式 Agent / skill 录入**
    - 由 Agent 引导输入 URL
    - 抓取内容
    - 返回统一模板
