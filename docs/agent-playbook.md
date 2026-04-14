@@ -12,6 +12,8 @@
 
 人类可读的项目简介、技术栈与常用命令见仓库根目录的 [`README.md`](../README.md)。公开演示部署（GitHub Pages）：[https://powdered-delta.github.io/nav-hoard/](https://powdered-delta.github.io/nav-hoard/)。
 
+若用户**明确要求**用一句话完成「数据更新 + `git push` + Pages 部署」，先读 **[`docs/agent-one-shot-publish.md`](agent-one-shot-publish.md)**：其中给出**可复制话术**、环境先决条件，以及如何与「默认须用户确认再 push」的规则对齐（一次性授权 / 豁免 Pre-write 的写法）。
+
 ## 核心原则
 
 - 唯一规范数据源是 `data/index.json`

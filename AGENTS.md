@@ -9,6 +9,7 @@ Before changing content or code, inspect these entry points first:
 3. `skills/nav-hoard-entry-add/SKILL.md`（单条 URL 维护）
 4. `skills/nav-hoard-batch-and-import/SKILL.md`（Raindrop 与 `sources.yaml` 批量）
 5. `docs/agent-playbook.md`
+6. `docs/agent-one-shot-publish.md`（用户明确要求「一句话更新数据并推送/部署」时的配置话术与先决条件）
 
 Do not jump straight to patching `data/index.json` unless the tool-driven path is unavailable or clearly broken.
 

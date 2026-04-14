@@ -1127,38 +1127,104 @@ nav-hoard select {
 .entries-grid.entries-by-site {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 18px;
 }
 
-.site-group {
+details.site-group {
   margin: 0;
+  /* Padding on <details> is outside <summary>’s hit target — keep 0 so the full “card” inset is clickable. */
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--nh-radius-lg);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.06) 0%, transparent 42%),
+    rgba(6, 11, 24, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 12px 36px rgba(4, 8, 20, 0.35);
+  backdrop-filter: blur(10px);
+  min-width: 0;
 }
 
-.site-group-heading {
+/* Native disclosure: padding lives on <summary> so clicks anywhere in that inset toggle. */
+summary.site-group-head {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px 14px;
-  margin: 0 0 12px;
-  font-size: clamp(1.02rem, 2vw, 1.22rem);
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  color: var(--nh-text-strong);
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 14px;
+  padding: 16px 18px 12px;
+  list-style: none;
+  border: none;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 0;
+  color: var(--nh-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+summary.site-group-head::-webkit-details-marker {
+  display: none;
+}
+
+details.site-group:not([open]) summary.site-group-head {
+  margin-bottom: 0;
+  padding: 16px 18px;
+  border-bottom: none;
+}
+
+.site-group-chevron {
+  flex-shrink: 0;
+  display: block;
+  width: 0;
+  height: 0;
+  margin-top: 2px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  opacity: 0.85;
+  transform: translateY(0.5px);
+  transition: transform 0.2s ease, opacity 0.15s ease;
+}
+
+details.site-group:not([open]) .site-group-chevron {
+  transform: translateX(1px) rotate(-90deg);
 }
 
 .site-group-title {
+  flex: 1 1 12rem;
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-size: clamp(1rem, 1.9vw, 1.14rem);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
   word-break: break-word;
+  color: var(--nh-text);
 }
 
 .site-group-count {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--nh-text-soft);
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--nh-accent-strong);
+  background: var(--nh-accent-soft);
+  border: 1px solid rgba(124, 156, 255, 0.22);
 }
 
 .site-group-body.entries-grid {
   gap: 18px;
+  box-sizing: border-box;
+  padding: 0 18px 18px;
 }
 
 .result-subtitle-note {
@@ -1627,9 +1693,16 @@ nav-hoard select {
   word-break: break-word;
 }
 
-.entries-grid.layout-waterfall,
+/* Site-group stack needs flex + gap; plain waterfall card list uses block. */
+.entries-grid.layout-waterfall:not(.entries-by-site),
 .featured-grid.layout-waterfall {
   display: block;
+}
+
+.entries-grid.layout-waterfall.entries-by-site {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .waterfall-columns {
@@ -1799,7 +1872,7 @@ nav-hoard select {
     justify-content: flex-start;
   }
 
-  .entries-grid.layout-waterfall,
+  .entries-grid.layout-waterfall:not(.entries-by-site),
   .featured-grid.layout-waterfall {
     display: block;
   }
@@ -1922,7 +1995,7 @@ nav-hoard select {
     min-height: 168px;
   }
 
-  .entries-grid.layout-waterfall,
+  .entries-grid.layout-waterfall:not(.entries-by-site),
   .featured-grid.layout-waterfall {
     display: block;
   }

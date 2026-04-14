@@ -117,6 +117,8 @@ export class NavHoard extends LitElement {
   @state() private hiddenUnlockPassword = DEFAULT_HIDDEN_UNLOCK_PASSWORD;
   @state() private locale: SupportedLocale = DEFAULT_LOCALE;
   @state() private localeMenuOpen = false;
+  /** Site group keys (`getEntrySiteGroupKey`) with collapsed card bodies in “按站点” sort. */
+  @state() private collapsedSiteGroupIds: string[] = [];
 
   private miniSearch: MiniSearch | null = null;
 
@@ -571,6 +573,7 @@ export class NavHoard extends LitElement {
     this.searchQuery = '';
     this.selectedTags = new Set();
     this.sortBy = 'relevance';
+    this.collapsedSiteGroupIds = [];
     if (this.view !== 'all') {
       this.view = 'all';
     }
@@ -596,7 +599,11 @@ export class NavHoard extends LitElement {
   }
 
   private onSortChange(event: Event) {
-    this.sortBy = (event.target as HTMLSelectElement).value as SortMode;
+    const next = (event.target as HTMLSelectElement).value as SortMode;
+    this.sortBy = next;
+    if (next !== 'site') {
+      this.collapsedSiteGroupIds = [];
+    }
     this.applyFilters();
   }
 
@@ -908,7 +915,7 @@ export class NavHoard extends LitElement {
     }
   }
 
-  private groupEntriesBySite(entries: NavEntry[]): Array<{ heading: string; entries: NavEntry[] }> {
+  private groupEntriesBySite(entries: NavEntry[]): Array<{ id: string; heading: string; entries: NavEntry[] }> {
     const map = new Map<string, NavEntry[]>();
     for (const entry of entries) {
       const key = this.getEntrySiteGroupKey(entry);
@@ -920,11 +927,42 @@ export class NavHoard extends LitElement {
       }
     }
     return Array.from(map.entries())
-      .sort(([left], [right]) => left.localeCompare(right, this.locale, { sensitivity: 'base' }))
+      .sort(([keyA, listA], [keyB, listB]) => {
+        const byCount = listB.length - listA.length;
+        if (byCount !== 0) {
+          return byCount;
+        }
+        // Same size: keep "unknown" bucket last so named hosts read first.
+        if (keyA === UNKNOWN_SITE_GROUP_KEY && keyB !== UNKNOWN_SITE_GROUP_KEY) {
+          return 1;
+        }
+        if (keyB === UNKNOWN_SITE_GROUP_KEY && keyA !== UNKNOWN_SITE_GROUP_KEY) {
+          return -1;
+        }
+        return keyA.localeCompare(keyB, this.locale, { sensitivity: 'base' });
+      })
       .map(([key, grouped]) => ({
+        id: key,
         heading: this.getSiteGroupHeadingLabel(key),
         entries: grouped
       }));
+  }
+
+  private isSiteGroupCollapsed(groupId: string): boolean {
+    return this.collapsedSiteGroupIds.includes(groupId);
+  }
+
+  /** Sync `collapsedSiteGroupIds` with native `<details>` open state (after user toggle). */
+  private onSiteGroupDetailsToggle(event: Event, groupId: string) {
+    const root = event.currentTarget;
+    if (!(root instanceof HTMLDetailsElement)) {
+      return;
+    }
+    if (root.open) {
+      this.collapsedSiteGroupIds = this.collapsedSiteGroupIds.filter(id => id !== groupId);
+    } else if (!this.collapsedSiteGroupIds.includes(groupId)) {
+      this.collapsedSiteGroupIds = [...this.collapsedSiteGroupIds, groupId];
+    }
   }
 
   private getSortLabel(): string {
@@ -1618,19 +1656,30 @@ export class NavHoard extends LitElement {
 
     if (this.sortBy === 'site') {
       const groups = this.groupEntriesBySite(entries);
-      return groups.map((group, index) => html`
-        <section class="site-group" aria-labelledby=${`site-heading-${index}`}>
-          <h2 class="site-group-heading" id=${`site-heading-${index}`}>
-            <span class="site-group-title">${group.heading}</span>
+      return groups.map((group, index) => {
+        const collapsed = this.isSiteGroupCollapsed(group.id);
+        const bodyId = `site-group-body-${index}`;
+        const headingId = `site-heading-${index}`;
+        return html`
+        <details
+          class="site-group"
+          .open=${!collapsed}
+          aria-labelledby=${headingId}
+          @toggle=${(e: Event) => this.onSiteGroupDetailsToggle(e, group.id)}
+        >
+          <summary class="site-group-head">
+            <span class="site-group-chevron" aria-hidden="true"></span>
+            <span class="site-group-title" id=${headingId}>${group.heading}</span>
             <span class="site-group-count">${this.t('home.site.entry_count', { count: this.formatCount(group.entries.length) })}</span>
-          </h2>
-          <div class="site-group-body entries-grid layout-${this.layoutMode}">
+          </summary>
+          <div id=${bodyId} class="site-group-body entries-grid layout-${this.layoutMode}">
             ${this.layoutMode !== 'waterfall'
               ? group.entries.map(entry => this.renderCard(entry))
               : this.renderWaterfallColumns(group.entries)}
           </div>
-        </section>
-      `);
+        </details>
+      `;
+      });
     }
 
     if (this.layoutMode !== 'waterfall') {

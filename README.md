@@ -32,6 +32,21 @@ flowchart TD
     I --> J["Actions 构建并发布"]
 ```
 
+## 典型使用场景（模拟对话）
+
+下面是一段**虚构但贴近本仓库约定**的会话：你在 **Cursor / OpenClaw / Codex** 等里和 Agent 协作，**添加一条链接**。Agent 应按 [`skills/nav-hoard-entry-add/SKILL.md`](skills/nav-hoard-entry-add/SKILL.md) 与 [`AGENTS.md`](AGENTS.md) 的 **Pre-write confirmation** 执行（具体措辞可随工具变化）。
+
+> **你**：在这个 nav-hoard 仓库里帮我加一条收藏：`https://example.com/article`，当作技术阅读向的条目。  
+> **Agent**：我会在仓库根目录执行 `pnpm run build:cli`（若尚未构建），然后跑 `entry-workflow capture` 抓取页面并生成审阅模板 `.tmp/navhoard-entry-review.yaml`。  
+> **Agent**：（抓取结束后）模板里目前是这些字段——**标题**：…；**摘要**：…；**tags**：`[ … ]`。请你看一下摘要和标签是否可以直接写入？若有 tag 是库里从没出现过的，我会逐个标出来请你确认。  
+> **你**：摘要可以，tag 里把「教程」改成「文档」再写入。  
+> **Agent**：已按你的意见改好模板；请把 YAML 里的 `confirm` 改成 `true`（或你确认后由我说明将执行写入）。我现在执行 `entry-workflow confirm`，写入 `data/index.json` 并同步 `public/data/`。  
+> **Agent**：写入完成。需要的话你可以本地跑 `pnpm run dev` 看卡片效果；若要上网更新，再在 `git commit` / `push` 前自行确认即可。
+
+若抓取失败，同一套 skill 仍会给你可编辑模板，由你补全字段后再 `confirm`，而不是直接改 `data/index.json` 半成品。
+
+**希望「一句话」让 Agent 连 Git 推送 / Pages 部署一起做？** 先读配置指南 **[`docs/agent-one-shot-publish.md`](docs/agent-one-shot-publish.md)**（含可复制指令范本、先决条件与风险说明）；默认仍建议只自动数据、推送前人工看一眼。
+
 ## 快速开始
 
 ```bash
