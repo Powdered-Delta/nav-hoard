@@ -471,13 +471,16 @@ function persistDraftEntries(
     };
   }
 
-  const sortedEntries = sortEntries(validated.entries);
-  const writeSummary = writeOutputs(dataPaths, sortedEntries);
+  // Editor full replace: preserve client array order so rows do not jump on save.
+  // Merge imports: keep stable canonical ordering by recency.
+  const orderedEntries =
+    strategy === 'replace' ? validated.entries : sortEntries(validated.entries);
+  const writeSummary = writeOutputs(dataPaths, orderedEntries);
 
   return {
     ok: true,
-    entries: sortedEntries,
-    total: sortedEntries.length,
+    entries: orderedEntries,
+    total: orderedEntries.length,
     duplicateCount: merged.duplicateCount,
     mode: writeSummary.mode,
     writtenFiles: writeSummary.files,

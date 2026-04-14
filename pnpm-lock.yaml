@@ -14,11 +14,20 @@ importers:
       '@fontsource/fusion-pixel-12px-monospaced-sc':
         specifier: ^5.2.5
         version: 5.2.5
+      '@lit/reactive-element':
+        specifier: ^2.1.0
+        version: 2.1.2
       '@nav-hoard/types':
         specifier: workspace:*
         version: link:packages/types
       lit:
         specifier: ^3.2.0
+        version: 3.3.2
+      lit-element:
+        specifier: ^4.2.0
+        version: 4.2.2
+      lit-html:
+        specifier: ^3.3.0
         version: 3.3.2
       minisearch:
         specifier: ^6.3.0

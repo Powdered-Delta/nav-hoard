@@ -494,7 +494,8 @@ export class NavHoard extends LitElement {
     this.miniSearch = new MiniSearch({
       fields: ['title', 'summary', 'tags'],
       storeFields: ['id', 'title', 'summary', 'tags', 'url', 'source', 'updated_at'],
-      searchOptions: { prefix: true, boost: { title: 2 } }
+      // Default MiniSearch is OR across terms; space-separated words should all match (e.g. "工具 爬虫").
+      searchOptions: { prefix: true, boost: { title: 2 }, combineWith: 'AND' }
     });
 
     this.miniSearch.addAll(accessibleEntries.map(entry => ({

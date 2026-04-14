@@ -1,10 +1,57 @@
 {
   "version": "0.2",
-  "updated_at": "2026-04-13T09:45:33.785Z",
+  "updated_at": "2026-04-14T02:45:32.716Z",
   "config": {
     "hidden_unlock_password": "up up down down left right left right b a b a"
   },
   "entries": [
+    {
+      "id": "0424974c6853",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
+      "summary": "The official video for “Never Gonna Give You Up” by Rick Astley. Never: The Autobiography 📚 OUT NOW! Follow this link to get your copy and listen to Rick’s ...",
+      "tags": [
+        "rick astley",
+        "Never Gonna Give Yo…",
+        "nggyu",
+        "never gonna give yo…",
+        "rick rolled"
+      ],
+      "source": "www.youtube.com",
+      "created_at": "2009-10-25T14:00:00.000Z",
+      "updated_at": "2026-04-14T02:45:21.028Z",
+      "confidence": 0.8,
+      "featured": false,
+      "preview": {
+        "enabled": true,
+        "mode": "auto",
+        "src": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+        "alt": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)"
+      }
+    },
+    {
+      "id": "e1fc97db7dd5",
+      "url": "https://www.alpharubicon.com/",
+      "title": "Alpha Disaster Contingencies",
+      "summary": "Alpha Rubicon - An Online Community for over 21 years, providing advanced knowledge about disaster preparedness issues. We give you the knowledge you NEED to help you prepare for disasters!",
+      "tags": [
+        "应急",
+        "生存",
+        "灾害",
+        "英文站"
+      ],
+      "source": "www.alpharubicon.com",
+      "created_at": "2026-04-14T02:38:51.178Z",
+      "updated_at": "2026-04-14T02:38:51.178Z",
+      "confidence": 0,
+      "featured": false,
+      "preview": {
+        "enabled": true,
+        "mode": "external",
+        "src": "https://rdl.ink/render/http%3A%2F%2Fwww.alpharubicon.com%2F",
+        "alt": "Alpha Disaster Contingencies"
+      }
+    },
     {
       "id": "c06b1fa1e324",
       "url": "https://match.yuanrenxue.cn/",
@@ -299,23 +346,6 @@
         "src": "https://picsum.photos/seed/navhoard-e0e76714ae0d/960/720",
         "alt": "Preview image for React Hooks article"
       }
-    },
-    {
-      "id": "0424974c6853",
-      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "title": "Rick Astley - Never Gonna Give You Up (Official Music Video)",
-      "summary": "经典的 Rickroll 音乐视频，互联网文化的一部分， NEVER GONNA GIVE YOU UP, NEVER GONNA LET YOU DOWN.",
-      "tags": [
-        "音乐",
-        "迷因",
-        "YouTube",
-        "视频"
-      ],
-      "source": "youtube.com",
-      "created_at": "2009-10-25T14:00:00.000Z",
-      "updated_at": "2026-03-01T10:00:00.000Z",
-      "confidence": 1,
-      "featured": false
     },
     {
       "id": "829a1de784a7",
@@ -650,29 +680,6 @@
         "mode": "external",
         "src": "https://rdl.ink/render/https%3A%2F%2Ftenor.com%2Fzh-CN%2F",
         "alt": "Tenor GIF 键盘 - 给您的对话增添个性"
-      }
-    },
-    {
-      "id": "e1fc97db7dd5",
-      "url": "https://www.alpharubicon.com/",
-      "title": "Alpha Disaster Contingencies",
-      "summary": "Alpha Rubicon - An Online Community for over 21 years, providing advanced knowledge about disaster preparedness issues. We give you the knowledge you NEED to help you prepare for disasters!",
-      "tags": [
-        "应急",
-        "生存",
-        "灾害",
-        "英文站"
-      ],
-      "source": "alpharubicon.com",
-      "created_at": "2025-04-21T05:00:31.406Z",
-      "updated_at": "2025-04-21T05:00:31.406Z",
-      "confidence": 0.95,
-      "featured": false,
-      "preview": {
-        "enabled": true,
-        "mode": "external",
-        "src": "https://rdl.ink/render/http%3A%2F%2Fwww.alpharubicon.com%2F",
-        "alt": "Alpha Disaster Contingencies"
       }
     },
     {

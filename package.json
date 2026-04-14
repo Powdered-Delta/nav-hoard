@@ -21,7 +21,10 @@
     "@nav-hoard/types": "workspace:*",
     "@fontsource-variable/jetbrains-mono": "^5.2.7",
     "@fontsource/fusion-pixel-12px-monospaced-sc": "^5.2.5",
+    "@lit/reactive-element": "^2.1.0",
     "lit": "^3.2.0",
+    "lit-element": "^4.2.0",
+    "lit-html": "^3.3.0",
     "minisearch": "^6.3.0"
   },
   "devDependencies": {

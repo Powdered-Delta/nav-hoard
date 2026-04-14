@@ -36,6 +36,7 @@ const outputPath = DEFAULT_CANONICAL_DATA_FILE;
 const serverInstanceId = `${process.pid}-${Date.now()}`;
 const liveReloadClients = new Set<ServerResponse>();
 const editorSourceDir = path.join(PROJECT_ROOT, 'tools', 'navhoard-cli', 'src');
+/** 须能解析到 `lit` 的同级依赖（lit-html 等）；pnpm 下请在仓库根 package.json 中显式声明这些包以便提升到根 node_modules。 */
 const nodeModulesRoot = path.join(PROJECT_ROOT, 'node_modules');
 
 setupLiveReloadWatchers();
@@ -78,6 +79,11 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
 
   if (method === 'GET' && url.pathname === '/nav-hoard.custom.css') {
     sendCustomCss(response, outputPath);
+    return;
+  }
+
+  if (method === 'GET' && url.pathname.startsWith('/images/')) {
+    sendPublicImagesFile(response, outputPath, url.pathname);
     return;
   }
 
@@ -195,6 +201,43 @@ function sendJson(response: ServerResponse, statusCode: number, payload: unknown
     'Cache-Control': 'no-store'
   });
   response.end(JSON.stringify(payload, null, 2));
+}
+
+function sendPublicImagesFile(response: ServerResponse, targetOutputPath: string, pathname: string): void {
+  const dataPaths = resolveDataPaths(targetOutputPath);
+  const publicRoot = path.resolve(path.dirname(dataPaths.publishDir));
+  const relative = pathname.replace(/^\/+/, '');
+  const filePath = path.resolve(publicRoot, relative);
+
+  if (!filePath.startsWith(publicRoot + path.sep)) {
+    sendJson(response, 403, {
+      error: 'forbidden',
+      path: pathname
+    });
+    return;
+  }
+
+  if (!relative.startsWith('images/')) {
+    sendJson(response, 403, {
+      error: 'forbidden',
+      path: pathname
+    });
+    return;
+  }
+
+  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+    sendJson(response, 404, {
+      error: 'not_found',
+      path: pathname
+    });
+    return;
+  }
+
+  response.writeHead(200, {
+    'Content-Type': contentTypeFor(filePath),
+    'Cache-Control': 'no-store'
+  });
+  response.end(fs.readFileSync(filePath));
 }
 
 function sendCustomCss(response: ServerResponse, targetOutputPath: string): void {
@@ -470,5 +513,9 @@ function contentTypeFor(filePath: string): string {
   if (extension === '.json' || extension === '.map') return 'application/json; charset=utf-8';
   if (extension === '.css') return 'text/css; charset=utf-8';
   if (extension === '.svg') return 'image/svg+xml';
+  if (extension === '.png') return 'image/png';
+  if (extension === '.jpg' || extension === '.jpeg') return 'image/jpeg';
+  if (extension === '.webp') return 'image/webp';
+  if (extension === '.gif') return 'image/gif';
   return 'application/octet-stream';
 }

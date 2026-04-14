@@ -383,27 +383,6 @@ class NavHoardEditorApp extends LitElement {
       .sort((left, right) => right.count - left.count || left.tag.localeCompare(right.tag, this.locale));
   }
 
-  private toTimestamp(value?: string): number {
-    const timestamp = Date.parse(String(value || ''));
-    return Number.isFinite(timestamp) ? timestamp : 0;
-  }
-
-  private sortEntriesForList(entries: EditorEntry[]): EditorEntry[] {
-    return entries.slice().sort((left, right) => {
-      const createdDiff = this.toTimestamp(right.created_at) - this.toTimestamp(left.created_at);
-      if (createdDiff !== 0) {
-        return createdDiff;
-      }
-
-      const updatedDiff = this.toTimestamp(right.updated_at) - this.toTimestamp(left.updated_at);
-      if (updatedDiff !== 0) {
-        return updatedDiff;
-      }
-
-      return String(right.localId).localeCompare(String(left.localId));
-    });
-  }
-
   private filteredEntries(): EditorEntry[] {
     const keyword = this.search.trim().toLowerCase();
     const searched = !keyword
@@ -411,12 +390,11 @@ class NavHoardEditorApp extends LitElement {
       : this.entries.filter((entry) =>
           [entry.title, entry.url, entry.source, entry.tags, entry.summary].join(' ').toLowerCase().includes(keyword)
         );
-    const filtered = this.featuredOnly ? searched.filter((entry) => entry.featured) : searched;
-    return this.sortEntriesForList(filtered);
+    return this.featuredOnly ? searched.filter((entry) => entry.featured) : searched;
   }
 
   private defaultSelectedId(entries: EditorEntry[] = this.entries): string | null {
-    return this.sortEntriesForList(entries)[0]?.localId || null;
+    return entries[0]?.localId || null;
   }
 
   private queueScrollToSelected(): void {
@@ -622,12 +600,65 @@ class NavHoardEditorApp extends LitElement {
     };
   }
 
-  private applyCaptureResult(result: CaptureResponse): { addedTags: string[]; newGlobalTags: string[] } {
+  private getSourceMonogram(source: string): string {
+    const primary =
+      source
+        .replace(/^www\./i, '')
+        .split('.')
+        .find((part) => /^[a-z0-9]/i.test(part)) || 'NH';
+    return primary.slice(0, 2).toUpperCase();
+  }
+
+  private listEntryMonogram(entry: EditorEntry): string {
+    const source = entry.source.trim();
+    if (source) {
+      return this.getSourceMonogram(source);
+    }
+    const title = entry.title.trim();
+    if (title) {
+      const letters = title.replace(/\s+/g, '').slice(0, 2);
+      return letters ? letters.toUpperCase() : 'NH';
+    }
+    return 'NH';
+  }
+
+  private resolveListPreviewUrl(entry: EditorEntry): string | null {
+    if (!entry.preview_enabled) {
+      return null;
+    }
+    const raw = String(entry.preview_src || '').trim();
+    if (!raw) {
+      return null;
+    }
+    if (/^(https?:|\/\/|data:)/i.test(raw)) {
+      return raw;
+    }
+    return raw.startsWith('/') ? raw : `/${raw.replace(/^\/*/, '')}`;
+  }
+
+  private applyCaptureResult(
+    result: CaptureResponse,
+    options?: { previewOnly?: boolean }
+  ): { addedTags: string[]; newGlobalTags: string[] } {
     const entry = this.currentEntry();
     if (!entry || !result?.draft) {
       return { addedTags: [], newGlobalTags: [] };
     }
     const draft = result.draft;
+    const previewOnly = options?.previewOnly === true;
+
+    if (previewOnly) {
+      if (draft.preview?.src) {
+        entry.preview_enabled = draft.preview.enabled !== false;
+        entry.preview_mode = draft.preview.mode || 'auto';
+        entry.preview_src = draft.preview.src;
+        entry.preview_alt = draft.preview.alt || entry.title;
+        entry.updated_at = draft.updated_at || this.nowIso();
+        this.markDirty(true);
+      }
+      return { addedTags: [], newGlobalTags: [] };
+    }
+
     const previousTags = new Set(this.parseEntryTags(entry.tags));
     const knownTags = this.buildKnownTagSet(entry.localId);
     let addedTags: string[] = [];
@@ -642,7 +673,8 @@ class NavHoardEditorApp extends LitElement {
       newGlobalTags = addedTags.filter((tag) => !knownTags.has(tag));
       entry.tags = draft.tags.join(', ');
     }
-    if (draft.created_at) entry.created_at = draft.created_at;
+    // Capture drafts always set created_at to the fetch moment (for brand-new entries).
+    // Editor sync must not replace the bookmark's original created_at.
     entry.updated_at = draft.updated_at || this.nowIso();
     if (typeof draft.confidence === 'number') {
       entry.confidence = String(draft.confidence);
@@ -789,6 +821,62 @@ class NavHoardEditorApp extends LitElement {
       );
     } catch (error) {
       this.setStatusKey('editor.notice.sync_failed_with_reason', 'error', { message: this.getErrorMessage(error) });
+    } finally {
+      this.isSyncing = false;
+      this.touch();
+    }
+  }
+
+  private async syncCurrentEntryPreviewOnly(): Promise<void> {
+    const entry = this.currentEntry();
+    if (!entry) {
+      this.setStatusKey('editor.notice.select_entry_before_sync', 'error');
+      return;
+    }
+    const targetUrl = String(entry.url || '').trim();
+    if (!targetUrl) {
+      this.setStatusKey('editor.notice.fill_url_before_sync', 'error');
+      return;
+    }
+
+    this.isSyncing = true;
+    this.touch();
+    this.setStatusKey('editor.notice.syncing', 'info');
+
+    try {
+      const payload = await this.requestJson<CaptureResponse>('/api/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: targetUrl })
+      });
+
+      const hadPreviewSrc = Boolean(payload.draft?.preview?.src);
+      this.applyCaptureResult(payload, { previewOnly: true });
+
+      const messages: string[] = [];
+      if (hadPreviewSrc) {
+        messages.push(this.t('editor.notice.sync_preview_success'));
+      } else {
+        messages.push(this.t('editor.notice.sync_preview_no_image'));
+      }
+      if (payload.failureReason) {
+        messages.push(this.t('editor.notice.reason', { reason: payload.failureReason }));
+      }
+      if (Array.isArray(payload.warnings) && payload.warnings.length > 0) {
+        messages.push(this.t('editor.notice.warnings', { warnings: payload.warnings.join('；') }));
+      }
+
+      const kind: StatusKind =
+        payload.status === 'failed' && !hadPreviewSrc
+          ? 'error'
+          : payload.status === 'failed'
+            ? 'info'
+            : payload.status === 'partial'
+              ? 'info'
+              : 'success';
+      this.setStatus(messages.join(' '), kind);
+    } catch (error) {
+      this.setStatusKey('editor.notice.sync_preview_failed_with_reason', 'error', { message: this.getErrorMessage(error) });
     } finally {
       this.isSyncing = false;
       this.touch();
@@ -1125,6 +1213,7 @@ class NavHoardEditorApp extends LitElement {
           'bulk-mode': this.bulkMode,
           'selected-for-bulk': selected.has(entry.localId)
         };
+        const listPreviewUrl = this.resolveListPreviewUrl(entry);
         return html`
           <div
             class=${classMap(classes)}
@@ -1154,48 +1243,57 @@ class NavHoardEditorApp extends LitElement {
               this.touch();
             }}
           >
-            <div class="entry-item-head">
-              <div class="entry-featured-meta">
-                ${this.bulkMode
-                  ? html`
-                      <button
-                        class=${classMap({ 'entry-select-toggle': true, active: selected.has(entry.localId) })}
-                        type="button"
-                        @click=${(event: Event) => {
-                          event.stopPropagation();
-                          this.toggleBulkSelection(entry.localId);
-                        }}
-                      >
-                        ${selected.has(entry.localId) ? '✓' : ''}
-                      </button>
-                    `
-                  : null}
-                ${entry.featured ? html`<span class="badge">${this.t('editor.badge.featured')}</span>` : null}
-                ${entry.hide ? html`<span class="badge">${this.t('editor.badge.hidden')}</span>` : null}
-                <div style="min-width:0; flex:1;">
-                  <strong class="entry-item-title">${entry.title || this.t('editor.card.untitled')}</strong>
-                  <small>${entry.url || this.t('editor.card.no_url')}</small>
-                </div>
+            <div class="entry-item-inner">
+              <div class="entry-item-thumb-wrap">
+                ${listPreviewUrl
+                  ? html`<img src=${listPreviewUrl} loading="lazy" decoding="async" alt="" />`
+                  : html`<div class="entry-item-thumb-fallback">${this.listEntryMonogram(entry)}</div>`}
               </div>
-              ${entry.featured
-                ? html`
-                    <button
-                      class="entry-featured-toggle"
-                      type="button"
-                      @click=${(event: Event) => {
-                        event.stopPropagation();
-                        this.toggleFeaturedEntry(entry, false);
-                      }}
-                    >
-                      ${this.t('editor.button.unfeature')}
-                    </button>
-                  `
-                : null}
+              <div class="entry-item-text">
+                <div class="entry-item-head">
+                  <div class="entry-featured-meta">
+                    ${this.bulkMode
+                      ? html`
+                          <button
+                            class=${classMap({ 'entry-select-toggle': true, active: selected.has(entry.localId) })}
+                            type="button"
+                            @click=${(event: Event) => {
+                              event.stopPropagation();
+                              this.toggleBulkSelection(entry.localId);
+                            }}
+                          >
+                            ${selected.has(entry.localId) ? '✓' : ''}
+                          </button>
+                        `
+                      : null}
+                    ${entry.featured ? html`<span class="badge">${this.t('editor.badge.featured')}</span>` : null}
+                    ${entry.hide ? html`<span class="badge">${this.t('editor.badge.hidden')}</span>` : null}
+                    <div style="min-width:0; flex:1;">
+                      <strong class="entry-item-title">${entry.title || this.t('editor.card.untitled')}</strong>
+                      <small>${entry.url || this.t('editor.card.no_url')}</small>
+                    </div>
+                  </div>
+                  ${entry.featured
+                    ? html`
+                        <button
+                          class="entry-featured-toggle"
+                          type="button"
+                          @click=${(event: Event) => {
+                            event.stopPropagation();
+                            this.toggleFeaturedEntry(entry, false);
+                          }}
+                        >
+                          ${this.t('editor.button.unfeature')}
+                        </button>
+                      `
+                    : null}
+                </div>
+                <small>${entry.tags || this.t('editor.card.no_tags')}</small>
+                ${entry.featured
+                  ? html`<small>${this.t('editor.summary.featured_sort', { rank: entry.featured_rank || '100' })}</small>`
+                  : null}
+              </div>
             </div>
-            <small>${entry.tags || this.t('editor.card.no_tags')}</small>
-            ${entry.featured
-              ? html`<small>${this.t('editor.summary.featured_sort', { rank: entry.featured_rank || '100' })}</small>`
-              : null}
           </div>
         `;
       }
@@ -1316,6 +1414,14 @@ class NavHoardEditorApp extends LitElement {
               <div class="row section-actions">
                 <button class="nh-button" type="button" ?disabled=${!entry || this.isSyncing} @click=${() => void this.syncCurrentEntry()}>
                   ${this.isSyncing ? this.t('editor.button.syncing') : this.t('editor.button.sync')}
+                </button>
+                <button
+                  class="nh-button nh-button--ghost"
+                  type="button"
+                  ?disabled=${!entry || this.isSyncing}
+                  @click=${() => void this.syncCurrentEntryPreviewOnly()}
+                >
+                  ${this.isSyncing ? this.t('editor.button.syncing') : this.t('editor.button.sync_preview')}
                 </button>
                 <button class="nh-button" type="button" @click=${() => this.openFileInput('bookmark-file')}>
                   ${this.t('editor.button.import_bookmarks')}

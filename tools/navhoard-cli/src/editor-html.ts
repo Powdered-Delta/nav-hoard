@@ -125,6 +125,7 @@
         width: 100%;
         justify-content: flex-end;
         align-items: center;
+        gap: 10px;
       }
       .status-row {
         justify-content: space-between;
@@ -218,6 +219,41 @@
         box-shadow:
           0 0 0 1px color-mix(in srgb, var(--editor-accent) 24%, transparent) inset,
           0 14px 30px rgba(27, 39, 94, 0.16);
+      }
+      .entry-item-inner {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .entry-item-thumb-wrap {
+        flex: 0 0 auto;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .entry-item-thumb-wrap img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .entry-item-thumb-fallback {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: var(--editor-text-soft);
+      }
+      .entry-item-text {
+        flex: 1 1 auto;
+        min-width: 0;
       }
       .entry-item-head,
       .entry-featured-meta {
@@ -467,6 +503,15 @@
       .nh-button--primary {
         border-color: rgba(124, 156, 255, 0.3);
         background: linear-gradient(180deg, rgba(124, 156, 255, 0.22), rgba(90, 120, 255, 0.18));
+      }
+      .nh-button--ghost {
+        border-color: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--editor-text-soft);
+      }
+      .nh-button--ghost:hover:not(:disabled) {
+        border-color: rgba(124, 156, 255, 0.22);
+        color: var(--editor-text);
       }
       .nh-button--danger {
         border-color: rgba(220, 38, 38, 0.28);
