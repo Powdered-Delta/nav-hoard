@@ -1,0 +1,10 @@
+llm:
+  provider: "openai"
+  apiKey: "${LLM_API_KEY}"
+  endpoint: "https://api.openai.com/v1"
+  model: "gpt-4o-mini"
+  wireApi: "chat_completions"
+  temperature: 0.3
+  maxTokens: 200
+  timeout: 30000
+  retries: 3

@@ -1,0 +1,19 @@
+sources:
+  - id: "hackernews"
+    name: "Hacker News"
+    type: "rss"
+    url: "https://hnrss.org/frontpage"
+    priority: 10
+    enabled: true
+  # 可在此添加更多 RSS 源
+  # - id: "solidot"
+  #   name: "Solidot"
+  #   type: "html"
+  #   url: "https://www.solidot.org/"
+  #   selector:
+  #     item: ".block_content > div"
+  #     title: "dt a"
+  #     link: "dt a@href"
+  #     content: ".topic_main_content"
+  #   priority: 5
+  #   enabled: false

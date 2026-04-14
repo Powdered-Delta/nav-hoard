@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">开源维护者的写作与归档预览图</title>
+  <desc id="desc">开源协作与博客归档示意图</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <path d="M100 430c120-90 220-130 360-130s240 40 360 130" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="26" stroke-linecap="round"/>
+  <text x="88" y="178" fill="#fed7aa" font-size="28" font-family="Segoe UI, Arial, sans-serif">barretlee.github.io</text>
+  <text x="88" y="286" fill="#ffffff" font-size="60" font-weight="700" font-family="Segoe UI, Arial, sans-serif">开源维护者的写作与归档</text>
+  <text x="88" y="364" fill="#ffedd5" font-size="30" font-family="Segoe UI, Arial, sans-serif">协作、记录与长期维护的个人方法论</text>
+</svg>

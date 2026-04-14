@@ -1,0 +1,11 @@
+node_modules/
+.pnpm-store/
+dist/
+tools/navhoard-cli/dist/
+.codex/
+public/data/copenclaw-cache.json
+.DS_Store
+*.log
+.env
+.env.local
+data/config.yaml
