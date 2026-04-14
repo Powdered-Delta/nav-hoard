@@ -158,6 +158,10 @@ pnpm run build
 pnpm run build:cli
 ```
 
+### 线上验证（样式变更后）
+
+若本仓库已接入 GitHub Pages，可在部署完成后打开公开站点核对主题与布局：[https://powdered-delta.github.io/nav-hoard/](https://powdered-delta.github.io/nav-hoard/)（若目标仓库不同，请替换为对应 Pages 地址）。
+
 ## 决策表
 
 | 需求 | 优先修改位置 |

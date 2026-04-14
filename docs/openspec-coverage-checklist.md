@@ -32,7 +32,7 @@
   - 工具链：`tools/navhoard-cli/src/`
   - 部署：`.github/workflows/`
   - 数据结构：`data/index.json`
-  - 使用说明：`README.md`
+  - 使用说明：`README.md`（项目简介、常用命令、GitHub Pages 演示链接）；单条与批量技能：`skills/nav-hoard-entry-add/SKILL.md`、`skills/nav-hoard-batch-and-import/SKILL.md`
 
 ---
 
@@ -55,7 +55,7 @@
 | 编辑器元数据维护、预览图上传、局域网参数、批量维护 | 编辑器支持 `featured`/`hide`、上传预览图、`--host/--port`、批量删除 | `interactive-entry-workflow` | 已同步到主 spec |
 | Raindrop 导入工作流 | 独立 CLI 支持导入、抓取、LLM 增强、合并写回 | `raindrop-import-workflow` | 已同步到主 spec |
 | 浏览器书签独立导入工作流 | 已明确输入边界、字段映射、共享 pipeline 与编辑器审阅入口 | `browser-bookmark-import-workflow` | 已同步到主 spec |
-| GitHub Pages 自动部署 | 工作流、构建配置与 README 已成链路 | `deployment-workflow` | 已同步到主 spec |
+| GitHub Pages 自动部署 | 工作流（含 `configure-pages` enablement）、构建配置、`README.md` 与 `docs/agent-playbook.md` 部署约定 | `deployment-workflow` | 已同步到主 spec |
 
 ---
 

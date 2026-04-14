@@ -59,9 +59,14 @@
 
 ## 6. 文档验收
 
-- [ ] README 可读、无关键乱码
-- [ ] `docs/agent-playbook.md` 可读
+- [ ] README 可读、无关键乱码，且含正确的线上演示链接（若 Pages 地址变更需同步）
+- [ ] `docs/agent-playbook.md` 可读，部署约定与当前工作流一致
 - [ ] `docs/agent-style-playbook.md` 可读
+
+## 6.1 GitHub Pages 验收（已启用 Pages 时）
+
+- [ ] 打开 [https://powdered-delta.github.io/nav-hoard/](https://powdered-delta.github.io/nav-hoard/) 无白屏、无资源 404（若 fork 或仓库名不同，请改为对应 URL）
+- [ ] Actions 中 `Deploy GitHub Pages` 工作流最近一次运行成功
 
 ## 7. 自动化结果
 
