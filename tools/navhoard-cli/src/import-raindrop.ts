@@ -5,6 +5,7 @@ import fetch from 'node-fetch';
 import * as yaml from 'yaml';
 import { CaptureDraftResult, DEFAULT_CANONICAL_DATA_FILE, EntryDraft, PROJECT_ROOT, captureDraft, mergeDraftEntries } from './pipeline.js';
 import { stripPnpmArgvSeparators } from './strip-pnpm-argv.js';
+import { writeBatchReportJson } from './write-batch-report.js';
 
 interface RaindropRow {
   id?: string;
@@ -48,6 +49,7 @@ async function main(): Promise<void> {
     .option('--no-fetch', 'skip URL capture and import from CSV fields only')
     .option('--llm-enhance', 'use configured LLM to enhance tags after capture')
     .option('--featured-from-favorite', 'map Raindrop favorite=true to featured=true', false)
+    .option('--report <path>', 'Write JSON import report for post-run review (and optional pre-compare with a prior report)')
     .parse(stripPnpmArgvSeparators(process.argv));
 
   const options = program.opts<{
@@ -57,6 +59,7 @@ async function main(): Promise<void> {
     fetch: boolean;
     llmEnhance: boolean;
     featuredFromFavorite: boolean;
+    report?: string;
   }>();
 
   const inputPath = resolveCsvInput(options.input);
@@ -98,6 +101,27 @@ async function main(): Promise<void> {
   console.log('Written files:');
   for (const file of result.writtenFiles) {
     console.log(`- ${file}`);
+  }
+
+  if (options.report) {
+    writeBatchReportJson(options.report, {
+      kind: 'raindrop-import',
+      generated_at: new Date().toISOString(),
+      input_path: inputPath,
+      output_path: result.outputPath,
+      config_path: path.resolve(options.config),
+      fetch_enabled: options.fetch,
+      llm_enhance_requested: options.llmEnhance,
+      featured_from_favorite: options.featuredFromFavorite,
+      row_count: drafts.length,
+      captured_success_count: capturedCount,
+      llm_enhanced_count: llmEnhancedCount,
+      preview_image_count: previewCount,
+      featured_count: featuredCount,
+      merged_total: result.total,
+      duplicate_count: result.duplicateCount,
+      written_files: result.writtenFiles
+    });
   }
 }
 

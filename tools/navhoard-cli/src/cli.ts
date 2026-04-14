@@ -20,6 +20,7 @@ import {
   writeOutputs as writeSharedOutputs
 } from './pipeline.js';
 import { stripPnpmArgvSeparators } from './strip-pnpm-argv.js';
+import { writeBatchReportJson } from './write-batch-report.js';
 
 interface Source {
   id: string;
@@ -56,6 +57,7 @@ interface CliOptions {
   pr?: boolean;
   dryRun?: boolean;
   base: string;
+  report?: string;
 }
 
 interface FetchStats {
@@ -165,6 +167,7 @@ program
   .option('--output <path>', 'Canonical data file path', DEFAULT_CANONICAL_DATA_FILE)
   .option('--pr', 'Create a pull request (not implemented)')
   .option('--dry-run', 'Do not write files, just print stats')
+  .option('--report <path>', 'Write JSON batch report (pre-approval with --dry-run, or post-apply review)')
   .option('--base <branch>', 'Base branch for PR', 'main')
   .action(async (options: CliOptions) => {
     try {
@@ -235,6 +238,9 @@ program
       );
 
       const nextMode: WriteSummary['mode'] = sortedEntries.length > SHARD_THRESHOLD ? 'sharded' : 'single';
+      let writtenFiles: string[] = [];
+      let appliedMode: WriteSummary['mode'] = nextMode;
+
       if (options.dryRun) {
         printSummary({
           fetchStats,
@@ -248,6 +254,8 @@ program
         });
       } else {
         const writeSummary = writeSharedOutputs(dataPaths, sortedEntries);
+        writtenFiles = writeSummary.files;
+        appliedMode = writeSummary.mode;
         printSummary({
           fetchStats,
           duplicateCount: merged.duplicateCount,
@@ -257,6 +265,25 @@ program
           mode: writeSummary.mode,
           outputPath: dataPaths.canonicalFile,
           writtenFiles: writeSummary.files
+        });
+      }
+
+      if (options.report) {
+        writeBatchReportJson(options.report, {
+          kind: 'navhoard-cli-batch',
+          generated_at: new Date().toISOString(),
+          dry_run: Boolean(options.dryRun),
+          sources_path: sourcesPath,
+          config_path: configPath,
+          output_path: dataPaths.canonicalFile,
+          publish_dir: dataPaths.publishDir,
+          fetch_stats: fetchStats,
+          duplicate_count: merged.duplicateCount,
+          invalid_count: validated.invalidCount,
+          invalid_messages: validated.invalidMessages.slice(0, 100),
+          final_entry_count: sortedEntries.length,
+          output_mode: appliedMode,
+          written_files: writtenFiles
         });
       }
 

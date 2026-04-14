@@ -6,8 +6,9 @@ Before changing content or code, inspect these entry points first:
 
 1. `package.json`
 2. `tools/navhoard-cli/`
-3. `skills/nav-hoard-entry-add/SKILL.md`
-4. `docs/agent-playbook.md`
+3. `skills/nav-hoard-entry-add/SKILL.md`（单条 URL 维护）
+4. `skills/nav-hoard-batch-and-import/SKILL.md`（Raindrop 与 `sources.yaml` 批量）
+5. `docs/agent-playbook.md`
 
 Do not jump straight to patching `data/index.json` unless the tool-driven path is unavailable or clearly broken.
 
@@ -26,13 +27,17 @@ These requests all count as entry maintenance:
 - update an existing record
 - refresh a site record from its current page
 - fix title, summary, tags, preview, source, or timestamps for one entry
+- import a Raindrop.io export into the canonical dataset
+- run a multi-source batch refresh from `data/sources.yaml`
 
-For entry maintenance, use this priority order:
+For **single-entry** maintenance, use this priority order:
 
-1. If the task is a single-entry add, update, or refresh, use `skills/nav-hoard-entry-add/SKILL.md` as the workflow guide.
-2. Prefer `pnpm run entry-workflow -- ...` for single-entry capture, review, and confirm flows.
-3. Prefer `pnpm run edit` for manual review, bulk cleanup, or when a human-in-the-loop editor is the better fit.
-4. Only edit `data/index.json` directly as a last resort, and explain why the CLI or editor path was not used.
+1. **Agent / OpenClaw (or comparable session agent) as the primary path:** follow `docs/agent-playbook.md` and `skills/nav-hoard-entry-add/SKILL.md`, drive capture → review template → user confirmation → `entry-workflow confirm`, instead of ad-hoc JSON edits. The human stays in the loop for summary/tags (see Pre-write confirmation below).
+2. **Direct CLI (no agent session):** use `pnpm run entry-workflow -- ...` for the same capture / review / confirm pipeline when you are at a terminal and want the tool chain without an agent wrapper.
+3. **`pnpm run edit` as an alternative:** manual review, bulk cleanup, bookmark HTML import, or when a local visual editor is clearly the better fit.
+4. Only edit `data/index.json` directly as a last resort, and explain why the agent, skill, CLI, or editor path was not used.
+
+For **Raindrop import** or **`sources.yaml` batch** runs, follow `skills/nav-hoard-batch-and-import/SKILL.md`: confirm scope (sample / `--dry-run` first where applicable), prefer **`--report`** JSON artifacts for pre-approval and post-run review, avoid silent full imports without user agreement, then use the documented `pnpm` commands instead of hand-editing JSON.
 
 ### Pre-write confirmation
 
@@ -67,9 +72,11 @@ If the user asks to update, refresh, fix, adjust, retag, or revise a record, or 
 
 The agent should explicitly ask itself:
 
-1. Is there already a script or skill for this?
-2. Is this a single-entry workflow?
-3. Can `entry-workflow` or `edit` handle this before I patch data files directly?
+1. Should this be handled as a **guided session** (playbook + skill + `entry-workflow`) rather than patching JSON by hand?
+2. Is this **Raindrop or `sources.yaml` batch** work? If yes, follow `skills/nav-hoard-batch-and-import/SKILL.md` before running full imports.
+3. Is there already a script or skill for this?
+4. Is this a single-entry workflow?
+5. Can `entry-workflow` or `edit` handle this before I patch data files directly?
 
 If the answer may be yes, inspect the workflow first.
 

@@ -1,17 +1,20 @@
 ---
 name: nav-hoard-entry-add
-description: 为 NavHoard 通过单条 URL 交互式添加新条目。适用于会话型 Agent 需要引导用户输入链接、抓取页面内容、返回统一审阅模板、等待用户确认后写入数据源的场景。
+description: 为 Nav Hoard 通过单条 URL 交互式添加或修订条目。推荐作为 OpenClaw / Cursor / Codex 等会话 Agent 的默认数据维护主链路；底层使用 entry-workflow，与纯终端 CLI 或 pnpm run edit 备选方案共用同一写入规范。
 ---
 
-# NavHoard Entry Add
+# Nav Hoard Entry Add
 
-这个 skill 是一份通用会话工作流模板，不限定具体 Agent 产品。
+这个 skill 是**单条条目维护的推荐主链路**（会话里由 Agent 执行），不限定具体 Agent 产品。纯终端用户可自行运行 skill 中的同一组 `entry-workflow` 命令；需要批量可视化管理时再用 `pnpm run edit`。
 
-适用场景：
+适用场景（与根目录 `AGENTS.md` 中 “entry maintenance” 对齐）：
 
-- 用户想给 NavHoard 添加一个新链接
-- Agent 需要先抓取内容，再返回可编辑模板
-- 用户确认后，Agent 再把条目写入 `data/index.json`
+- **新增**：用户提供 URL，要写入一条新收藏。
+- **修订 / 刷新**：同一 URL 已在 `data/index.json` 中，用户要按当前页面重新抓取或改标题、摘要、标签、来源、预览等（仍走同一条 `capture` → 模板链路；CLI 会与已有条目合并）。
+- Agent 需要先抓取（或拿到失败时的可编辑模板），再交给用户审阅。
+- 用户确认摘要与标签等后，再由 Agent 执行 `confirm` 写入规范数据。
+
+**不在本 skill 范围内**：按 URL 批量删除（`entries-remove`）；Raindrop 与 `sources.yaml` 批量路径见 **[`../nav-hoard-batch-and-import/SKILL.md`](../nav-hoard-batch-and-import/SKILL.md)**；书签批量导入与长时间表单整理更适合 **`pnpm run edit`**。总览仍可读 `docs/agent-playbook.md`。
 
 ## 工作流
 
@@ -19,8 +22,8 @@ description: 为 NavHoard 通过单条 URL 交互式添加新条目。适用于�
 2. 确保仓库根目录已 `pnpm install`，且 CLI 已编译（`pnpm run build:cli`，或与站点一起做 `pnpm run build`）。
 3. 生成审阅模板：
    - `pnpm run entry-workflow -- capture --url "<URL>" --write .tmp/navhoard-entry-review.yaml`
-4. 把模板返回给用户审阅和修改。
-5. **写入前**：遵守仓库根目录 `AGENTS.md` 中的 **Pre-write confirmation**：向用户展示拟写入的 `summary` 与完整 `tags` 列表，并得到明确同意；若任一 tag 在 canonical `data/index.json` 的全库 `tags` 中为**首次出现**，须逐个点名该新 tag 并请用户确认后再继续。用户明确放弃该审阅步骤的，仅以 `AGENTS.md` 所写豁免条款为准。在完成本步之前，不得执行下一步的 `confirm` 或把模板里的 `confirm` 改为 `true`。
+4. 把模板返回给用户审阅和修改。（可选：在写入前运行 `pnpm run entry-workflow -- parse --template .tmp/navhoard-entry-review.yaml` 做解析校验，不写入。）
+5. **写入前**：遵守仓库根目录 `AGENTS.md` 中的 **Pre-write confirmation**：向用户展示拟写入的 `summary` 与完整 `tags` 列表，并得到明确同意；若任一 tag 在 canonical `data/index.json` 的全库 `tags` 中为**首次出现**，须逐个点名该新 tag 并请用户确认后再继续。用户明确放弃该审阅步骤的，仅以 `AGENTS.md` 所写豁免条款为准。若本次是对**已有条目**的更新，且 `AGENTS.md` 所列「实质性变更」成立（例如摘要含义明显变化、标签归类明显调整、标题可能代表不同页面），须向用户**清晰展示前后差异**并得到确认后再写入。在完成本步之前，不得执行下一步的 `confirm` 或把模板里的 `confirm` 改为 `true`。
 6. 明确提醒用户：只有把 `confirm: false` 改成 `confirm: true`，才允许写入。
 7. 用户确认后写入：
    - `pnpm run entry-workflow -- confirm --template .tmp/navhoard-entry-review.yaml --output data/index.json`
