@@ -9,7 +9,13 @@
     <style>
       :root {
         color-scheme: dark;
+        /* Editor page: body cannot stay transparent (overrides base.css); keep in family with panels. */
         --editor-bg: var(--background, #0b1220);
+        --editor-body-bg:
+          radial-gradient(circle at 50% -10%, rgba(124, 156, 255, 0.14), transparent 42%),
+          radial-gradient(circle at 92% 8%, rgba(110, 231, 255, 0.1), transparent 24%),
+          linear-gradient(180deg, #080f1c 0%, #0b1428 45%, #0e1834 100%);
+        --editor-body-bg-color: #0d1730;
         --editor-panel: linear-gradient(180deg, rgba(12, 18, 36, 0.88), rgba(11, 16, 32, 0.76));
         --editor-panel-muted: rgba(18, 27, 50, 0.82);
         --editor-border: var(--border-color, rgba(148, 163, 184, 0.22));
@@ -32,7 +38,10 @@
       }
       body {
         margin: 0;
-        background: transparent;
+        min-height: 100vh;
+        background: var(--editor-body-bg);
+        background-color: var(--editor-body-bg-color);
+        background-attachment: fixed, fixed, fixed;
         color: var(--editor-text);
       }
       navhoard-editor-app {
@@ -113,13 +122,148 @@
         justify-content: space-between;
       }
       .section-header-main {
-        align-items: flex-start;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
         gap: 12px;
         margin-bottom: 8px;
       }
       .section-header-copy {
         min-width: 0;
-        flex: 1 1 100%;
+        width: 100%;
+      }
+      .section-capture-options {
+        display: flex;
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 8px;
+      }
+      .editor-capture-option-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        max-width: min(100%, 36rem);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+      .editor-capture-option {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        font-size: inherit;
+        line-height: inherit;
+        color: var(--editor-text-soft);
+        user-select: none;
+      }
+      .editor-capture-option:hover {
+        color: var(--editor-text);
+      }
+      .editor-capture-option-label {
+        font-weight: 600;
+        color: inherit;
+        text-align: left;
+      }
+      .editor-capture-option input {
+        flex: 0 0 auto;
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        align-self: center;
+        cursor: pointer;
+        accent-color: var(--editor-accent, #7c9cff);
+      }
+      .editor-sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      .editor-capture-tooltip-anchor {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        align-self: center;
+        flex: 0 0 auto;
+        height: 1.35em;
+      }
+      .editor-capture-tooltip-trigger {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--editor-text-soft);
+        cursor: help;
+        height: 100%;
+        min-width: 1.15em;
+        line-height: 1;
+        -webkit-appearance: none;
+        appearance: none;
+        transition: color 140ms ease, opacity 140ms ease;
+      }
+      .editor-capture-tooltip-trigger:hover:not(:disabled) {
+        color: var(--editor-text);
+      }
+      .editor-capture-tooltip-trigger:focus-visible:not(:disabled) {
+        color: var(--editor-text);
+        outline: 1px solid color-mix(in srgb, var(--editor-accent) 55%, transparent);
+        outline-offset: 2px;
+      }
+      .editor-capture-tooltip-trigger:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .editor-capture-tooltip-icon {
+        width: 14px;
+        height: 14px;
+        display: block;
+        flex-shrink: 0;
+        vertical-align: middle;
+      }
+      .editor-capture-tooltip-bubble {
+        position: absolute;
+        z-index: 50;
+        right: 0;
+        bottom: calc(100% + 10px);
+        width: min(18.5rem, calc(100vw - 40px));
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.5;
+        text-align: left;
+        color: #e8eeff;
+        background: rgba(14, 22, 44, 0.98);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 14px 36px rgba(8, 12, 28, 0.5);
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 140ms ease,
+          transform 140ms ease,
+          visibility 140ms;
+      }
+      .editor-capture-tooltip-anchor:hover .editor-capture-tooltip-bubble,
+      .editor-capture-tooltip-anchor:focus-within .editor-capture-tooltip-bubble {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .section-header-main .section-actions {
+        width: 100%;
       }
       .section-actions {
         width: 100%;

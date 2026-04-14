@@ -11,6 +11,7 @@ import {
   loadExistingEntries,
   replaceDraftEntries,
   resolveDataPaths,
+  type CaptureDraftResult,
   type EntryDraft
 } from './pipeline.js';
 import { EDITOR_HTML } from './editor-html.js';
@@ -21,7 +22,11 @@ interface SavePayload {
 
 interface CapturePayload {
   url?: string;
+  /** When true, download remote og/twitter preview into `public/images/previews/` and point draft at local path. */
+  persistPreview?: boolean;
 }
+
+const PREVIEW_FETCH_UA = 'Mozilla/5.0 (compatible; NavHoardEditor/1.0)';
 
 interface ImageUploadPayload {
   filename?: string;
@@ -144,6 +149,9 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
     }
 
     const result = await captureDraft(targetUrl);
+    if (payload.persistPreview === true) {
+      await persistCapturePreviewToRepo(result, outputPath);
+    }
     sendJson(response, 200, result);
     return;
   }
@@ -451,6 +459,140 @@ function getErrorMessage(error: unknown): string {
     return error.message;
   }
   return inspect(error);
+}
+
+function detectImageKindFromBuffer(buf: Buffer): { mime: string; ext: string } | null {
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return { mime: 'image/jpeg', ext: 'jpg' };
+  }
+  if (
+    buf.length >= 8 &&
+    buf[0] === 0x89 &&
+    buf[1] === 0x50 &&
+    buf[2] === 0x4e &&
+    buf[3] === 0x47 &&
+    buf[4] === 0x0d &&
+    buf[5] === 0x0a &&
+    buf[6] === 0x1a &&
+    buf[7] === 0x0a
+  ) {
+    return { mime: 'image/png', ext: 'png' };
+  }
+  if (buf.length >= 12 && buf.subarray(0, 4).toString('ascii') === 'RIFF' && buf.subarray(8, 12).toString('ascii') === 'WEBP') {
+    return { mime: 'image/webp', ext: 'webp' };
+  }
+  if (
+    buf.length >= 6 &&
+    (buf.subarray(0, 6).toString('ascii') === 'GIF87a' || buf.subarray(0, 6).toString('ascii') === 'GIF89a')
+  ) {
+    return { mime: 'image/gif', ext: 'gif' };
+  }
+  return null;
+}
+
+async function persistCapturePreviewToRepo(result: CaptureDraftResult, outputPath: string): Promise<void> {
+  const rawSrc = String(result.draft.preview?.src || '').trim();
+  if (!rawSrc) {
+    return;
+  }
+  if (/^images\/previews\//i.test(rawSrc.replace(/^\/+/, '')) || /^\/images\/previews\//i.test(rawSrc)) {
+    return;
+  }
+  if (/^data:/i.test(rawSrc)) {
+    result.warnings.push('skipped local preview persist for data: URL');
+    return;
+  }
+
+  const baseUrl = result.normalizedUrl || result.url;
+  let absolute: string;
+  try {
+    if (/^https?:\/\//i.test(rawSrc)) {
+      absolute = rawSrc;
+    } else if (rawSrc.startsWith('//')) {
+      absolute = `https:${rawSrc}`;
+    } else {
+      absolute = new URL(rawSrc, baseUrl).toString();
+    }
+  } catch {
+    result.warnings.push('could not resolve preview URL for local persist; using remote URL');
+    return;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(absolute);
+  } catch {
+    result.warnings.push('invalid preview URL for local persist; using remote URL');
+    return;
+  }
+
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    result.warnings.push('local preview persist only supports http(s) URLs; using remote URL');
+    return;
+  }
+
+  try {
+    const response = await fetch(absolute, {
+      headers: {
+        Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        'User-Agent': PREVIEW_FETCH_UA,
+        Referer: baseUrl
+      },
+      redirect: 'follow'
+    });
+
+    if (!response.ok) {
+      result.warnings.push(
+        `could not download preview for local persist (HTTP ${response.status}); using remote URL`
+      );
+      return;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length === 0 || buffer.length > 5 * 1024 * 1024) {
+      result.warnings.push('preview download empty or too large for local persist; using remote URL');
+      return;
+    }
+
+    const headerMime = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    const sniffed = detectImageKindFromBuffer(buffer);
+    const mime = headerMime.startsWith('image/') ? headerMime : sniffed?.mime || '';
+    if (!mime.startsWith('image/')) {
+      result.warnings.push('preview response is not an image; using remote URL');
+      return;
+    }
+
+    let ext = extensionFromMime(mime) || sniffed?.ext || '';
+    if (!ext) {
+      ext = 'png';
+    }
+
+    const dataPaths = resolveDataPaths(outputPath);
+    const publicRoot = path.dirname(dataPaths.publishDir);
+    const assetDir = path.join(publicRoot, 'images', 'previews');
+    fs.mkdirSync(assetDir, { recursive: true });
+
+    const host = parsed.hostname
+      .replace(/^www\./i, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 48)
+      .toLowerCase() || 'remote';
+    const basename = `${Date.now()}-${host}-preview.${ext}`;
+    fs.writeFileSync(path.join(assetDir, basename), buffer);
+
+    const prev = result.draft.preview;
+    result.draft.preview = {
+      enabled: prev?.enabled !== false,
+      mode: 'local',
+      src: `images/previews/${basename}`,
+      alt: prev?.alt || result.draft.title
+    };
+    result.warnings.push(`preview image saved locally as ${result.draft.preview.src}`);
+  } catch (error) {
+    result.warnings.push(`could not persist preview locally: ${getErrorMessage(error)}; using remote URL`);
+  }
 }
 
 function saveUploadedImage(payload: ImageUploadPayload): { src: string; mode: 'local'; enabled: true } {

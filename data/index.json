@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "updated_at": "2026-04-14T02:45:32.716Z",
+  "updated_at": "2026-04-14T04:26:57.072Z",
   "config": {
     "hidden_unlock_password": "up up down down left right left right b a b a"
   },
@@ -14,12 +14,11 @@
         "rick astley",
         "Never Gonna Give Yo…",
         "nggyu",
-        "never gonna give yo…",
         "rick rolled"
       ],
       "source": "www.youtube.com",
       "created_at": "2009-10-25T14:00:00.000Z",
-      "updated_at": "2026-04-14T02:45:21.028Z",
+      "updated_at": "2026-04-14T04:26:52.060Z",
       "confidence": 0.8,
       "featured": false,
       "preview": {

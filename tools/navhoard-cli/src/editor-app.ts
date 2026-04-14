@@ -91,6 +91,8 @@ const FALLBACK_LOCALE_LABELS: Record<string, string> = {
 };
 
 class NavHoardEditorApp extends LitElement {
+  private static readonly persistPreviewStorageKey = 'navhoard-editor-persist-capture-preview';
+
   override createRenderRoot(): this {
     return this;
   }
@@ -102,6 +104,8 @@ class NavHoardEditorApp extends LitElement {
   private dirty = false;
   private isSaving = false;
   private isSyncing = false;
+  /** When true, POST /api/capture asks the server to download remote preview into public/images/previews/. */
+  private persistCapturePreview = false;
   private pendingReload = false;
   private ignoreReloadUntil = 0;
   private featuredOnly = false;
@@ -136,6 +140,12 @@ class NavHoardEditorApp extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
+    try {
+      this.persistCapturePreview =
+        localStorage.getItem(NavHoardEditorApp.persistPreviewStorageKey) === '1';
+    } catch {
+      this.persistCapturePreview = false;
+    }
     window.addEventListener('beforeunload', this.handleBeforeUnload);
     window.addEventListener('pointerdown', this.handleWindowPointerDown);
     window.addEventListener('keydown', this.handleWindowKeydown);
@@ -790,7 +800,7 @@ class NavHoardEditorApp extends LitElement {
       const payload = await this.requestJson<CaptureResponse>('/api/capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: targetUrl })
+        body: JSON.stringify({ url: targetUrl, persistPreview: this.persistCapturePreview })
       });
 
       const tagMeta = this.applyCaptureResult(payload);
@@ -847,7 +857,7 @@ class NavHoardEditorApp extends LitElement {
       const payload = await this.requestJson<CaptureResponse>('/api/capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: targetUrl })
+        body: JSON.stringify({ url: targetUrl, persistPreview: this.persistCapturePreview })
       });
 
       const hadPreviewSrc = Boolean(payload.draft?.preview?.src);
@@ -1061,6 +1071,17 @@ class NavHoardEditorApp extends LitElement {
     const input = this.querySelector<HTMLInputElement>(`#${id}`);
     input?.click();
   }
+
+  private handlePersistCapturePreviewChange = (event: Event): void => {
+    const input = event.currentTarget as HTMLInputElement;
+    this.persistCapturePreview = input.checked;
+    try {
+      localStorage.setItem(NavHoardEditorApp.persistPreviewStorageKey, this.persistCapturePreview ? '1' : '0');
+    } catch {
+      /* ignore quota / private mode */
+    }
+    this.touch();
+  };
 
   private handleSearchInput = (event: Event): void => {
     const previousKeyword = this.search.trim();
@@ -1432,6 +1453,47 @@ class NavHoardEditorApp extends LitElement {
                 <button class="nh-button nh-button--primary" type="button" ?disabled=${!entry || this.isSaving} @click=${() => void this.saveAll()}>
                   ${this.isSaving ? this.t('editor.button.saving') : this.t('editor.button.save_all')}
                 </button>
+              </div>
+              <div class="section-capture-options">
+                <div class="editor-capture-option-row">
+                  <label class="editor-capture-option" for="editor-persist-capture-checkbox">
+                    <input
+                      id="editor-persist-capture-checkbox"
+                      type="checkbox"
+                      ?disabled=${this.isSyncing}
+                      .checked=${this.persistCapturePreview}
+                      @change=${this.handlePersistCapturePreviewChange}
+                    />
+                    <span class="editor-capture-option-label">${this.t('editor.field.persist_capture_preview')}</span>
+                  </label>
+                  <span class="editor-capture-tooltip-anchor">
+                    <button
+                      type="button"
+                      class="editor-capture-tooltip-trigger"
+                      ?disabled=${this.isSyncing}
+                      aria-describedby="editor-persist-capture-tip"
+                    >
+                      <span class="editor-sr-only">${this.t('editor.field.persist_capture_preview_help_label')}</span>
+                      <svg
+                        class="editor-capture-tooltip-icon"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.85"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 16v-5" />
+                        <circle cx="12" cy="8" r="1.15" fill="currentColor" stroke="none" />
+                      </svg>
+                    </button>
+                    <span id="editor-persist-capture-tip" role="tooltip" class="editor-capture-tooltip-bubble">
+                      ${this.t('editor.field.persist_capture_preview_hint')}
+                    </span>
+                  </span>
+                </div>
               </div>
             </div>
 
